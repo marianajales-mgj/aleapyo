@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aleapyo — Simulador de Alocação Leapy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Krona+One&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--blue:#373afd;--green:#35dcb2;--red:#fc5959;--yellow:#f2cf6b;--dark:#1d0328;--bg:#f5f5f2;--sf:#fff;--br:#e8e8e3;--tx:#1d0328;--mu:#777;--r:10px;--rs:7px}
+body{font-family:'Montserrat',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh}
+.app{max-width:920px;margin:0 auto;padding-bottom:3rem}
+.header{background:var(--dark);padding:12px 20px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-size:18px;font-weight:800;color:var(--green);font-family:'Krona One',sans-serif}
+.tabs{display:flex;border-bottom:1px solid var(--br);background:var(--sf);padding:0 16px;position:sticky;top:0;z-index:10;overflow-x:auto}
+.tab{padding:11px 15px;font-size:11px;font-weight:600;color:var(--mu);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;font-family:'Montserrat',sans-serif;white-space:nowrap}
+.tab.on{color:var(--blue);border-bottom-color:var(--blue)}
+.sec{padding:16px 20px}
+.hint{font-size:12px;color:var(--mu);background:#eeefff;border-left:3px solid var(--blue);border-radius:0 var(--rs) var(--rs) 0;padding:8px 12px;margin-bottom:14px}
+.card{background:var(--sf);border:1px solid var(--br);border-radius:var(--r);padding:13px 15px;margin-bottom:10px;border-left:3px solid var(--blue)}
+input[type=date],input[type=number],input[type=text],select{height:32px;border:1px solid var(--br);border-radius:var(--rs);padding:0 10px;font-size:12px;font-family:'Montserrat',sans-serif;background:var(--sf);color:var(--tx)}
+.emp-row{display:grid;grid-template-columns:1fr 65px 100px 24px;gap:6px;align-items:center;margin-bottom:6px}
+.add-btn{width:100%;padding:6px;border:1.5px dashed var(--blue);border-radius:var(--rs);background:transparent;color:var(--blue);font-size:11px;font-weight:600;cursor:pointer;margin-top:5px;font-family:'Montserrat',sans-serif}
+.sim-btn{width:100%;height:46px;background:var(--blue);color:#fff;border:none;border-radius:var(--r);font-size:13px;font-weight:700;cursor:pointer;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:8px;font-family:'Montserrat',sans-serif}
+.grade-tbl{width:100%;border-collapse:collapse;font-size:11px}
+.grade-tbl th{padding:6px 8px;text-align:center;font-size:9px;font-weight:700;color:var(--mu);border-bottom:1px solid var(--br);text-transform:uppercase}
+.grade-tbl td{padding:6px 8px;vertical-align:top;border-bottom:1px solid #f5f5f2}
+.bar{height:3px;background:#eee;border-radius:99px;margin-top:4px;overflow:hidden}
+.chip{border-radius:6px;padding:3px 7px;margin-bottom:3px;font-size:10px;font-weight:600;display:flex;justify-content:space-between;gap:4px;align-items:center}
+.rec{background:var(--sf);border:1px solid var(--br);border-radius:var(--r);padding:13px 15px;margin-bottom:10px}
+.t3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
+.edit-sel{height:27px;font-size:11px;border:1px solid var(--blue);border-radius:5px;padding:0 6px;background:#eeefff;color:var(--blue);font-weight:600;cursor:pointer;font-family:'Montserrat',sans-serif}
+.turmas-tbl{width:100%;border-collapse:collapse;font-size:11px}
+.turmas-tbl th{padding:7px 9px;text-align:left;font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase;border-bottom:1.5px solid var(--br)}
+.turmas-tbl td{padding:7px 9px;border-bottom:0.5px solid #f5f5f2}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="header">
+  <div style="display:flex;align-items:center;gap:12px">
+    <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="15" stroke="#373afd" stroke-width="2"/><circle cx="16" cy="16" r="10" stroke="#35dcb2" stroke-width="2"/><circle cx="16" cy="16" r="6" stroke="#fc5959" stroke-width="1.5"/><circle cx="16" cy="16" r="3" fill="#373afd"/></svg>
+    <div><div class="logo">Aleapyo</div><div style="font-size:11px;color:#aaa;margin-top:1px">Simulador de Alocação — Leapy</div></div>
+  </div>
+  <button onclick="if(confirm('Resetar?')){location.reload();}" style="font-size:11px;font-family:'Montserrat',sans-serif;color:#aaa;background:transparent;border:1px solid #444;border-radius:var(--rs);padding:3px 10px;cursor:pointer">↺ Resetar</button>
+</div>
+
+
+<div class="tabs">
+  <button class="tab on" onclick="setTab('novas',this)">Novas entradas</button>
+  <button class="tab" onclick="setTab('turmas',this)">Turmas em andamento</button>
+  <button class="tab" onclick="setTab('pls',this)">Program Leads</button>
+  <button class="tab" onclick="setTab('recrono',this)">↺ Recronogramar</button>
+</div>
+
+<!-- TAB NOVAS -->
+<div id="tab-novas" class="sec">
+  <div class="hint">Preencha as entradas e clique em <b>✦ Simular alocação</b> para gerar a alocação automaticamente.</div>
+  <div id="cohorts-list"></div>
+  <button class="add-btn" onclick="addCohort()">+ Adicionar data de entrada</button>
+  <button class="sim-btn" onclick="simular()">✦ Simular alocação</button>
+
+  <div id="sim-status" style="display:none;margin-top:10px;background:#e8fff9;border:1px solid #35dcb2;border-radius:var(--rs);padding:10px 14px;font-size:12px;color:#054a36"></div>
+
+
+
+  <div id="grade-wrap" style="margin-top:16px"></div>
+  <div id="resultado"></div>
+</div>
+
+<!-- TAB TURMAS -->
+<div id="tab-turmas" class="sec" style="display:none">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+    <div class="hint" style="margin:0;flex:1">Turmas ativas e simuladas. Confirme cada entrada após validar.</div>
+    <div style="display:flex;gap:8px">
+      <button onclick="exportarCSV()" style="font-size:11px;font-family:'Montserrat',sans-serif;color:#0a7a60;background:#e8fff9;border:1px solid #35dcb2;border-radius:var(--rs);padding:5px 12px;cursor:pointer">⬇ Exportar CSV</button>
+    </div>
+  </div>
+  <div style="overflow-x:auto"><table class="turmas-tbl">
+    <thead><tr><th>Turma</th><th>Entrada</th><th style="text-align:center">Jovens</th><th>Dia</th><th>Sala</th><th>PL</th><th>1º Presencial</th><th>Status</th></tr></thead>
+    <tbody id="turmas-tbody"></tbody>
+  </table></div>
+</div>
+
+<!-- TAB PLs -->
+<div id="tab-pls" class="sec" style="display:none">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+    <div class="hint" style="margin:0;flex:1">Vermelho=alocado(fixo). Verde=disponível. Amarelo pontilhado=simulação. Clique para alternar.</div>
+    <button onclick="abrirNovoPL()" style="font-size:11px;font-family:'Montserrat',sans-serif;color:#fff;background:var(--blue);border:none;border-radius:var(--rs);padding:6px 16px;cursor:pointer;margin-left:10px;font-weight:600">+ Novo PL</button>
+  </div>
+  <div id="pls-wrap"></div>
+</div>
+
+<!-- TAB RECRONO -->
+<div id="tab-recrono" class="sec" style="display:none">
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4rem 2rem;text-align:center;gap:16px">
+    <svg width="64" height="64" viewBox="0 0 64 64" fill="none" style="animation:spin 3s linear infinite"><circle cx="32" cy="32" r="30" stroke="#373afd" stroke-width="3" stroke-dasharray="40 20" opacity=".6"/><circle cx="32" cy="32" r="22" stroke="#35dcb2" stroke-width="3" stroke-dasharray="30 15" opacity=".6"/></svg>
+    <div style="font-size:18px;font-weight:600">Em breve</div>
+    <div style="font-size:13px;color:var(--mu);max-width:360px;line-height:1.6">A funcionalidade de recronogramação está sendo desenvolvida.</div>
+  </div>
+</div>
+
+</div>
+<script>
+let GROQ_KEY='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';
+function salvarKey(){
+  const k=document.getElementById('gemini-key').value.trim();
+  if(!k){alert('Cole sua chave do Google AI Studio.');return;}
+  GEMINI_KEY=k;localStorage.setItem('gemini_key',k);
+  document.getElementById('key-status').textContent='✓ Salva!';
+  document.getElementById('api-banner').style.background='#e8fff9';
+  document.getElementById('api-banner').style.borderColor='#35dcb2';
+  setTimeout(()=>{document.getElementById('key-status').textContent='';},3000);
+}
+function carregarKey(){
+  const k=localStorage.getItem('gemini_key');
+  if(k){GEMINI_KEY=k;document.getElementById('gemini-key').value=k;
+    document.getElementById('api-banner').style.background='#e8fff9';
+    document.getElementById('api-banner').style.borderColor='#35dcb2';}
+}
+const PLC={'Manu':{bg:'#35dcb2',light:'#35dcb218',text:'#054a36',border:'#35dcb2'},'Rodrigo':{bg:'#373afd',light:'#373afd18',text:'#1d0328',border:'#373afd'},'Novo(a) PL':{bg:'#f2cf6b',light:'#f2cf6b18',text:'#5a3e00',border:'#f2cf6b'}};
+let plCores={...PLC};
+const corPL=pl=>plCores[pl]||{bg:'#e0e0e0',light:'#e0e0e018',text:'#555',border:'#bbb'};
+const nomeTurma=n=>n&&!n.startsWith('Turma ')?'Turma '+n:n||'—';
+const normDia=d=>({'terca':'terça','terca-feira':'terça','quinta-feira':'quinta','sexta-feira':'sexta','segunda-feira':'segunda'})[d]||d;
+const LETRA={segunda:'A','terça':'B',quarta:'C',quinta:'D',sexta:'E'};
+function renomear(nome,dia){const m=nome.match(/^(Turma )?([A-E])(M\d+)$/);if(!m)return nome;return(m[1]||'')+(LETRA[dia]||m[2])+m[3];}
+
+const FM={'2026-06-04':'Corpus Christi','2026-06-05':'Emenda Corpus Christi','2026-07-09':'Revolução Constitucionalista','2026-09-07':'Independência','2026-10-12':'Dia das Crianças','2026-11-02':'Finados','2026-11-15':'Proclamação da República','2026-11-20':'Consciência Negra','2026-12-25':'Natal'};
+function calcEm(){const e={};Object.entries(FM).forEach(([dt,nm])=>{const d=new Date(dt+'T12:00:00'),dow=d.getDay();if(dow===2){const s=new Date(d);s.setDate(s.getDate()-1);e[s.toISOString().slice(0,10)]='Emenda de '+nm;}else if(dow===4){const s=new Date(d);s.setDate(s.getDate()+1);e[s.toISOString().slice(0,10)]='Emenda de '+nm;}});return e;}
+const TF={...FM,...calcEm()};
+const isFer=d=>{const s=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;return s in TF;};
+function addDU(d,n){let r=new Date(d),c=0;while(c<n){r.setDate(r.getDate()+1);if(r.getDay()!==0&&r.getDay()!==6&&!isFer(r))c++;}return r;}
+const DIASDOW={segunda:1,'terça':2,quarta:3,quinta:4,sexta:5};
+function calcFim(dt){return addDU(new Date(dt+'T12:00:00'),6);}
+function proxDia(ap,dow){let d=new Date(ap);d.setDate(d.getDate()+1);for(let i=0;i<14;i++){if(d.getDay()===dow&&!isFer(d))return d;d.setDate(d.getDate()+1);}return d;}
+function calcPP(entrada,dia){const dow=DIASDOW[normDia(dia)];if(!dow||!entrada||entrada==='—')return '—';try{const pp=proxDia(calcFim(entrada),dow);return `${String(pp.getDate()).padStart(2,'0')}/${String(pp.getMonth()+1).padStart(2,'0')}/${pp.getFullYear()}`;}catch{return '—';}}
+function fmtFim(dt){const d=calcFim(dt);const ds=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];return `${ds[d.getDay()]} - ${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getFullYear()).slice(2)}`;}
+function ferNaImersao(dt){const e=new Date(dt+'T12:00:00'),fim=calcFim(dt),res=[];const d=new Date(e);while(d<=fim){d.setDate(d.getDate()+1);const k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;if(TF[k])res.push(`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')} - ${TF[k]}`);}return res;}
+function fmtData(dt){if(!dt||dt==='—')return '—';try{const d=new Date(dt+'T12:00:00');return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;}catch{return dt;}}
+
+const TURMAS_FIXAS=[
+  {nome:'Turma BM3',entrada:'2026-03-02',jovens:6, dia:'terça', sala:'Sala 1',pl:'Manu',status:'ativa'},
+  {nome:'Turma BM4',entrada:'2026-03-16',jovens:10,dia:'terça', sala:'Sala 1',pl:'Manu',status:'ativa'},
+  {nome:'Turma CM1',entrada:'2026-03-16',jovens:26,dia:'quarta',sala:'Sala 1',pl:'Manu',status:'ativa'},
+  {nome:'Turma CM1',entrada:'2026-03-16',jovens:21,dia:'quarta',sala:'Sala 2',pl:'Novo(a) PL',status:'ativa'},
+  {nome:'Turma CM2',entrada:'2026-04-06',jovens:2, dia:'quarta',sala:'Sala 2',pl:'Novo(a) PL',status:'ativa'},
+  {nome:'Turma EM3',entrada:'2026-04-22',jovens:5, dia:'sexta', sala:'Sala 2',pl:'Manu',status:'ativa'},
+  {nome:'Turma EM4',entrada:'2026-05-04',jovens:1, dia:'sexta', sala:'Sala 2',pl:'Manu',status:'ativa'},
+  {nome:'Turma EM5',entrada:'2026-05-18',jovens:24,dia:'sexta', sala:'Sala 2',pl:'Manu',status:'ativa'},
+  {nome:'Turma BM5',entrada:'2026-05-18',jovens:7, dia:'terça', sala:'Sala 2',pl:'Novo(a) PL',status:'ativa'},
+];
+let turmasSim=[];
+let plsState=[
+  {nome:'Rodrigo',alocados:['Seg','Ter','Qua'],livres:['Qui','Sex'],simDias:[]},
+  {nome:'Manu',alocados:['Ter','Qua','Sex'],livres:['Seg','Qui'],simDias:[]},
+  {nome:'Novo(a) PL',alocados:['Ter','Qua'],livres:['Seg','Qui','Sex'],simDias:[]},
+];
+let cohorts=[
+  {data:'2026-06-15',empresas:[{nome:'Koin',jovens:'5'},{nome:'Blip',jovens:'1'},{nome:'Serena',jovens:'1'},{nome:'Provence Capital',jovens:'1'},{nome:'Sanar',jovens:'5'},{nome:'Flash',jovens:'1'},{nome:'Alice',jovens:'1'},{nome:'Zubale',jovens:'1'},{nome:'UOL',jovens:'6'}]},
+  {data:'2026-07-06',empresas:[{nome:'Arco',jovens:'6'},{nome:'Shopee',jovens:'84'}]},
+  {data:'2026-07-20',empresas:[{nome:'Stone',jovens:'6'}]},
+  {data:'2026-08-10',empresas:[{nome:'WellHub',jovens:'17'}]},
+];
+const DIAS=['segunda','terça','quarta','quinta','sexta'];
+const DABR={segunda:'Seg',terça:'Ter',quarta:'Qua',quinta:'Qui',sexta:'Sex'};
+let _parsed=null;
+
+// ── ENCONTRAR MELHOR SALA ──
+// Prioriza sala mais cheia que ainda caiba em 30j (confortável)
+// Se nenhuma couber em 30j, tenta até 32j (máximo absoluto)
+function encontrarSala(dia,jovens,excluirNome){
+  const salas=['Sala 1','Sala 2'];
+  const totais={};
+  salas.forEach(sala=>{
+    let t=0;
+    TURMAS_FIXAS.forEach(x=>{if(x.dia===dia&&x.sala===sala)t+=x.jovens;});
+    turmasSim.forEach(x=>{if(normDia(x.dia)===dia&&x.sala===sala&&x.nome!==excluirNome)t+=x.jovens;});
+    totais[sala]=t;
+  });
+  // Prioriza sala mais cheia que ainda caiba (max 32j absoluto)
+  return salas.filter(s=>totais[s]+jovens<=32).sort((a,b)=>totais[b]-totais[a])[0]||null;
+}
+
+// ── NAVEGAÇÃO ──
+function setTab(t,btn){
+  ['novas','turmas','pls','recrono'].forEach(k=>document.getElementById('tab-'+k).style.display=k===t?'block':'none');
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  if(t==='turmas')renderTurmas();
+  if(t==='pls')renderPLs();
+}
+
+// ── COHORTS ──
+function renderCohorts(){
+  const el=document.getElementById('cohorts-list');el.innerHTML='';
+  cohorts.forEach((c,ci)=>{
+    const total=c.empresas.reduce((s,e)=>s+(parseInt(e.jovens)||0),0);
+    const fim=c.data?fmtFim(c.data):'';
+    const fers=c.data?ferNaImersao(c.data):[];
+    const div=document.createElement('div');div.className='card';
+    div.innerHTML=`<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;gap:8px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <div><div style="font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase;margin-bottom:3px">Data de entrada</div>
+          <input type="date" value="${c.data}" onchange="updC(${ci},'data',this.value)" style="width:150px"/></div>
+        ${fim?`<div style="background:#eeefff;border:1px solid #b4b6fd;border-radius:var(--rs);padding:5px 12px;text-align:center">
+          <div style="font-size:9px;font-weight:700;color:var(--blue);text-transform:uppercase;margin-bottom:2px">Fim da imersão</div>
+          <div style="font-size:11px;font-weight:600">${fim}</div>
+          ${fers.map(f=>`<div style="font-size:10px;color:var(--yellow);font-weight:600;margin-top:2px">${f}</div>`).join('')}
+        </div>`:''}
+        <span style="background:#eeefff;color:var(--blue);border:1px solid #b4b6fd;border-radius:99px;padding:3px 11px;font-size:11px;font-weight:700">${total}j</span>
+      </div>
+      <button onclick="remC(${ci})" style="padding:4px 10px;border:1px solid var(--red);color:var(--red);background:transparent;border-radius:var(--rs);font-size:11px;cursor:pointer">✕</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 65px 100px 24px;gap:6px;margin-bottom:5px;font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase">
+      <span>Empresa</span><span>Jovens</span><span>Atraso?</span><span></span>
+    </div>
+    <div id="emps-${ci}"></div>
+    <button class="add-btn" onclick="addEmp(${ci})">+ Adicionar empresa</button>`;
+    el.appendChild(div);renderEmps(ci);
+  });
+}
+function renderEmps(ci){
+  const el=document.getElementById('emps-'+ci);if(!el)return;el.innerHTML='';
+  cohorts[ci].empresas.forEach((e,ei)=>{
+    const r=document.createElement('div');r.className='emp-row';
+    r.innerHTML=`<input type="text" value="${e.nome||''}" placeholder="Nome da empresa" onchange="updE(${ci},${ei},'nome',this.value)" style="width:100%"/>
+      <input type="number" value="${e.jovens||''}" placeholder="Qtde" min="1" max="99" onchange="updE(${ci},${ei},'jovens',this.value)" style="width:100%"/>
+      <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer"><input type="checkbox" ${e.atraso?'checked':''} onchange="updE(${ci},${ei},'atraso',this.checked)"/> Atraso</label>
+      <button onclick="remE(${ci},${ei})" style="background:none;border:none;cursor:pointer;color:#bbb;font-size:17px;padding:0">×</button>`;
+    el.appendChild(r);
+  });
+}
+function updC(ci,f,v){cohorts[ci][f]=v;renderCohorts();}
+function addEmp(ci){cohorts[ci].empresas.push({nome:'',jovens:''});renderEmps(ci);renderCohorts();}
+function remE(ci,ei){cohorts[ci].empresas.splice(ei,1);if(!cohorts[ci].empresas.length)cohorts[ci].empresas.push({nome:'',jovens:''});renderCohorts();}
+function updE(ci,ei,f,v){cohorts[ci].empresas[ei][f]=v;}
+function addCohort(){cohorts.push({data:'',empresas:[{nome:'',jovens:''}]});renderCohorts();}
+function remC(ci){cohorts.splice(ci,1);renderCohorts();}
+
+// ── GRADE ──
+function buildGrade(){
+  const g={'Sala 1':{segunda:[],terça:[],quarta:[],quinta:[],sexta:[]},'Sala 2':{segunda:[],terça:[],quarta:[],quinta:[],sexta:[]}};
+  TURMAS_FIXAS.forEach(t=>{if(g[t.sala]?.[t.dia]!==undefined)g[t.sala][t.dia].push({...t,sim:false});});
+  turmasSim.forEach(t=>{const dia=normDia(t.dia);if(t.sala&&dia&&g[t.sala]?.[dia]!==undefined)g[t.sala][dia].push({nome:t.nome,jovens:t.jovens,pl:t.pl,sim:t.status==='simulada'});});
+  return g;
+}
+function renderGrade(){
+  const g=buildGrade();
+  let h=`<div style="font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Visão geral de alocação</div>`;
+  h+=`<div style="display:flex;gap:12px;margin-bottom:10px;flex-wrap:wrap;align-items:center">`;
+  Object.entries(plCores).forEach(([pl,cor])=>{h+=`<span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--mu)"><span style="width:10px;height:10px;border-radius:99px;background:${cor.bg};display:inline-block"></span>${pl}</span>`;});
+  h+=`<span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--mu)"><span style="width:12px;height:12px;border-radius:3px;border:2px dashed var(--blue);display:inline-block"></span>Simulação</span></div>`;
+  h+=`<div style="overflow-x:auto;border-radius:var(--r);border:1px solid var(--br);background:var(--sf)"><table class="grade-tbl"><thead><tr><th style="text-align:left;padding:8px 10px">Sala/Dia</th>`;
+  DIAS.forEach(d=>{h+=`<th>${DABR[d]}</th>`;});
+  h+=`</tr></thead><tbody>`;
+  ['Sala 1','Sala 2'].forEach(sala=>{
+    h+=`<tr><td style="font-weight:700;font-size:12px;white-space:nowrap;padding:8px 10px">${sala}</td>`;
+    DIAS.forEach(dia=>{
+      const turmas=g[sala][dia]||[];
+      const total=turmas.reduce((s,t)=>s+(t.jovens||0),0);
+      const corBar=total>32?'var(--red)':total>30?'var(--yellow)':'var(--green)';
+      h+=`<td style="min-width:90px;padding:6px 8px">`;
+      if(!turmas.length){h+=`<span style="color:#ccc;font-size:10px;font-style:italic">livre</span>`;}
+      else{
+        turmas.forEach(t=>{const cor=corPL(t.pl);h+=`<div class="chip" style="background:${cor.light};color:${cor.text};border:${t.sim?`1.5px dashed ${cor.border}`:`1px solid ${cor.border}55`}"><span>${t.sim?'✦ ':''}<b>${t.nome}</b></span><span style="opacity:.75">${t.jovens}j</span></div>`;});
+        h+=`<div class="bar"><div style="height:100%;width:${Math.min(100,Math.round(total/30*100))}%;background:${corBar};border-radius:99px"></div></div>`;
+        h+=`<div style="font-size:9px;font-weight:700;color:${corBar};text-align:right;margin-top:2px">${total}j</div>`;
+      }
+      h+=`</td>`;
+    });
+    h+=`</tr>`;
+  });
+  h+=`</tbody></table></div>`;
+  document.getElementById('grade-wrap').innerHTML=h;
+}
+
+// ── PROMPT ──
+function simular(){
+  turmasSim=turmasSim.filter(t=>t.status==='confirmada');
+  plsState=plsState.map(p=>({...p,simDias:[]}));
+
+  // ── LÓGICA DE ALOCAÇÃO DETERMINÍSTICA ──
+  const PRIO=['terça','quinta','sexta','segunda'];
+  const resultado={recomendacoes:[],alertas:[]};
+
+  // Estado atual das salas (fixas + já confirmadas)
+  function totalSala(dia,sala,excluir){
+    let t=0;
+    TURMAS_FIXAS.forEach(x=>{if(x.dia===dia&&x.sala===sala)t+=x.jovens;});
+    turmasSim.forEach(x=>{if(normDia(x.dia)===dia&&x.sala===sala&&x.nome!==excluir)t+=x.jovens;});
+    return t;
+  }
+
+  // Encontrar melhor sala: mais cheia que ainda caiba (<=32j)
+  function melhorSala(dia,jovens,excluir){
+    const salas=['Sala 1','Sala 2'];
+    const totais={};
+    salas.forEach(s=>totais[s]=totalSala(dia,s,excluir));
+    return salas.filter(s=>totais[s]+jovens<=32).sort((a,b)=>totais[b]-totais[a])[0]||null;
+  }
+
+  // PLs disponíveis para um dia (não alocados fixos naquele dia)
+  const DABR2={'segunda':'Seg','terça':'Ter','quarta':'Qua','quinta':'Qui','sexta':'Sex'};
+  function plsDisponiveis(dia){
+    const ab=DABR2[dia]||dia;
+    return plsState.filter(p=>!p.alocados.includes(ab));
+  }
+
+  // PLs já usados naquele dia (nas turmas simuladas desta rodada)
+  function plsUsadosDia(dia,novasTurmas){
+    const usados=new Set();
+    TURMAS_FIXAS.forEach(t=>{if(t.dia===dia)usados.add(t.pl);});
+    turmasSim.forEach(t=>{if(normDia(t.dia)===dia)usados.add(t.pl);});
+    novasTurmas.forEach(t=>{if(normDia(t.dia)===dia)usados.add(t.pl);});
+    return usados;
+  }
+
+  // Escolher PL disponível para sala
+  function escolherPL(dia,novasTurmas){
+    const disponiveis=plsDisponiveis(dia);
+    const usados=plsUsadosDia(dia,novasTurmas);
+    const livre=disponiveis.find(p=>!usados.has(p.nome));
+    return livre?livre.nome:null;
+  }
+
+  // Próximos números de turma por letra
+  const contTurma={};
+  function proxNomeTurma(dia){
+    const letra=LETRA[dia]||'X';
+    const chave=letra+'M';
+    if(!contTurma[chave]){
+      // Descobrir o maior número já usado
+      let max=0;
+      TURMAS_FIXAS.forEach(t=>{const m=t.nome.match(/([A-E])M(\d+)/);if(m&&m[1]===letra)max=Math.max(max,parseInt(m[2]));});
+      turmasSim.forEach(t=>{const m=t.nome.match(/([A-E])M(\d+)/);if(m&&m[1]===letra)max=Math.max(max,parseInt(m[2]));});
+      contTurma[chave]=max;
+    }
+    contTurma[chave]++;
+    return letra+'M'+contTurma[chave];
+  }
+
+  const novasTurmas=[];
+
+  cohorts.filter(c=>c.data).forEach(c=>{
+    const conf=c.empresas.filter(e=>!e.atraso&&e.nome&&parseInt(e.jovens)>0);
+    const totalJ=conf.reduce((s,e)=>s+(parseInt(e.jovens)||0),0);
+    const dataFmt=c.data.split('-').reverse().join('/');
+
+    if(!conf.length){
+      resultado.recomendacoes.push({data:dataFmt,status:'sem_estimativa',justificativa:'Sem estimativa de jovens para esta entrada.',turmas:[],cenarios_sem_estimativa:'Aguardando estimativa de jovens.'});
+      return;
+    }
+
+    // Dividir jovens em lotes de até 32j, priorizando dias na ordem
+    let restante=totalJ;
+    let restEmpresas=[...conf.map(e=>({...e,jovens:parseInt(e.jovens)}))];
+    const turmasDaEntrada=[];
+    let alertaPL=false;
+
+    for(let pi=0;pi<PRIO.length&&restante>0;pi++){
+      const dia=PRIO[pi];
+      // Tentar alocar em Sala 1 e Sala 2 deste dia
+      for(let si=0;si<2&&restante>0;si++){
+        const sala=melhorSala(dia,Math.min(restante,32),null);
+        if(!sala)continue;
+        const espaco=32-totalSala(dia,sala,null)-novasTurmas.filter(t=>normDia(t.dia)===dia&&t.sala===sala).reduce((s,t)=>s+t.jovens,0);
+        if(espaco<=0)continue;
+
+        const lote=Math.min(restante,espaco);
+        // Distribuir empresas neste lote
+        const empLote=[];
+        let acum=0;
+        for(let i=0;i<restEmpresas.length&&acum<lote;i++){
+          const pegar=Math.min(restEmpresas[i].jovens,lote-acum);
+          if(pegar>0){empLote.push({nome:restEmpresas[i].nome,jovens:pegar});acum+=pegar;restEmpresas[i].jovens-=pegar;if(restEmpresas[i].jovens===0)restEmpresas.splice(i--,1);}
+        }
+
+        const pl=escolherPL(dia,novasTurmas);
+        if(!pl){alertaPL=true;}
+
+        const nomeSug=proxNomeTurma(dia);
+        const pp=calcPP(c.data,dia);
+        const nova={nome:nomeTurma(nomeSug),entrada:c.data,jovens:lote,dia,sala:sala||'Sala 1',pl:pl||'(PL não disponível)',primeiro_presencial:pp,status:'simulada',empresas:empLote,justificativa:''};
+        novasTurmas.push(nova);
+        turmasDaEntrada.push({turma_sugerida:nomeSug,dia,sala:sala||'Sala 1',pl:pl||'(PL não disponível)',jovens:lote,primeiro_presencial:pp,empresas:empLote,entrada:c.data});
+        restante-=lote;
+        break; // Próximo lote vai para a próxima iteração do loop externo
+      }
+    }
+
+    // Montar justificativa
+    const diasUsados=[...new Set(turmasDaEntrada.map(t=>t.dia))];
+    const justificativa=`${totalJ}j distribuídos em ${turmasDaEntrada.length} turma(s): `+turmasDaEntrada.map(t=>`${nomeTurma(t.turma_sugerida)} (${t.jovens}j, ${t.dia}, ${t.sala})`).join('; ')+'.';
+    turmasDaEntrada.forEach(t=>t.justificativa=justificativa);
+
+    if(alertaPL){
+      resultado.alertas.push({nivel:'alerta',titulo:'PL insuficiente',descricao:`Não há PLs disponíveis suficientes para cobrir todas as salas da entrada ${dataFmt}. Cadastre um novo PL na aba Program Leads.`});
+    }
+
+    resultado.recomendacoes.push({data:dataFmt,status:restante>0?'inviavel':'ok',justificativa,turmas:turmasDaEntrada,cenarios_sem_estimativa:null});
+    if(restante>0){
+      resultado.alertas.push({nivel:'alerta',titulo:`Jovens sem sala — ${dataFmt}`,descricao:`${restante}j não puderam ser alocados. Todas as salas estão no limite. Cadastre mais PLs ou verifique a capacidade.`});
+    }
+  });
+
+  turmasSim=[...turmasSim,...novasTurmas];
+  plsState=plsState.map(p=>({...p,simDias:[]}));
+  novasTurmas.forEach(t=>{
+    const pi=plsState.findIndex(p=>p.nome===t.pl);
+    const ab=DABR[t.dia];
+    if(pi>=0&&ab&&!plsState[pi].alocados.includes(ab)&&!plsState[pi].simDias.includes(ab))plsState[pi].simDias.push(ab);
+  });
+
+  _parsed=resultado;
+  renderGrade();
+  renderResultado(resultado);
+
+  const st=document.getElementById('sim-status');
+  st.textContent='✓ Simulação concluída! Confira os resultados abaixo.';
+  st.style.background='#e8fff9';st.style.borderColor='#35dcb2';st.style.color='#054a36';
+  st.style.display='block';
+}
+function aplicarJSON(){
+  const txt=document.getElementById('json-input').value.trim();
+  const errEl=document.getElementById('json-err');errEl.textContent='';
+  if(!txt){errEl.textContent='Cole o JSON antes de aplicar.';return;}
+  try{
+    const s=txt.indexOf('{'),e=txt.lastIndexOf('}');
+    processarResposta(JSON.parse(s>=0?txt.slice(s,e+1):txt));
+    document.getElementById('json-input').value='';
+    document.getElementById('copy-status').style.display='none';
+  }catch(er){errEl.textContent='JSON inválido: '+er.message;}
+}
+
+function processarResposta(parsed){
+  _parsed=parsed;
+  const novas=[];
+  (parsed.recomendacoes||[]).forEach(r=>{
+    (r.turmas||[]).forEach(t=>{
+      if(!t.turma_sugerida||!t.dia||!t.sala)return;
+      const dia=normDia(t.dia);
+      let sala=t.sala;
+      let totalSala=0;
+      TURMAS_FIXAS.forEach(x=>{if(x.dia===dia&&x.sala===sala)totalSala+=x.jovens;});
+      novas.forEach(x=>{if(normDia(x.dia)===dia&&x.sala===sala)totalSala+=x.jovens;});
+      if(totalSala+t.jovens>32){
+        const alt=encontrarSala(dia,t.jovens,null);
+        if(alt)sala=alt;
+      }
+      novas.push({nome:nomeTurma(t.turma_sugerida),entrada:t.entrada||'—',jovens:t.jovens,dia,sala,pl:t.pl,primeiro_presencial:t.primeiro_presencial||calcPP(t.entrada||'',dia),status:'simulada',empresas:t.empresas||[],justificativa:r.justificativa||''});
+    });
+  });
+  turmasSim=[...turmasSim.filter(t=>t.status==='confirmada'),...novas];
+  plsState=plsState.map(p=>({...p,simDias:[]}));
+  novas.forEach(t=>{const pi=plsState.findIndex(p=>p.nome===t.pl);const ab=DABR[t.dia];if(pi>=0&&ab&&!plsState[pi].alocados.includes(ab)&&!plsState[pi].simDias.includes(ab))plsState[pi].simDias.push(ab);});
+  renderGrade();renderResultado(parsed);
+}
+
+function editSim(ri,ti,campo,valor){
+  if(!_parsed)return;
+  const t=_parsed.recomendacoes[ri].turmas[ti];
+  const v=campo==='dia'?normDia(valor):valor;
+  if(campo==='dia'){
+    const nomeVelho=nomeTurma(t.turma_sugerida);
+    const nomeNovo=renomear(nomeVelho,v);
+    t.turma_sugerida=nomeNovo.replace('Turma ','');t.dia=v;
+    const melhorSala=encontrarSala(v,t.jovens,nomeVelho);
+    if(melhorSala)t.sala=melhorSala;
+    if(t.entrada){const pp=calcPP(t.entrada,v);t.primeiro_presencial=pp;const ppEl=document.getElementById(`pp-${ri}-${ti}`);if(ppEl)ppEl.textContent=pp;}
+    const tnEl=document.getElementById(`tn-${ri}-${ti}`);if(tnEl)tnEl.textContent=nomeNovo;
+    const salaEl=document.getElementById(`sala-${ri}-${ti}`);if(salaEl)salaEl.textContent=t.sala;
+    turmasSim=turmasSim.map(ts=>ts.nome===nomeVelho?{...ts,nome:nomeNovo,dia:v,sala:t.sala,primeiro_presencial:calcPP(ts.entrada||t.entrada||'',v),status:'simulada'}:ts);
+  }else{
+    t[campo]=v;
+    turmasSim=turmasSim.map(ts=>ts.nome===nomeTurma(t.turma_sugerida)&&ts.status==='simulada'?{...ts,[campo]:v,status:'simulada'}:ts);
+  }
+  renderGrade();
+}
+function confirmar(ri){
+  if(!_parsed)return;
+  (_parsed.recomendacoes[ri].turmas||[]).forEach(t=>{turmasSim=turmasSim.map(ts=>ts.nome===nomeTurma(t.turma_sugerida)&&ts.status==='simulada'?{...ts,status:'confirmada'}:ts);});
+  renderGrade();renderTurmas();
+}
+function desfazer(ri){
+  if(!_parsed)return;
+  (_parsed.recomendacoes[ri].turmas||[]).forEach(t=>{turmasSim=turmasSim.map(ts=>ts.nome===nomeTurma(t.turma_sugerida)?{...ts,status:'simulada'}:ts);});
+  renderGrade();
+}
+
+// ── RESULTADO ──
+function renderResultado(d){
+  const el=document.getElementById('resultado');
+  const recs=d.recomendacoes||[];
+  if(!recs.length){el.innerHTML='';return;}
+  let h=`<div style="font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.06em;margin:16px 0 10px">Recomendação por entrada</div>`;
+  recs.forEach((r,ri)=>{
+    const cor=r.status==='ok'?'var(--green)':r.status==='inviavel'?'var(--red)':'var(--yellow)';
+    const label=r.status==='ok'?'✓ Viável':r.status==='inviavel'?'✗ Inviável':'⚠ Atenção';
+    h+=`<div class="rec" style="border-left:3px solid ${cor}"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div style="font-size:13px;font-weight:700">${r.data||''}</div><span style="background:${cor}22;color:${cor};border:1px solid ${cor}55;border-radius:99px;padding:2px 11px;font-size:11px;font-weight:700">${label}</span></div>`;
+    if((!r.turmas||!r.turmas.length)&&r.cenarios_sem_estimativa){h+=`<div style="background:#fffbeb;border:1px solid #fcd34d55;border-radius:var(--rs);padding:8px 10px;font-size:12px"><div style="font-weight:700;color:#92610a;margin-bottom:3px">Sem estimativa</div><div>${String(r.cenarios_sem_estimativa)}</div></div>`;}
+    (r.turmas||[]).forEach((t,ti)=>{
+      const tsAtual=turmasSim.find(ts=>ts.nome===nomeTurma(t.turma_sugerida));
+      const salaAtual=(tsAtual&&tsAtual.sala)||t.sala;
+      const pp=(tsAtual&&tsAtual.primeiro_presencial)||t.primeiro_presencial||calcPP(t.entrada||'',t.dia)||'—';
+      const emps=(t.empresas||[]).map(e=>typeof e==='object'?`${e.nome} (${e.jovens}j)`:e).filter(Boolean).join(', ');
+      const diasOpts=DIAS.map(d=>`<option value="${d}" ${normDia(t.dia)===d?'selected':''}>${d.charAt(0).toUpperCase()+d.slice(1)}</option>`).join('');
+      const plsOpts=plsState.map(p=>`<option value="${p.nome}" ${p.nome===t.pl?'selected':''}>${p.nome}</option>`).join('');
+      h+=`<div style="background:var(--bg);border-radius:var(--rs);padding:10px 12px;margin-bottom:8px;border:1px solid var(--br)">
+        <div class="t3">
+          <div style="background:var(--blue);border-radius:var(--rs);padding:8px;text-align:center"><div style="font-size:9px;font-weight:700;color:rgba(255,255,255,.7);text-transform:uppercase;margin-bottom:2px">Turma</div><div id="tn-${ri}-${ti}" style="font-size:17px;font-weight:800;color:#fff;font-family:'Krona One',sans-serif">${nomeTurma(t.turma_sugerida)}</div></div>
+          <div style="background:#e8fff9;border:1px solid #35dcb255;border-radius:var(--rs);padding:8px;text-align:center"><div style="font-size:9px;font-weight:700;color:#0a7a60;text-transform:uppercase;margin-bottom:4px">Dia de curso</div><select class="edit-sel" onchange="editSim(${ri},${ti},'dia',this.value)" style="width:100%">${diasOpts}</select></div>
+          <div style="border:1px solid var(--br);border-radius:var(--rs);padding:8px;text-align:center"><div style="font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase;margin-bottom:2px">1º Presencial</div><div id="pp-${ri}-${ti}" style="font-size:12px;font-weight:600">${pp}</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap"><span id="sala-${ri}-${ti}" style="font-size:12px;color:var(--mu)">${salaAtual}</span><select class="edit-sel" onchange="editSim(${ri},${ti},'pl',this.value)">${plsOpts}</select></div>
+        <details><summary style="font-size:12px;color:var(--blue);cursor:pointer;font-weight:600;list-style:none">▼ Ver empresas (${t.jovens||0}j)</summary><div style="margin-top:6px;font-size:12px;color:var(--mu);background:var(--sf);border-radius:var(--rs);padding:6px 10px;border:1px solid var(--br)">${emps||'—'}</div></details>
+      </div>`;
+    });
+    if(r.justificativa){h+=`<details style="margin-bottom:6px"><summary style="font-size:12px;color:var(--mu);cursor:pointer;font-weight:600;list-style:none">▼ Justificativa</summary><div style="font-size:12px;color:var(--mu);padding:6px 10px;background:var(--bg);border-radius:var(--rs);margin-top:4px">${r.justificativa}</div></details>`;}
+    h+=`<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px"><button onclick="confirmar(${ri})" style="font-size:12px;font-family:'Montserrat',sans-serif;color:#fff;background:var(--green);border:none;border-radius:var(--rs);padding:7px 16px;cursor:pointer;font-weight:700">✓ Confirmar</button><button onclick="desfazer(${ri})" style="font-size:12px;font-family:'Montserrat',sans-serif;color:var(--mu);background:transparent;border:1px solid var(--br);border-radius:var(--rs);padding:7px 14px;cursor:pointer">↺ Desfazer</button></div></div>`;
+  });
+  (d.alertas||[]).filter(a=>a.titulo).forEach(a=>{h+=`<div style="background:${a.nivel==='alerta'?'#fef2f2':'#eeefff'};border:1px solid ${a.nivel==='alerta'?'#fca5a5':'#b4b6fd'};border-radius:var(--rs);padding:8px 12px;margin-bottom:6px;font-size:12px"><strong style="color:${a.nivel==='alerta'?'var(--red)':'var(--blue)'}">${a.titulo}</strong><div style="margin-top:2px">${a.descricao}</div></div>`;});
+  el.innerHTML=h;
+}
+
+// ── TURMAS ──
+function renderTurmas(){
+  const todas=[...TURMAS_FIXAS,...turmasSim];
+  document.getElementById('turmas-tbody').innerHTML=todas.map(t=>{
+    const cor=corPL(t.pl);const isSim=t.status==='simulada';const isConf=t.status==='confirmada'&&!TURMAS_FIXAS.includes(t);
+    const pp=t.primeiro_presencial||(t.entrada&&t.dia&&t.entrada!=='—'?calcPP(t.entrada,t.dia):'—');
+    return `<tr style="border-bottom:0.5px solid var(--br)">
+      <td style="padding:7px 9px;font-weight:600;color:${isSim?'var(--blue)':isConf?'#0a7a60':'var(--tx)'}">${t.nome}</td>
+      <td style="padding:7px 9px;font-size:11px;color:var(--mu)">${fmtData(t.entrada)}</td>
+      <td style="padding:7px 9px;text-align:center;font-weight:700;color:var(--blue)">${t.jovens}</td>
+      <td style="padding:7px 9px;text-transform:capitalize">${t.dia}</td>
+      <td style="padding:7px 9px">${t.sala}</td>
+      <td style="padding:7px 9px"><span style="background:${cor.light};color:${cor.text};border:1px solid ${cor.border}55;border-radius:99px;padding:2px 8px;font-size:10px;font-weight:600">${t.pl}</span></td>
+      <td style="padding:7px 9px;font-size:11px">${pp}</td>
+      <td style="padding:7px 9px">${isSim?`<span style="background:#eeefff;color:var(--blue);border:1px dashed var(--blue);border-radius:99px;padding:2px 8px;font-size:10px;font-weight:700">✦ Sim</span>`:isConf?`<span style="background:#e8fff9;color:#0a7a60;border:1px solid #35dcb255;border-radius:99px;padding:2px 8px;font-size:10px;font-weight:700">✓ Conf</span>`:`<span style="background:#e8fff9;color:#0a7a60;border:1px solid #35dcb255;border-radius:99px;padding:2px 8px;font-size:10px;font-weight:700">Ativa</span>`}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── PLs ──
+function renderPLs(){
+  document.getElementById('pls-wrap').innerHTML=plsState.map((pl,pi)=>`
+    <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--r);padding:12px 15px;margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div style="font-weight:700;font-size:14px">${pl.nome}</div>
+        <button onclick="excluirPL(${pi})" style="font-size:10px;font-family:'Montserrat',sans-serif;color:var(--red);background:transparent;border:1px solid #fca5a5;border-radius:5px;padding:2px 8px;cursor:pointer">✕ Excluir</button>
+      </div>
+      <div>${['Seg','Ter','Qua','Qui','Sex'].map(d=>{
+        const al=pl.alocados.includes(d),li=pl.livres.includes(d),sim=(pl.simDias||[]).includes(d);
+        return `<span onclick="togglePL(${pi},'${d}')" style="padding:5px 12px;border-radius:var(--rs);font-size:11px;font-weight:600;display:inline-block;margin-right:5px;margin-bottom:5px;cursor:${al?'not-allowed':'pointer'};background:${al?'#fef2f2':li?'#e8fff9':sim?'#fffbeb':'#f5f5f2'};color:${al?'#dc2626':li?'#0a7a60':sim?'#92610a':'#bbb'};border:${al?'1px solid #fca5a5':li?'1px solid #35dcb255':sim?'1.5px dashed #f2cf6b':'1px solid var(--br)'}">${d}</span>`;
+      }).join('')}</div>
+    </div>`).join('');
+}
+function togglePL(pi,dia){
+  const pl=plsState[pi];if(pl.alocados.includes(dia))return;
+  const idx=pl.livres.indexOf(dia);
+  if(idx>=0){if(pl.alocados.length+pl.livres.length-1<=pl.alocados.length){alert('PL precisa de 1 dia livre.');return;}pl.livres=pl.livres.filter(d=>d!==dia);}
+  else{if(pl.alocados.length+pl.livres.length>=4){alert('Máx 4 dias ativos.');return;}pl.livres=[...pl.livres,dia];}
+  renderPLs();
+}
+function excluirPL(pi){if(!confirm('Excluir '+plsState[pi].nome+'?'))return;delete plCores[plsState[pi].nome];plsState=plsState.filter((_,i)=>i!==pi);renderPLs();}
+function abrirNovoPL(){
+  const nome=prompt('Nome do novo PL:');if(!nome)return;
+  const dias=prompt('Dias disponíveis separados por vírgula (ex: Qui,Sex):');if(!dias)return;
+  const livres=dias.split(',').map(d=>d.trim()).filter(d=>['Seg','Ter','Qua','Qui','Sex'].includes(d));
+  if(!livres.length){alert('Nenhum dia válido.');return;}
+  plsState.push({nome,alocados:[],livres,simDias:[]});
+  const cores=['#a78bfa','#fb923c','#38bdf8','#f472b6'];
+  const cor=cores[(plsState.length-1)%4];
+  plCores[nome]={bg:cor,light:cor+'18',text:'#1d0328',border:cor};
+  renderPLs();
+}
+
+// ── EXPORTAR ──
+function exportarCSV(){
+  const todas=[...TURMAS_FIXAS,...turmasSim];
+  const h='Turma,Entrada,Jovens,Dia,Sala,PL,1º Presencial,Status';
+  const r=todas.map(t=>[t.nome,fmtData(t.entrada),t.jovens,t.dia,t.sala,t.pl,t.primeiro_presencial||calcPP(t.entrada,t.dia),t.status||'ativa'].join(',')).join('\n');
+  const b=new Blob([h+'\n'+r],{type:'text/csv;charset=utf-8;'});
+  const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download='turmas_leapy.csv';a.click();URL.revokeObjectURL(u);
+}
+
+carregarKey();
+renderCohorts();
+renderGrade();
+</script>
+</body>
+</html>
