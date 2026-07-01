@@ -47,7 +47,7 @@
         {
           "id": "e5",
           "nome": "Shopee",
-          "jovens": 5,
+          "jovens": 6,
           "status": "Confirmado",
           "turma": "EM6",
           "dia": "sexta",
@@ -96,7 +96,7 @@
         },
         {
           "id": "emp1782909530791",
-          "nome": "Nova empresa",
+          "nome": "Shopee",
           "jovens": 1,
           "status": "Em aberto",
           "turma": null,
