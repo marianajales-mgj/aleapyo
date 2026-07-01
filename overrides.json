@@ -8,5 +8,21 @@
     "sala": "Sala 1",
     "pl": "Manu",
     "unidade": "Freguesia do Ó"
+  },
+  "Turma CM1|quarta|0": {
+    "split": [
+      {
+        "sala": "Sala 1",
+        "pl": "Manu",
+        "jovens": 26,
+        "unidade": "Freguesia do Ó"
+      },
+      {
+        "sala": "Sala 2",
+        "pl": "Carol",
+        "jovens": 22,
+        "unidade": "Freguesia do Ó"
+      }
+    ]
   }
 }
