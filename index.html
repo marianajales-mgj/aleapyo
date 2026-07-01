@@ -766,7 +766,16 @@ async function carregarDoDirectus(){
     if(!rJ.ok)throw new Error('HTTP jovens '+rJ.status);
     const jovens=(await rJ.json()).data||[];
 
-    // 3. Agrupar jovens por turma e empresa
+    // 3. Buscar nomes das empresas
+    const urlEmpresas=`${DIRECTUS_URL}/items/Empresas?fields=id,Empresa&access_token=${DIRECTUS_TOKEN}`;
+    const rE=await fetch(urlEmpresas);
+    const empresaNomes={};
+    if(rE.ok){
+      const eData=(await rE.json()).data||[];
+      eData.forEach(e=>{if(e.id&&e.Empresa)empresaNomes[e.id]=e.Empresa;});
+    }
+
+    // 4. Agrupar jovens por turma e empresa
     const turmaCounts={};
     const turmaEmpresas={};
     jovens.forEach(j=>{
@@ -789,7 +798,7 @@ async function carregarDoDirectus(){
       const pl=normPL(t.program_lead?.first_name,t.program_lead?.last_name);
       const jovensCount=turmaCounts[t.id]||0;
       const empMap=turmaEmpresas[t.id]||{};
-      const empresas=Object.entries(empMap).map(([eid,cnt])=>({nome:`Empresa #${eid}`,jovens:cnt}));
+      const empresas=Object.entries(empMap).map(([eid,cnt])=>({nome:empresaNomes[eid]||`Empresa #${eid}`,jovens:cnt}));
 
       // Só adiciona PL se for Manu ou Carol
       if(pl&&['Manu','Carol'].includes(pl)&&!plsState.find(p=>p.nome===pl)){
