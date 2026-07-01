@@ -29,7 +29,7 @@
           "nome": "UOL",
           "jovens": 3,
           "status": "Confirmado",
-          "turma": "EM9",
+          "turma": "EM6",
           "dia": "sexta",
           "sala": "Sala 2",
           "unidade": "Freguesia do Ó"
@@ -39,7 +39,7 @@
           "nome": "Arco",
           "jovens": 5,
           "status": "Confirmado",
-          "turma": "EM9",
+          "turma": "EM6",
           "dia": "sexta",
           "sala": "Sala 2",
           "unidade": "Freguesia do Ó"
@@ -49,7 +49,7 @@
           "nome": "Shopee",
           "jovens": 5,
           "status": "Confirmado",
-          "turma": "EM9",
+          "turma": "EM6",
           "dia": "sexta",
           "sala": "Sala 2",
           "unidade": "Freguesia do Ó"
@@ -59,7 +59,7 @@
           "nome": "Aramis",
           "jovens": 1,
           "status": "Em aberto",
-          "turma": "EM9",
+          "turma": "EM6",
           "dia": "sexta",
           "sala": "Sala 2",
           "unidade": "Freguesia do Ó"
@@ -69,7 +69,7 @@
           "nome": "Flash",
           "jovens": 1,
           "status": "Em aberto",
-          "turma": "EM9",
+          "turma": "EM6",
           "dia": "sexta",
           "sala": "Sala 2",
           "unidade": "Freguesia do Ó"
@@ -79,7 +79,7 @@
           "nome": "Cogna",
           "jovens": 5,
           "status": "Em aberto",
-          "turma": "EM9",
+          "turma": "EM6",
           "dia": "sexta",
           "sala": "Sala 2",
           "unidade": "Freguesia do Ó"
@@ -89,7 +89,7 @@
           "nome": "Loft",
           "jovens": 6,
           "status": "Em aberto",
-          "turma": "EM9",
+          "turma": "EM6",
           "dia": "sexta",
           "sala": "Sala 2",
           "unidade": "Freguesia do Ó"
@@ -105,7 +105,7 @@
           "nome": "Stone",
           "jovens": 6,
           "status": "Confirmado",
-          "turma": "EM9",
+          "turma": "EM6",
           "dia": "sexta",
           "sala": "Sala 2",
           "unidade": "Freguesia do Ó"
