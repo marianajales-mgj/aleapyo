@@ -228,7 +228,8 @@ async function loadOverrides(){
     if(r.ok){
       const data=await r.json();
       _overridesSha=data.sha;
-      salaOverrides=JSON.parse(atob(data.content.replace(/\n/g,'')));
+      const rawOv=Uint8Array.from(atob(data.content.replace(/\n/g,'')),c=>c.charCodeAt(0));
+      salaOverrides=JSON.parse(new TextDecoder('utf-8').decode(rawOv));
     }else{
       salaOverrides={};
     }
@@ -261,7 +262,8 @@ async function loadEstado(){
     if(r.ok){
       const data=await r.json();
       _estadoSha=data.sha;
-      const saved=JSON.parse(atob(data.content.replace(/\n/g,'')));
+      const raw=Uint8Array.from(atob(data.content.replace(/\n/g,'')),c=>c.charCodeAt(0));
+      const saved=JSON.parse(new TextDecoder('utf-8').decode(raw));
       if(saved.entradas&&saved.entradas.length){
         entradas=saved.entradas;
       }
@@ -775,15 +777,13 @@ function _alocar(emp,entrada,dia,sala,unidade,jovens){
   if(simExist){emp.turma=simExist.nome.replace('Turma ','');return;}
   // Criar novo nome
   let max=0;
-  // Varrer TURMAS_FIXAS (do Directus), turmasSim e entradas para achar maior número
-  [...TURMAS_FIXAS,...turmasSim].forEach(t=>{
-    const m=t.nome.match(new RegExp('([A-E])[MT](\\d+)'));
+  // Numeração baseada APENAS em turmas reais do Directus (TURMAS_FIXAS)
+  // Entradas simuladas não contam — evita inflacionar o número
+  TURMAS_FIXAS.forEach(t=>{
+    const m=t.nome.match(/([A-E])[MT](\d+)/);
     if(m&&m[1]===letra)max=Math.max(max,parseInt(m[2]));
   });
-  entradas.forEach(en=>en.empresas.forEach(e=>{
-    if(e.turma){const m=e.turma.match(new RegExp('([A-E])[MT](\\d+)'));if(m&&m[1]===letra)max=Math.max(max,parseInt(m[2]));}
-  }));
-  console.log('[Aleapyo] próxima turma de',dia,'→',letra+'M'+(max+1),'(max encontrado:',max,')');
+  console.log('[Aleapyo] próxima turma de',dia,'→',letra+'M'+(max+1),'(base Directus, max:',max,')');
   emp.turma=letra+TURNO+(max+1);
 }
 
@@ -1004,6 +1004,8 @@ async function carregarDoDirectus(){
     // Aplicar overrides de sala/PL/split salvos pelo usuário
     const paraRemover=[];
     const paraAdicionar=[];
+    console.log('[Aleapyo] TURMAS_FIXAS após sync:',TURMAS_FIXAS.map(t=>t.nome+'|'+t.dia+'|'+t.jovens+'j'));
+    console.log('[Aleapyo] salaOverrides keys:',Object.keys(salaOverrides));
     TURMAS_FIXAS.forEach((t,i)=>{
       const sameGroup=TURMAS_FIXAS.filter(x=>x.nome===t.nome&&x.dia===t.dia);
       const instancia=sameGroup.indexOf(t);
