@@ -748,16 +748,22 @@ function abrirMover(eid,empid){
       const cap=ocp.capacidade;const livre=Math.max(0,ocp.livre);
       const corBar=ocp.jovens>=cap?'#fc5959':ocp.jovens>cap*.8?'#f2cf6b':'#35dcb2';
       const inputId=`qtd-${dia}-${sala.replace(/ /g,'-')}-${u.nome.replace(/ /g,'-')}`;
+      const plId=`pl-${dia}-${sala.replace(/ /g,'-')}-${u.nome.replace(/ /g,'-')}`;
       const uBg=u.nome==='Polo Liberdade'?'#f0fffe':'#f3f3ff';
       const uBd=u.nome==='Polo Liberdade'?'#35dcb2':'#a0a3ff';
+      const plOpts=plsState.map(p=>`<option value="${p.nome}">${p.nome}</option>`).join('');
       salas+=`<div class="destino-row" style="background:${uBg};border:1px solid ${uBd};border-radius:var(--rs);padding:8px 10px;margin-bottom:4px">
         <div style="flex:1">
           <div style="font-size:12px;font-weight:700">${u.nome} — ${sala}</div>
           <div style="font-size:10px;color:var(--mu)">${ocp.jovens}/${cap}j · <b style="color:${corBar}">${livre}j livres</b>${ocp.turmas.length?' · '+ocp.turmas.map(t=>t.nome).join(', '):''}</div>
+          <select id="${plId}" style="margin-top:5px;width:100%;height:26px;border:1px solid var(--br);border-radius:5px;font-size:10px;padding:0 4px;font-family:'Montserrat',sans-serif;display:none">
+            <option value="">— PL —</option>
+            ${plOpts}
+          </select>
         </div>
         <div style="width:40px;height:4px;background:#eee;border-radius:99px;overflow:hidden;margin-right:4px"><div style="height:100%;width:${Math.min(100,Math.round(ocp.jovens/cap*100))}%;background:${corBar};border-radius:99px"></div></div>
         <input type="number" id="${inputId}" min="0" max="${livre}" placeholder="0" value="0"
-          oninput="atualizarCtr(${emp.jovens},${livre},'${inputId}')"
+          oninput="atualizarCtr(${emp.jovens},${livre},'${inputId}','${plId}')"
           style="width:58px;height:28px;border:1px solid ${livre>0?'var(--blue)':'var(--br)'};border-radius:var(--rs);padding:0 4px;font-size:12px;font-weight:700;color:var(--blue);font-family:'Montserrat',sans-serif;text-align:center"
           ${livre<=0?'disabled':''}/>
       </div>`;
@@ -767,31 +773,23 @@ function abrirMover(eid,empid){
       <div style="margin-top:4px">${salas}</div>
     </details>`;
   });
-  // Seletor de PL
-  h+=`<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--br)">
-    <div style="font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase;margin-bottom:6px">Program Lead responsável</div>
-    <select id="alocar-pl" style="width:100%;height:34px;border:1px solid var(--br);border-radius:var(--rs);font-size:12px;padding:0 8px;font-family:'Montserrat',sans-serif;margin-bottom:10px">
-      <option value="">— Definir depois —</option>
-      ${plsState.map(p=>`<option value="${p.nome}">${p.nome}</option>`).join('')}
-    </select>
-  </div>
-  <button onclick="confirmarAlocacao()" style="width:100%;height:38px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:12px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif">✓ Confirmar alocação</button>`;
+  h+=`<button onclick="confirmarAlocacao()" style="width:100%;height:38px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:12px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif;margin-top:12px">✓ Confirmar alocação</button>`;
   document.getElementById('modal-body').innerHTML=h;
   document.getElementById('modal-bg').style.display='flex';
 }
 
-function atualizarCtr(total,maxSala,inputId){
+function atualizarCtr(total,maxSala,inputId,plId){
   const inp=document.getElementById(inputId);
   if(!inp)return;
   let val=parseInt(inp.value)||0;
-  // Não pode exceder vagas livres na sala
   if(val>maxSala)val=maxSala;
-  // Não pode exceder total restante da empresa (outros campos já preenchidos)
   let somaOutros=0;
   document.querySelectorAll('[id^="qtd-"]').forEach(i=>{if(i.id!==inputId)somaOutros+=parseInt(i.value)||0;});
   const maxPermitido=Math.min(maxSala,total-somaOutros);
   if(val>maxPermitido)val=Math.max(0,maxPermitido);
   inp.value=val||'';
+  // Mostrar/esconder seletor de PL conforme quantidade
+  if(plId){const plEl=document.getElementById(plId);if(plEl)plEl.style.display=val>0?'block':'none';}
   const soma=somaOutros+val;
   const rest=total-soma;
   const el=document.getElementById('restante-ctr');
@@ -813,14 +811,18 @@ function confirmarAlocacao(){
   if(total>emp.jovens){alert(`Total (${total}j) excede os jovens da empresa (${emp.jovens}j).`);return;}
   if(total<emp.jovens){alert(`Você precisa alocar todos os ${emp.jovens}j de ${emp.nome}. Faltam ${emp.jovens-total}j. Distribua entre as salas disponíveis.`);return;}
 
-  const plSel=document.getElementById('alocar-pl')?.value||null;
+  // Ler PL de cada linha individualmente
+  alocs.forEach(a=>{
+    const plId=`pl-${a.dia}-${a.sala.replace(/ /g,'-')}-${a.unidade.replace(/ /g,'-')}`;
+    a.pl=document.getElementById(plId)?.value||null;
+  });
   if(alocs.length===1){
-    _alocar(emp,entrada,alocs[0].dia,alocs[0].sala,alocs[0].unidade,emp.jovens,plSel);
+    _alocar(emp,entrada,alocs[0].dia,alocs[0].sala,alocs[0].unidade,emp.jovens,alocs[0].pl);
   } else {
     const idx=entrada.empresas.findIndex(x=>x.id===emp.id);
     const novas=alocs.map((a,i)=>({id:'emp'+Date.now()+i,nome:emp.nome,jovens:a.jovens,status:emp.status,turma:null,dia:null,sala:null,unidade:null}));
     entrada.empresas.splice(idx,1,...novas);
-    novas.forEach((nova,i)=>_alocar(nova,entrada,alocs[i].dia,alocs[i].sala,alocs[i].unidade,alocs[i].jovens,plSel));
+    novas.forEach((nova,i)=>_alocar(nova,entrada,alocs[i].dia,alocs[i].sala,alocs[i].unidade,alocs[i].jovens,alocs[i].pl));
   }
   fecharModal();renderGrade();renderGradeMini();renderEmpresas();saveEstado();
 }
