@@ -115,10 +115,10 @@
           "nome": "NUMEN",
           "jovens": 10,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "AM1",
+          "dia": "segunda",
+          "sala": "Sala 1",
+          "unidade": "Freguesia do Ó"
         }
       ]
     },
