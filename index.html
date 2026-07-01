@@ -467,22 +467,7 @@ function renderEmpresas(){
     emps.forEach(emp=>{
       const sCor={Confirmado:'#0a7a60','Em aberto':'#856404',Adiado:'#888'}[emp.status]||'#888';
       const sBg={Confirmado:'#e8fff9','Em aberto':'#fffbeb',Adiado:'#f5f5f5'}[emp.status]||'#f5f5f5';
-      h+=`<div class="emp-row">
-        <input type="text" value="${emp.nome}" onchange="updNome('${entrada.id}','${emp.id}',this.value)"
-          style="border:none;border-bottom:1px solid transparent;background:transparent;font-size:12px;font-weight:600;font-family:'Montserrat',sans-serif;color:var(--tx);width:100%;padding:0;height:auto"
-          onfocus="this.style.borderBottomColor='var(--blue)'" onblur="this.style.borderBottomColor='transparent'"/>
-        <input type="number" min="1" max="9999" value="${emp.jovens}" onchange="updJovens('${entrada.id}','${emp.id}',this.value)"
-          style="width:100%;height:26px;border:1px solid var(--br);border-radius:5px;padding:0 4px;font-size:12px;font-weight:700;color:var(--blue);font-family:'Montserrat',sans-serif;text-align:center"/>
-        <select class="status-sel" onchange="updStatus('${entrada.id}','${emp.id}',this.value)" style="background:${sBg};color:${sCor};border-color:${sCor}55">
-          <option ${emp.status==='Confirmado'?'selected':''}>Confirmado</option>
-          <option ${emp.status==='Em aberto'?'selected':''}>Em aberto</option>
-          <option ${emp.status==='Adiado'?'selected':''}>Adiado</option>
-        </select>
-        <div>${emp.turma?`<span style="font-size:10px;color:var(--blue);font-weight:600;background:#eeefff;padding:2px 7px;border-radius:99px;border:1px solid #b4b6fd">${emp.turma}</span>`:'<span style="font-size:10px;color:#ccc">—</span>'}</div>
-        <div>${emp.dia?`<span style="font-size:10px;color:var(--mu);font-weight:600;background:#f5f5f2;padding:2px 7px;border-radius:99px;border:1px solid var(--br);text-transform:capitalize">${emp.dia}</span>`:'<span style="font-size:10px;color:#ccc">—</span>'}</div>
-        <button class="mover-btn" onclick="abrirMover('${entrada.id}','${emp.id}')">${emp.turma?'↻ Mover':'Alocar'}</button>
-        <button class="del-btn" onclick="excluirEmp('${entrada.id}','${emp.id}')" title="Excluir">×</button>
-      </div>`;
+      h+=`<div class="emp-row"><input type="text" value="${emp.nome}" onchange="updNome('${entrada.id}','${emp.id}',this.value)" style="border:none;border-bottom:1px solid transparent;background:transparent;font-size:12px;font-weight:600;font-family:'Montserrat',sans-serif;color:var(--tx);width:100%;padding:0;height:auto" onfocus="this.style.borderBottomColor='var(--blue)'" onblur="this.style.borderBottomColor='transparent'"/><input type="number" min="1" max="9999" value="${emp.jovens}" onchange="updJovens('${entrada.id}','${emp.id}',this.value)" style="width:100%;height:26px;border:1px solid var(--br);border-radius:5px;padding:0 4px;font-size:12px;font-weight:700;color:var(--blue);font-family:'Montserrat',sans-serif;text-align:center"/><select class="status-sel" onchange="updStatus('${entrada.id}','${emp.id}',this.value)" style="background:${sBg};color:${sCor};border-color:${sCor}55">${['Confirmado','Em aberto','Adiado'].map(s=>`<option ${emp.status===s?'selected':''}>${s}</option>`).join('')}</select><div>${emp.turma?`<span style="font-size:10px;color:var(--blue);font-weight:600;background:#eeefff;padding:2px 6px;border-radius:99px;border:1px solid #b4b6fd">${emp.turma}</span>`:'<span style="font-size:10px;color:#ccc">—</span>'}</div><div>${emp.dia?`<span style="font-size:10px;color:var(--mu);font-weight:600;background:#f5f5f2;padding:2px 6px;border-radius:99px;border:1px solid var(--br);text-transform:capitalize">${emp.dia}</span>`:'<span style="font-size:10px;color:#ccc">—</span>'}</div><button class="mover-btn" onclick="abrirMover('${entrada.id}','${emp.id}')">${emp.turma?'↻ Mover':'Alocar'}</button><button class="del-btn" onclick="excluirEmp('${entrada.id}','${emp.id}')" title="Excluir">×</button></div>`;
     });
     h+=`<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--br)">
         <button onclick="adicionarEmp('${entrada.id}')" style="height:28px;padding:0 10px;border:1.5px dashed var(--blue);color:var(--blue);background:transparent;border-radius:var(--rs);font-size:11px;font-weight:600;cursor:pointer;font-family:'Montserrat',sans-serif">+ Empresa</button>
@@ -572,6 +557,7 @@ function addEmpNE(){neEmpresas.push({nome:'',jovens:1});renderNE();}
 function salvarNE(){
   const data=document.getElementById('ne-data').value;
   if(!data){alert('Informe a data.');return;}
+  if(entradas.find(e=>e.data===data)){alert(`Já existe uma entrada para ${fmtData(data)}. Adicione empresas diretamente nela.`);return;}
   if(!neEmpresas.length){alert('Adicione pelo menos uma empresa.');return;}
   const emps=neEmpresas.map(e=>({id:'emp'+Date.now()+Math.random().toString(36).slice(2),nome:e.nome||'Empresa',jovens:e.jovens||1,status:'Em aberto',turma:null,dia:null,sala:null,unidade:null}));
   entradas.push({id:'e'+Date.now(),data,empresas:emps});
