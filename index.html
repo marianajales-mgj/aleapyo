@@ -466,7 +466,7 @@ function abrirDetalhe(nomeTurma,dia,sala,unidade){
     </div>`;
   }
   // Botão de editar sala/PL para turmas do Directus
-  if(t._do_directus||t.status==='ativa'){
+  if(true){// Ajuste manual disponível para todas as turmas fixas
     const instancia=TURMAS_FIXAS.filter(x=>x.nome===t.nome&&x.dia===t.dia).indexOf(t);
     h+=`<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--br)">
       <div style="font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase;margin-bottom:6px">Ajuste manual</div>
@@ -795,13 +795,19 @@ function _alocar(emp,entrada,dia,sala,unidade,jovens,pl){
   if(simExist){emp.turma=simExist.nome.replace('Turma ','');return;}
   // Criar novo nome
   let max=0;
-  // Numeração baseada APENAS em turmas reais do Directus (TURMAS_FIXAS)
-  // Entradas simuladas não contam — evita inflacionar o número
+  // Base: máximo histórico de todas as turmas do Directus (inclui anteriores a 02/03)
+  if(window._maxHistoricoTurma&&window._maxHistoricoTurma[letra]){
+    max=window._maxHistoricoTurma[letra];
+  }
+  // Considerar também turmas ativas atuais e entradas já alocadas
   TURMAS_FIXAS.forEach(t=>{
     const m=t.nome.match(/([A-E])[MT](\d+)/);
     if(m&&m[1]===letra)max=Math.max(max,parseInt(m[2]));
   });
-  console.log('[Aleapyo] próxima turma de',dia,'→',letra+'M'+(max+1),'(base Directus, max:',max,')');
+  entradas.forEach(en=>en.empresas.forEach(e=>{
+    if(e.turma){const m=e.turma.match(/([A-E])[MT](\d+)/);if(m&&m[1]===letra)max=Math.max(max,parseInt(m[2]));}
+  }));
+  console.log('[Aleapyo] próxima turma de',dia,'→',letra+'M'+(max+1),'(max histórico:',max,')');
   emp.turma=letra+TURNO+(max+1);
 }
 
@@ -903,6 +909,21 @@ async function carregarDoDirectus(){
     });
     const turmaIdMap={};
     turmasLeapy.forEach(t=>turmaIdMap[t.id]=t);
+
+    // Buscar histórico completo de nomes de turmas (para numeração correta)
+    // Sem filtro de data — pega AMx, DMx anteriores a 02/03
+    const urlHistorico=`${DIRECTUS_URL}/items/Turmas?fields=Name&filter[Name][_starts_with]=Turma&access_token=${DIRECTUS_TOKEN}`;
+    const rH=await fetch(urlHistorico);
+    const historicoNomes=rH.ok?((await rH.json()).data||[]).map(t=>t.Name):[];
+    // Calcular máximo histórico por letra
+    window._maxHistoricoTurma={};
+    historicoNomes.forEach(nome=>{
+      const m=nome.match(/Turma ([A-E])[MT](\d+)/);
+      if(!m)return;
+      const [,letra,num]=m;
+      window._maxHistoricoTurma[letra]=Math.max(window._maxHistoricoTurma[letra]||0,parseInt(num));
+    });
+    console.log('[Aleapyo] máximos históricos por letra:',window._maxHistoricoTurma);
 
     // 2. Buscar jovens em andamento com turma e empresa
     const urlJovens=`${DIRECTUS_URL}/items/user_apprenticeship_data?filter[Status_formacao][_eq]=em_andamento&filter[ativo][_eq]=true&fields=turma_id,empresa_id&access_token=${DIRECTUS_TOKEN}`;
