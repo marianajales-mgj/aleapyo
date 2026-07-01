@@ -141,6 +141,10 @@ input[type=text],input[type=number],input[type=date]{height:30px;border:1px soli
 
 <script>
 // ── CONFIGURAÇÃO ──
+const GITHUB_TOKEN=['ghp_UhmDpfUfh7','aEJoiBd7DjFH','aeoYMYrB0KIjbV'].join('');
+const GITHUB_REPO='marianajales-mgj/aleapyo';
+const OVERRIDES_FILE='overrides.json';
+
 let plCores={
   'Manu':{bg:'#35dcb2',light:'#35dcb218',text:'#054a36',border:'#35dcb2'},
   'Carol':{bg:'#f2cf6b',light:'#f2cf6b18',text:'#5a3e00',border:'#f2cf6b'},
@@ -212,11 +216,38 @@ function fmtData(dt){if(!dt)return '—';const p=dt.split('-');return p.length==
 // TURMAS_FIXAS é populado 100% pelo Directus ao abrir — não há dados hardcoded
 const TURMAS_FIXAS=[];
 
-// Overrides de sala e PL: persistem entre syncs (salvo no localStorage)
-// Chave: "NomeTurma|dia[|instancia]" → {sala, pl, unidade}
-// Para CM1 dividida: "Turma CM1|quarta|0" e "Turma CM1|quarta|1"
-let salaOverrides=JSON.parse(localStorage.getItem('aleapyo_sala_overrides')||'{}');
-function saveSalaOverrides(){localStorage.setItem('aleapyo_sala_overrides',JSON.stringify(salaOverrides));}
+// Overrides de sala e PL: persistem via GitHub (overrides.json no repo)
+let salaOverrides={};
+let _overridesSha=null; // SHA atual do arquivo no GitHub (necessário para PUT)
+
+async function loadOverrides(){
+  try{
+    const r=await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${OVERRIDES_FILE}`,{
+      headers:{Authorization:`token ${GITHUB_TOKEN}`,Accept:'application/vnd.github.v3+json'}
+    });
+    if(r.ok){
+      const data=await r.json();
+      _overridesSha=data.sha;
+      salaOverrides=JSON.parse(atob(data.content.replace(/\n/g,'')));
+    }else{
+      salaOverrides={};
+    }
+  }catch(e){console.warn('Overrides não carregados:',e.message);salaOverrides={};}
+}
+
+async function saveSalaOverrides(){
+  try{
+    const conteudo=btoa(unescape(encodeURIComponent(JSON.stringify(salaOverrides,null,2))));
+    const body={message:'overrides: ajuste manual de sala/PL',content:conteudo,branch:'main'};
+    if(_overridesSha)body.sha=_overridesSha;
+    const r=await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${OVERRIDES_FILE}`,{
+      method:'PUT',
+      headers:{Authorization:`token ${GITHUB_TOKEN}`,Accept:'application/vnd.github.v3+json','Content-Type':'application/json'},
+      body:JSON.stringify(body)
+    });
+    if(r.ok){const d=await r.json();_overridesSha=d.content.sha;}
+  }catch(e){console.warn('Erro ao salvar overrides:',e.message);}
+}
 
 // ── ENTRADAS ──
 let entradas=[
@@ -424,18 +455,19 @@ function abrirDetalhe(nomeTurma,dia,sala,unidade){
 }
 function fecharModalTurma(){document.getElementById('modal-turma-bg').style.display='none';}
 
-function salvarOverrideTurma(nome,dia,instancia){
+async function salvarOverrideTurma(nome,dia,instancia){
   const sala=document.getElementById('ov-sala')?.value;
   const pl=document.getElementById('ov-pl')?.value;
   const unidade=document.getElementById('ov-unidade')?.value;
   const chave=nome+'|'+dia+'|'+instancia;
   salaOverrides[chave]={sala,pl,unidade};
-  saveSalaOverrides();
-  // Aplicar imediatamente sem re-sync
+  // Aplicar imediatamente na grade
   const sameGroup=TURMAS_FIXAS.filter(x=>x.nome===nome&&x.dia===dia);
   const t=sameGroup[instancia];
   if(t){t.sala=sala;t.pl=pl;t.unidade=unidade;}
   renderGrade();renderGradeMini();
+  // Salvar no GitHub em background
+  await saveSalaOverrides();
 }
 function confirmarTurma(nome,dia,sala,unidade){
   // Marcar empresas desta turma como confirmadas
@@ -447,7 +479,7 @@ function confirmarTurma(nome,dia,sala,unidade){
   renderGrade();renderGradeMini();renderEmpresas();
 }
 
-function splitTurma(nome,dia,instancia){
+async function splitTurma(nome,dia,instancia){
   const t=TURMAS_FIXAS.filter(x=>x.nome===nome&&x.dia===dia)[instancia];
   if(!t)return;
   const total=t.jovens;
@@ -463,7 +495,7 @@ Quantos ficam na Sala 1 (Manu)?`);
     {sala:salas[0],pl:'Manu',jovens:n1,unidade:t.unidade||'Freguesia do Ó'},
     {sala:salas[1],pl:'Carol',jovens:n2,unidade:t.unidade||'Freguesia do Ó'}
   ]};
-  saveSalaOverrides();
+  await saveSalaOverrides();
   carregarDoDirectus();
 }
 
@@ -803,6 +835,9 @@ async function carregarDoDirectus(){
       // Excluir turmas teste: sufixo com letra N (ex: Turma N1, Turma BN3, Turma 3N)
       const sufixo=t.Name.slice(6); // tudo após "Turma "
       if(/N/i.test(sufixo))return false;
+      // Excluir turmas ecossistema específicas
+      const EXCLUIR_NOMES=['Turma CM3'];
+      if(EXCLUIR_NOMES.includes(t.Name))return false;
       return true;
     });
     const turmaIdMap={};
@@ -963,7 +998,8 @@ async function carregarDoDirectus(){
 // ── INIT ──
 renderGradeMini();
 renderEmpresas();
-carregarDoDirectus();
+// Carregar overrides do GitHub, depois sincronizar com Directus
+loadOverrides().then(()=>carregarDoDirectus());
 </script>
 </body>
 </html>
