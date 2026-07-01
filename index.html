@@ -212,6 +212,12 @@ function fmtData(dt){if(!dt)return '—';const p=dt.split('-');return p.length==
 // TURMAS_FIXAS é populado 100% pelo Directus ao abrir — não há dados hardcoded
 const TURMAS_FIXAS=[];
 
+// Overrides de sala e PL: persistem entre syncs (salvo no localStorage)
+// Chave: "NomeTurma|dia[|instancia]" → {sala, pl, unidade}
+// Para CM1 dividida: "Turma CM1|quarta|0" e "Turma CM1|quarta|1"
+let salaOverrides=JSON.parse(localStorage.getItem('aleapyo_sala_overrides')||'{}');
+function saveSalaOverrides(){localStorage.setItem('aleapyo_sala_overrides',JSON.stringify(salaOverrides));}
+
 // ── ENTRADAS ──
 let entradas=[
   {id:'e1',data:'2026-07-06',empresas:[
@@ -392,11 +398,45 @@ function abrirDetalhe(nomeTurma,dia,sala,unidade){
       <button onclick="confirmarTurma('${nomeTurma}','${dia}','${sala}','${unidade}');fecharModalTurma();" style="flex:1;height:36px;background:var(--green);color:#054a36;border:none;border-radius:var(--rs);font-size:11px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif">✓ Confirmar</button>
     </div>`;
   }
+  // Botão de editar sala/PL para turmas do Directus
+  if(t._do_directus||t.status==='ativa'){
+    const instancia=TURMAS_FIXAS.filter(x=>x.nome===t.nome&&x.dia===t.dia).indexOf(t);
+    h+=`<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--br)">
+      <div style="font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase;margin-bottom:6px">Ajuste manual</div>
+      <div style="display:flex;gap:6px;margin-bottom:6px">
+        <select id="ov-sala" style="flex:1;height:32px;border:1px solid var(--br);border-radius:var(--rs);font-size:11px;padding:0 6px;font-family:'Montserrat',sans-serif">
+          ${(unidades.find(u=>u.nome===t.unidade)||{salas:['Sala 1','Sala 2']}).salas.map(s=>`<option value="${s}" ${s===t.sala?'selected':''}>${s}</option>`).join('')}
+        </select>
+        <select id="ov-pl" style="flex:1;height:32px;border:1px solid var(--br);border-radius:var(--rs);font-size:11px;padding:0 6px;font-family:'Montserrat',sans-serif">
+          ${plsState.map(p=>`<option value="${p.nome}" ${p.nome===t.pl?'selected':''}>${p.nome}</option>`).join('')}
+        </select>
+        <select id="ov-unidade" style="flex:1;height:32px;border:1px solid var(--br);border-radius:var(--rs);font-size:11px;padding:0 6px;font-family:'Montserrat',sans-serif">
+          ${unidades.map(u=>`<option value="${u.nome}" ${u.nome===(t.unidade||'Freguesia do Ó')?'selected':''}>${u.nome}</option>`).join('')}
+        </select>
+      </div>
+      <button onclick="salvarOverrideTurma('${nomeTurma}','${dia}',${instancia});fecharModalTurma();" style="width:100%;height:32px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:11px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif;margin-bottom:4px">💾 Salvar ajuste</button>
+      ${t.jovens>16&&!t._split?'<button onclick="splitTurma(\''+nomeTurma+'\',\''+dia+'\','+instancia+');fecharModalTurma();" style="width:100%;height:32px;background:#fff;color:var(--blue);border:1px solid var(--blue);border-radius:var(--rs);font-size:11px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">✂ Dividir em 2 salas</button>':''}
+    </div>`;
+  }
   document.getElementById('modal-turma-titulo').textContent=nomeTurma;
   document.getElementById('modal-turma-body').innerHTML=h;
   document.getElementById('modal-turma-bg').style.display='flex';
 }
 function fecharModalTurma(){document.getElementById('modal-turma-bg').style.display='none';}
+
+function salvarOverrideTurma(nome,dia,instancia){
+  const sala=document.getElementById('ov-sala')?.value;
+  const pl=document.getElementById('ov-pl')?.value;
+  const unidade=document.getElementById('ov-unidade')?.value;
+  const chave=nome+'|'+dia+'|'+instancia;
+  salaOverrides[chave]={sala,pl,unidade};
+  saveSalaOverrides();
+  // Aplicar imediatamente sem re-sync
+  const sameGroup=TURMAS_FIXAS.filter(x=>x.nome===nome&&x.dia===dia);
+  const t=sameGroup[instancia];
+  if(t){t.sala=sala;t.pl=pl;t.unidade=unidade;}
+  renderGrade();renderGradeMini();
+}
 function confirmarTurma(nome,dia,sala,unidade){
   // Marcar empresas desta turma como confirmadas
   entradas.forEach(en=>en.empresas.forEach(emp=>{
@@ -405,6 +445,26 @@ function confirmarTurma(nome,dia,sala,unidade){
     }
   }));
   renderGrade();renderGradeMini();renderEmpresas();
+}
+
+function splitTurma(nome,dia,instancia){
+  const t=TURMAS_FIXAS.filter(x=>x.nome===nome&&x.dia===dia)[instancia];
+  if(!t)return;
+  const total=t.jovens;
+  const j1=prompt(`${nome} tem ${total} jovens no total.
+Quantos ficam na Sala 1 (Manu)?`);
+  if(!j1)return;
+  const n1=parseInt(j1);
+  if(isNaN(n1)||n1<=0||n1>=total){alert('Número inválido');return;}
+  const n2=total-n1;
+  const salas=(unidades.find(u=>u.nome===(t.unidade||'Freguesia do Ó'))||{salas:['Sala 1','Sala 2']}).salas;
+  const chave=nome+'|'+dia+'|'+instancia;
+  salaOverrides[chave]={split:[
+    {sala:salas[0],pl:'Manu',jovens:n1,unidade:t.unidade||'Freguesia do Ó'},
+    {sala:salas[1],pl:'Carol',jovens:n2,unidade:t.unidade||'Freguesia do Ó'}
+  ]};
+  saveSalaOverrides();
+  carregarDoDirectus();
 }
 
 // ── RENDER EMPRESAS ──
@@ -739,7 +799,11 @@ async function carregarDoDirectus(){
     const turmasLeapy=dataTurmas.filter(t=>{
       if(!t.Name||!t.Name.startsWith('Turma ')||!t.dia_de_curso)return false;
       if(!t.data_de_inicio)return false;
-      return t.data_de_inicio.slice(0,10)>=DATA_MINIMA;
+      if(t.data_de_inicio.slice(0,10)<DATA_MINIMA)return false;
+      // Excluir turmas teste: sufixo com letra N (ex: Turma N1, Turma BN3, Turma 3N)
+      const sufixo=t.Name.slice(6); // tudo após "Turma "
+      if(/N/i.test(sufixo))return false;
+      return true;
     });
     const turmaIdMap={};
     turmasLeapy.forEach(t=>turmaIdMap[t.id]=t);
@@ -858,6 +922,31 @@ async function carregarDoDirectus(){
         adicionadas++;
       });
     });
+
+    // Aplicar overrides de sala/PL/split salvos pelo usuário
+    const paraRemover=[];
+    const paraAdicionar=[];
+    TURMAS_FIXAS.forEach((t,i)=>{
+      const sameGroup=TURMAS_FIXAS.filter(x=>x.nome===t.nome&&x.dia===t.dia);
+      const instancia=sameGroup.indexOf(t);
+      const chave=t.nome+'|'+t.dia+'|'+instancia;
+      const ov=salaOverrides[chave];
+      if(!ov)return;
+      // Split: turma dividida em duas salas
+      if(ov.split&&ov.split.length===2){
+        paraRemover.push(t);
+        ov.split.forEach(s=>paraAdicionar.push({
+          ...t, sala:s.sala, pl:s.pl||t.pl, jovens:s.jovens,
+          unidade:s.unidade||t.unidade, _split:true
+        }));
+        return;
+      }
+      if(ov.sala)t.sala=ov.sala;
+      if(ov.pl)t.pl=ov.pl;
+      if(ov.unidade)t.unidade=ov.unidade;
+    });
+    paraRemover.forEach(t=>{const i=TURMAS_FIXAS.indexOf(t);if(i>=0)TURMAS_FIXAS.splice(i,1);});
+    paraAdicionar.forEach(t=>TURMAS_FIXAS.push(t));
 
     if(statusEl){
       const msg=`✓ Backoffice: ${adicionadas} turmas ativas carregadas`;
