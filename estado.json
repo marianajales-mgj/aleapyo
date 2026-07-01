@@ -90,10 +90,11 @@
           "nome": "Smart Fit",
           "jovens": 5,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "EM6",
+          "dia": "sexta",
+          "sala": "Sala 2",
+          "unidade": "Freguesia do Ó",
+          "pl": "Carol"
         },
         {
           "id": "emp1782909530791",
