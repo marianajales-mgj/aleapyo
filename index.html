@@ -791,42 +791,111 @@ async function carregarDoDirectus(){
     // 4. Atualizar TURMAS_FIXAS
     const existentes=new Set(TURMAS_FIXAS.map(t=>t.nome));
     let adicionadas=0,atualizadas=0;
+    const hoje=new Date().toISOString().slice(0,10);
 
+    // Agrupar turmas do Directus por data_de_inicio
+    const turmasPorData={};
+    turmasLeapy.forEach(t=>{
+      const d=t.data_de_inicio?t.data_de_inicio.slice(0,10):null;
+      if(!d)return;
+      if(!turmasPorData[d])turmasPorData[d]=[];
+      turmasPorData[d].push(t);
+    });
+
+    // Para entradas cuja data já passou: apagar simulação e substituir por dados reais
+    entradas.forEach(entrada=>{
+      if(entrada.data>hoje)return; // entrada futura → mantém simulação
+      const turmasReais=turmasPorData[entrada.data];
+      if(!turmasReais||!turmasReais.length)return; // sem dados no backoffice ainda → mantém
+
+      // Remover turmas fixas que vieram de simulação desta entrada (_do_directus ou sem _do_directus mas com data igual)
+      // e não estavam no estado original (não têm dados hardcoded)
+      // Estratégia: marcar turmas da entrada como "realizado" ao invés de apagar
+      // Limpar empresas simuladas da entrada (elas viram dados reais)
+      entrada.empresas.forEach(emp=>{
+        if(emp.status==='Confirmado'||emp.status==='Adiado')return;
+        // Empresa alocada nessa entrada → marcar como realizado (não editar mais)
+        emp._realizado=true;
+      });
+
+      // Adicionar ou atualizar turmas reais no TURMAS_FIXAS
+      turmasReais.forEach(t=>{
+        const nomeCompleto=t.Name;
+        const dia=DIAS_MAP[t.dia_de_curso]||t.dia_de_curso;
+        const pl=normPL(t.program_lead?.first_name,t.program_lead?.last_name);
+        const jovensCount=turmaCounts[t.id]||0;
+        if(!jovensCount)return; // sem jovens → ignorar
+        const empMap=turmaEmpresas[t.id]||{};
+        const empresas=Object.entries(empMap).map(([eid,cnt])=>({nome:empresaNomes[eid]||`Empresa #${eid}`,jovens:cnt}));
+
+        // Só adiciona PL se for Manu ou Carol
+        if(pl&&['Manu','Carol'].includes(pl)&&!plsState.find(p=>p.nome===pl)){
+          plsState.push({nome:pl,alocados:[],livres:[],simDias:[]});
+          const cores={'Manu':'#35dcb2','Carol':'#f2cf6b'};
+          const cor=cores[pl]||'#aaa';
+          plCores[pl]={bg:cor,light:cor+'18',text:'#1d0328',border:cor};
+        }
+
+        const idx=TURMAS_FIXAS.findIndex(x=>x.nome===nomeCompleto);
+        if(idx>=0){
+          // Turma já existe: atualizar com dados reais
+          TURMAS_FIXAS[idx].jovens=jovensCount||TURMAS_FIXAS[idx].jovens;
+          if(empresas.length)TURMAS_FIXAS[idx].empresas=empresas;
+          if(pl)TURMAS_FIXAS[idx].pl=pl;
+          TURMAS_FIXAS[idx]._realizado=true;
+          atualizadas++;
+        } else {
+          // Turma nova: adicionar como realizada (não simulação)
+          // Encontrar sala com espaço no dia
+          const unidade='Freguesia do Ó';
+          const u=unidades.find(x=>x.nome===unidade);
+          const salas=u?u.salas:['Sala 1','Sala 2'];
+          const cap=u?u.capacidade:32;
+          let sala=salas[0];
+          for(const s of salas){
+            const ocp=ocupacaoSala(dia,s,unidade);
+            if(ocp.jovens+jovensCount<=cap){sala=s;break;}
+          }
+          TURMAS_FIXAS.push({
+            nome:nomeCompleto,
+            entrada:entrada.data,
+            jovens:jovensCount,
+            dia,sala,unidade,
+            pl:pl||'—',
+            status:'ativa',
+            empresas,
+            _realizado:true,
+            _do_directus:true
+          });
+          adicionadas++;
+        }
+      });
+    });
+
+    // Para turmas já existentes no simulador (não ligadas a entrada passada): atualizar jovens/empresas
     turmasLeapy.forEach(t=>{
       const nomeCompleto=t.Name;
-      const dia=DIAS_MAP[t.dia_de_curso]||t.dia_de_curso;
       const pl=normPL(t.program_lead?.first_name,t.program_lead?.last_name);
       const jovensCount=turmaCounts[t.id]||0;
       const empMap=turmaEmpresas[t.id]||{};
       const empresas=Object.entries(empMap).map(([eid,cnt])=>({nome:empresaNomes[eid]||`Empresa #${eid}`,jovens:cnt}));
 
-      // Só adiciona PL se for Manu ou Carol
-      if(pl&&['Manu','Carol'].includes(pl)&&!plsState.find(p=>p.nome===pl)){
-        plsState.push({nome:pl,alocados:[],livres:[],simDias:[]});
-        const cores={'Manu':'#35dcb2','Carol':'#f2cf6b'};
-        const cor=cores[pl]||'#aaa';
-        plCores[pl]={bg:cor,light:cor+'18',text:'#1d0328',border:cor};
-      }
-
       if(existentes.has(nomeCompleto)){
-        // Atualizar turma existente com dados do backoffice
-        const idx=TURMAS_FIXAS.findIndex(x=>x.nome===nomeCompleto);
+        const idx=TURMAS_FIXAS.findIndex(x=>x.nome===nomeCompleto&&!x._realizado);
         if(idx>=0){
           TURMAS_FIXAS[idx].jovens=jovensCount||TURMAS_FIXAS[idx].jovens;
           if(empresas.length)TURMAS_FIXAS[idx].empresas=empresas;
           if(pl)TURMAS_FIXAS[idx].pl=pl;
           atualizadas++;
         }
-        return;
       }
-
-      // Turmas novas do Directus não são adicionadas automaticamente à grade
-      // Apenas turmas já configuradas no simulador são atualizadas
-      adicionadas++;
     });
 
     if(statusEl){
-      const msg=`✓ Backoffice: ${atualizadas} turmas atualizadas`;
+      const partes=[];
+      if(adicionadas)partes.push(`${adicionadas} turmas reais adicionadas`);
+      if(atualizadas)partes.push(`${atualizadas} atualizadas`);
+      const msg=partes.length?`✓ Backoffice: ${partes.join(', ')}`:'✓ Backoffice sincronizado';
       statusEl.textContent=msg;statusEl.style.color='#0a7a60';
       setTimeout(()=>{if(statusEl)statusEl.textContent='';},5000);
     }
