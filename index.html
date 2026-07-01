@@ -249,6 +249,40 @@ async function saveSalaOverrides(){
   }catch(e){console.warn('Erro ao salvar overrides:',e.message);}
 }
 
+// ── PERSISTÊNCIA DE ENTRADAS NO GITHUB ──
+const ESTADO_FILE='estado.json';
+let _estadoSha=null;
+
+async function loadEstado(){
+  try{
+    const r=await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${ESTADO_FILE}`,{
+      headers:{Authorization:`token ${GITHUB_TOKEN}`,Accept:'application/vnd.github.v3+json'}
+    });
+    if(r.ok){
+      const data=await r.json();
+      _estadoSha=data.sha;
+      const saved=JSON.parse(atob(data.content.replace(/\n/g,'')));
+      if(saved.entradas&&saved.entradas.length){
+        entradas=saved.entradas;
+      }
+    }
+  }catch(e){console.warn('Estado não carregado:',e.message);}
+}
+
+async function saveEstado(){
+  try{
+    const conteudo=btoa(unescape(encodeURIComponent(JSON.stringify({entradas},null,2))));
+    const body={message:'estado: entradas atualizadas',content:conteudo,branch:'main'};
+    if(_estadoSha)body.sha=_estadoSha;
+    const r=await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${ESTADO_FILE}`,{
+      method:'PUT',
+      headers:{Authorization:`token ${GITHUB_TOKEN}`,Accept:'application/vnd.github.v3+json','Content-Type':'application/json'},
+      body:JSON.stringify(body)
+    });
+    if(r.ok){const d=await r.json();_estadoSha=d.content.sha;}
+  }catch(e){console.warn('Erro ao salvar estado:',e.message);}
+}
+
 // ── ENTRADAS ──
 let entradas=[
   {id:'e1',data:'2026-07-06',empresas:[
@@ -562,23 +596,23 @@ function toggleEC(id){const el=document.getElementById(id);if(el)el.style.displa
 function excluirEntrada(eid){
   if(!confirm('Excluir esta entrada e todas as empresas?'))return;
   entradas=entradas.filter(e=>e.id!==eid);
-  renderEmpresas();renderGradeMini();
+  renderEmpresas();renderGradeMini();saveEstado();
 }
 function excluirEmp(eid,empid){
   if(!confirm('Excluir esta empresa?'))return;
   const e=entradas.find(x=>x.id===eid);if(!e)return;
   e.empresas=e.empresas.filter(x=>x.id!==empid);
-  renderEmpresas();renderGradeMini();
+  renderEmpresas();renderGradeMini();saveEstado();
 }
 function adicionarEmp(eid){
   const e=entradas.find(x=>x.id===eid);if(!e)return;
   e.empresas.push({id:'emp'+Date.now(),nome:'Nova empresa',jovens:1,status:'Em aberto',turma:null,dia:null,sala:null,unidade:null});
-  renderEmpresas();renderGradeMini();
+  renderEmpresas();renderGradeMini();saveEstado();
 }
 function updNome(eid,empid,val){const e=entradas.find(x=>x.id===eid);const emp=e?.empresas.find(x=>x.id===empid);if(emp)emp.nome=val.trim()||emp.nome;}
 function updJovens(eid,empid,val){
   const e=entradas.find(x=>x.id===eid);const emp=e?.empresas.find(x=>x.id===empid);
-  if(emp){emp.jovens=parseInt(val)||0;renderGradeMini();}
+  if(emp){emp.jovens=parseInt(val)||0;renderGradeMini();saveEstado();}
 }
 function updStatus(eid,empid,val){
   const e=entradas.find(x=>x.id===eid);const emp=e?.empresas.find(x=>x.id===empid);
@@ -609,7 +643,7 @@ function updStatus(eid,empid,val){
       }
     } else {emp.turma=null;emp.dia=null;emp.sala=null;emp.unidade=null;}
   }
-  renderEmpresas();renderGradeMini();
+  renderEmpresas();renderGradeMini();saveEstado();
 }
 
 // ── NOVA ENTRADA INLINE ──
@@ -642,7 +676,7 @@ function salvarNE(){
   entradas.push({id:'e'+Date.now(),data,empresas:emps});
   entradas.sort((a,b)=>a.data.localeCompare(b.data));
   toggleNovaEntrada();
-  renderEmpresas();renderGradeMini();
+  renderEmpresas();renderGradeMini();saveEstado();
   // Scroll para nova entrada
   setTimeout(()=>{
     const el=document.querySelector('.entrada-card:last-child');
@@ -727,7 +761,7 @@ function confirmarAlocacao(){
     entrada.empresas.splice(idx,1,...novas);
     novas.forEach((nova,i)=>_alocar(nova,entrada,alocs[i].dia,alocs[i].sala,alocs[i].unidade,alocs[i].jovens));
   }
-  fecharModal();renderGrade();renderGradeMini();renderEmpresas();
+  fecharModal();renderGrade();renderGradeMini();renderEmpresas();saveEstado();
 }
 
 function _alocar(emp,entrada,dia,sala,unidade,jovens){
@@ -1007,8 +1041,11 @@ async function carregarDoDirectus(){
 // ── INIT ──
 renderGradeMini();
 renderEmpresas();
-// Carregar overrides do GitHub, depois sincronizar com Directus
-loadOverrides().then(()=>carregarDoDirectus());
+// Carregar estado (entradas) + overrides do GitHub, depois sincronizar com Directus
+Promise.all([loadEstado(), loadOverrides()]).then(()=>{
+  renderEmpresas();
+  carregarDoDirectus();
+});
 </script>
 </body>
 </html>
