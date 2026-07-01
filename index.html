@@ -2,6 +2,8 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Aleapyo — Simulador de Alocação Leapy</title>
 <link href="https://fonts.googleapis.com/css2?family=Krona+One&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -316,8 +318,8 @@ function buildGradeHTML(tblId,compact){
     ).join('')+`<span style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--mu)"><span style="width:11px;height:11px;border-radius:3px;border:1.5px dashed #373afd;display:inline-block"></span>Simulação</span>`;
   }
   let h=`<thead><tr><th class="dia-col" rowspan="2">Dia</th>`;
-  unidades.forEach(u=>{const headerColor=u.nome==='Polo Liberdade'?'#dcf5e8':'#ededff';
-    h+=`<th colspan="${u.salas.length}" style="text-align:center;background:${headerColor};font-size:10px;font-weight:700">${u.nome}</th>`;});
+  unidades.forEach(u=>{const headerColor=u.nome==='Polo Liberdade'?{bg:'#35dcb225',tx:'#054a36',bd:'#35dcb2'}:{bg:'#373afd18',tx:'#373afd',bd:'#373afd'};
+    h+=`<th colspan="${u.salas.length}" style="text-align:center;background:${headerColor.bg};color:${headerColor.tx};font-size:10px;font-weight:700;border-bottom:2px solid ${headerColor.bd}">${u.nome}</th>`;});
   h+=`</tr><tr>`;
   unidades.forEach(u=>{u.salas.forEach(s=>{h+=`<th style="font-size:10px">${s}</th>`;});});
   h+=`</tr></thead><tbody>`;
@@ -330,7 +332,7 @@ function buildGradeHTML(tblId,compact){
       const pct=Math.min(100,Math.round(ocp.jovens/cap*100));
       const corBar=ocp.jovens>cap?'#fc5959':ocp.jovens>cap*.85?'#f2cf6b':'#35dcb2';
       if(ocp.jovens>cap)alertas.push(`⚠ ${u.nome} ${sala} (${dia}): ${ocp.jovens}j — excede capacidade de ${cap}j. Turmas simuladas precisam ir para outro dia/unidade.`);
-      const uniColor=u.nome==='Polo Liberdade'?'background:#f0fff8;':'background:#f8f8ff;';
+      const uniColor=u.nome==='Polo Liberdade'?'background:#f7fffe;':'background:#fafaff;';
         h+=`<td style="${compact?'min-width:140px':'min-width:170px'};${uniColor}">`;
       if(!ocp.turmas.length){
           // Verificar se sala ficará ocupada por turmas futuras (15 meses)
