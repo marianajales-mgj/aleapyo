@@ -49,10 +49,11 @@
           "nome": "Shopee",
           "jovens": 6,
           "status": "Confirmado",
-          "turma": "EM6",
-          "dia": "sexta",
+          "turma": "AM5",
+          "dia": "segunda",
           "sala": "Sala 2",
-          "unidade": "Freguesia do Ó"
+          "unidade": "Freguesia do Ó",
+          "pl": "Carol"
         },
         {
           "id": "e6",
