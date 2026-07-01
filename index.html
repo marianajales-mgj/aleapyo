@@ -726,12 +726,13 @@ const DIAS_MAP={'segunda_feira':'segunda','terca_feira':'terça','quarta_feira':
 const SALA_MAP={'Sala 1':'Sala 1','Sala 2':'Sala 2'};
 
 // Normalizar nome do PL para o simulador
+// Apenas PLs conhecidos: Manu e Carol
 function normPL(first,last){
   if(!first)return null;
-  const nome=first+' '+(last||'');
-  if(nome.toLowerCase().includes('emanu'))return 'Manu';
-  if(nome.toLowerCase().includes('carol'))return 'Carol';
-  return first; // usar primeiro nome como fallback
+  const nome=(first+' '+(last||'')).toLowerCase();
+  if(nome.includes('emanu'))return 'Manu';
+  if(nome.includes('carol'))return 'Carol';
+  return null; // PL não reconhecido — não adicionar
 }
 
 // Normalizar nome da turma
@@ -750,7 +751,12 @@ async function carregarDoDirectus(){
     const rT=await fetch(urlTurmas);
     if(!rT.ok)throw new Error('HTTP '+rT.status);
     const dataTurmas=(await rT.json()).data||[];
-    const turmasLeapy=dataTurmas.filter(t=>t.Name&&t.Name.startsWith('Turma ')&&t.dia_de_curso);
+    const DATA_MINIMA='2026-03-02';
+    const turmasLeapy=dataTurmas.filter(t=>{
+      if(!t.Name||!t.Name.startsWith('Turma ')||!t.dia_de_curso)return false;
+      if(!t.data_de_inicio)return false;
+      return t.data_de_inicio.slice(0,10)>=DATA_MINIMA;
+    });
     const turmaIdMap={};
     turmasLeapy.forEach(t=>turmaIdMap[t.id]=t);
 
@@ -785,11 +791,11 @@ async function carregarDoDirectus(){
       const empMap=turmaEmpresas[t.id]||{};
       const empresas=Object.entries(empMap).map(([eid,cnt])=>({nome:`Empresa #${eid}`,jovens:cnt}));
 
-      // Adicionar PL ao estado se não existir
-      if(pl&&!plsState.find(p=>p.nome===pl)){
+      // Só adiciona PL se for Manu ou Carol
+      if(pl&&['Manu','Carol'].includes(pl)&&!plsState.find(p=>p.nome===pl)){
         plsState.push({nome:pl,alocados:[],livres:[],simDias:[]});
-        const cores=['#a78bfa','#fb923c','#38bdf8','#f472b6'];
-        const cor=cores[plsState.length%4];
+        const cores={'Manu':'#35dcb2','Carol':'#f2cf6b'};
+        const cor=cores[pl]||'#aaa';
         plCores[pl]={bg:cor,light:cor+'18',text:'#1d0328',border:cor};
       }
 
