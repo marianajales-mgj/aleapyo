@@ -1,14 +1,4 @@
 {
-  "Turma BM5|terça|0": {
-    "sala": "Sala 2",
-    "pl": "Carol",
-    "unidade": "Freguesia do Ó"
-  },
-  "Turma BM4|terça|0": {
-    "sala": "Sala 1",
-    "pl": "Manu",
-    "unidade": "Freguesia do Ó"
-  },
   "Turma CM1|quarta|0": {
     "split": [
       {
@@ -24,15 +14,5 @@
         "unidade": "Freguesia do Ó"
       }
     ]
-  },
-  "Turma EM4|sexta|0": {
-    "sala": "Sala 1",
-    "pl": "Manu",
-    "unidade": "Freguesia do Ó"
-  },
-  "Turma EM5|sexta|0": {
-    "sala": "Sala 1",
-    "pl": "Manu",
-    "unidade": "Freguesia do Ó"
   }
 }
