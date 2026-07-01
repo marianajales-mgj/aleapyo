@@ -407,8 +407,25 @@ function buildGradeHTML(tblId,compact){
             `<div class="livre">livre · ${cap}j</div>`;
         }
       else{
-        // 3+ turmas ativas = sala em uso contínuo por 15 meses cada, não mostrar livre
-        const emUsoContinuo=ocp.turmas.length>=3;
+        // Verificar se sala está efetivamente cheia considerando horizonte de 15 meses
+        // Lógica: se turmas ativas têm datas de encerramento que cobrem os próximos meses
+        // ou se livre < 10 (sem espaço útil para nova entrada), mostrar "em uso"
+        const hoje=new Date();
+        const turmasComFuturo=ocp.turmas.filter(t=>{
+          if(!t.entrada)return true; // sem data = assumir ativa por muito tempo
+          const enc=new Date(t.entrada+'T12:00:00');
+          enc.setMonth(enc.getMonth()+15);
+          return enc>hoje;
+        });
+        // Calcular cobertura: se 2+ turmas encerram depois de 12 meses daqui
+        const doze=new Date(); doze.setMonth(doze.getMonth()+12);
+        const cobertura12m=ocp.turmas.filter(t=>{
+          if(!t.entrada)return true;
+          const enc=new Date(t.entrada+'T12:00:00');
+          enc.setMonth(enc.getMonth()+15);
+          return enc>doze;
+        }).length;
+        const emUsoContinuo=ocp.jovens>=cap||(cobertura12m>=2&&ocp.livre<cap*0.4);
         const livreLabel=emUsoContinuo?
           `<span style="color:#f2cf6b;font-weight:600">em uso</span>`:
           `<span style="color:${ocp.jovens>=cap?'#fc5959':'#888'}">livre:${Math.max(0,ocp.livre)}j</span>`;
@@ -472,7 +489,14 @@ function abrirDetalhe(nomeTurma,dia,sala,unidade){
   }
   // Botão de editar sala/PL para turmas do Directus
   if(true){// Ajuste manual disponível para todas as turmas fixas
-    const instancia=TURMAS_FIXAS.filter(x=>x.nome===t.nome&&x.dia===t.dia).indexOf(t);
+    // Calcular instância pelo índice no grupo de mesma turma+dia
+    const grupoTotal=TURMAS_FIXAS.filter(x=>x.nome===t.nome&&x.dia===t.dia);
+    let instancia=grupoTotal.findIndex(x=>x===t);
+    if(instancia<0){
+      // Turma splitada: encontrar pelo sala+unidade
+      instancia=grupoTotal.findIndex(x=>x.sala===t.sala&&(x.unidade||'Freguesia do Ó')===(t.unidade||'Freguesia do Ó'));
+    }
+    if(instancia<0)instancia=0;
     h+=`<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--br)">
       <div style="font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase;margin-bottom:6px">Ajuste manual</div>
       <div style="display:flex;gap:6px;margin-bottom:6px">
@@ -812,7 +836,7 @@ function _alocar(emp,entrada,dia,sala,unidade,jovens,pl){
   entradas.forEach(en=>en.empresas.forEach(e=>{
     if(e.turma){const m=e.turma.match(/([A-E])[MT](\d+)/);if(m&&m[1]===letra)max=Math.max(max,parseInt(m[2]));}
   }));
-  console.log('[Aleapyo] próxima turma de',dia,'→',letra+'M'+(max+1),'(max histórico:',max,')');
+  console.log('[Aleapyo] próxima turma de',dia,'→ letra='+letra+' max='+max+' próxima='+letra+'M'+(max+1));
   emp.turma=letra+TURNO+(max+1);
 }
 
