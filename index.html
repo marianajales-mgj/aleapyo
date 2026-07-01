@@ -44,7 +44,7 @@ body{font-family:'Montserrat',sans-serif;background:var(--bg);color:var(--tx);mi
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
 .modal{background:var(--sf);border-radius:var(--r);padding:24px;max-width:500px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2)}
 .modal h3{font-size:15px;font-weight:700;margin-bottom:16px}
-.destino-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--br);border-radius:var(--rs);margin-bottom:4px;background:#fafafa}
+.destino-row{display:flex;align-items:center;gap:10px;}
 .pl-card{background:var(--sf);border:1px solid var(--br);border-radius:var(--r);padding:12px 16px;margin-bottom:10px}
 .dia-pill{display:inline-block;padding:4px 12px;border-radius:var(--rs);font-size:11px;font-weight:600;margin:2px;cursor:pointer}
 .alerta-warn{background:#fffbeb;border:1px solid #fcd34d55;border-radius:var(--rs);padding:8px 12px;font-size:11px;color:#856404;margin-bottom:6px}
@@ -670,7 +670,9 @@ function abrirMover(eid,empid){
       const cap=ocp.capacidade;const livre=Math.max(0,ocp.livre);
       const corBar=ocp.jovens>=cap?'#fc5959':ocp.jovens>cap*.8?'#f2cf6b':'#35dcb2';
       const inputId=`qtd-${dia}-${sala.replace(/ /g,'-')}-${u.nome.replace(/ /g,'-')}`;
-      salas+=`<div class="destino-row">
+      const uBg=u.nome==='Polo Liberdade'?'#f0fffe':'#f3f3ff';
+      const uBd=u.nome==='Polo Liberdade'?'#35dcb2':'#a0a3ff';
+      salas+=`<div class="destino-row" style="background:${uBg};border:1px solid ${uBd};border-radius:var(--rs);padding:8px 10px;margin-bottom:4px">
         <div style="flex:1">
           <div style="font-size:12px;font-weight:700">${u.nome} — ${sala}</div>
           <div style="font-size:10px;color:var(--mu)">${ocp.jovens}/${cap}j · <b style="color:${corBar}">${livre}j livres</b>${ocp.turmas.length?' · '+ocp.turmas.map(t=>t.nome).join(', '):''}</div>
@@ -739,8 +741,15 @@ function _alocar(emp,entrada,dia,sala,unidade,jovens){
   if(simExist){emp.turma=simExist.nome.replace('Turma ','');return;}
   // Criar novo nome
   let max=0;
-  [...TURMAS_FIXAS,...turmasSim].forEach(t=>{const m=t.nome.match(/([A-E])[MT](\d+)/);if(m&&m[1]===letra)max=Math.max(max,parseInt(m[2]));});
-  entradas.forEach(en=>en.empresas.forEach(e=>{if(e.turma){const m=e.turma.match(/([A-E])[MT](\d+)/);if(m&&m[1]===letra)max=Math.max(max,parseInt(m[2]));};}));
+  // Varrer TURMAS_FIXAS (do Directus), turmasSim e entradas para achar maior número
+  [...TURMAS_FIXAS,...turmasSim].forEach(t=>{
+    const m=t.nome.match(new RegExp('([A-E])[MT](\\d+)'));
+    if(m&&m[1]===letra)max=Math.max(max,parseInt(m[2]));
+  });
+  entradas.forEach(en=>en.empresas.forEach(e=>{
+    if(e.turma){const m=e.turma.match(new RegExp('([A-E])[MT](\\d+)'));if(m&&m[1]===letra)max=Math.max(max,parseInt(m[2]));}
+  }));
+  console.log('[Aleapyo] próxima turma de',dia,'→',letra+'M'+(max+1),'(max encontrado:',max,')');
   emp.turma=letra+TURNO+(max+1);
 }
 
