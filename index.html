@@ -393,7 +393,7 @@ function buildGradeHTML(tblId,compact){
       const uniColor=u.nome==='Polo Liberdade'?'background:#f7fffe;':'background:#fafaff;';
         h+=`<td style="${compact?'min-width:140px':'min-width:170px'};${uniColor}">`;
       if(!ocp.turmas.length){
-          // Verificar se sala ficará ocupada por turmas futuras (15 meses)
+          // Sala sem turmas hoje: verificar se há turmas futuras ainda ativas (15 meses)
           const hoje=new Date();
           const ocupacaoFutura=TURMAS_FIXAS.some(t=>{
             if(t.dia!==dia||t.sala!==sala||(t.unidade||'Freguesia do Ó')!==u.nome)return false;
@@ -407,7 +407,12 @@ function buildGradeHTML(tblId,compact){
             `<div class="livre">livre · ${cap}j</div>`;
         }
       else{
-        h+=`<div class="sala-info"><span>${ocp.jovens}/${cap}j</span><span style="color:${ocp.jovens>=cap?'#fc5959':'#888'}">livre:${Math.max(0,ocp.livre)}j</span></div>`;
+        // 3+ turmas ativas = sala em uso contínuo por 15 meses cada, não mostrar livre
+        const emUsoContinuo=ocp.turmas.length>=3;
+        const livreLabel=emUsoContinuo?
+          `<span style="color:#f2cf6b;font-weight:600">em uso</span>`:
+          `<span style="color:${ocp.jovens>=cap?'#fc5959':'#888'}">livre:${Math.max(0,ocp.livre)}j</span>`;
+        h+=`<div class="sala-info"><span>${ocp.jovens}/${cap}j</span>${livreLabel}</div>`;
         ocp.turmas.forEach(t=>{
           const cor=corPL(t.pl);
           const isSim=t.status==='simulada';
