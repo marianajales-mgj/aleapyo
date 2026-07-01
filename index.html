@@ -94,7 +94,6 @@ button:disabled{opacity:.5;cursor:not-allowed}
   <button class="tab on" onclick="setTab('empresas',this)">Empresas & Entradas</button>
   <button class="tab" onclick="setTab('grade',this)">Grade de salas</button>
   <button class="tab" onclick="setTab('pls',this)">Program Leads</button>
-  <button class="tab" onclick="setTab('alertas',this)">Alertas</button>
 </div>
 
 <div id="tab-grade" class="sec" style="display:none">
@@ -130,9 +129,27 @@ button:disabled{opacity:.5;cursor:not-allowed}
       <button onclick="filtrarStatus('Confirmado')" id="f-conf" class="mover-btn">Confirmados</button>
       <button onclick="filtrarStatus('Adiado')" id="f-adiado" class="mover-btn">Adiados</button>
     </div>
-    <button onclick="novaEntrada()" style="height:34px;padding:0 16px;background:var(--green);color:#054a36;border:none;border-radius:var(--rs);font-size:11px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif">+ Nova entrada</button>
+    <button onclick="toggleNovaEntrada()" id="btn-nova-entrada" style="height:34px;padding:0 16px;background:var(--green);color:#054a36;border:none;border-radius:var(--rs);font-size:11px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif">+ Nova entrada</button>
   </div>
   <div id="empresas-list"></div>
+
+  <!-- Formulário nova entrada inline -->
+  <div id="form-nova-entrada" style="display:none;background:var(--sf);border:1.5px dashed var(--green);border-radius:var(--r);padding:16px;margin-top:12px">
+    <div style="font-size:13px;font-weight:700;color:var(--tx);margin-bottom:14px">Nova entrada</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;align-items:flex-end">
+      <div>
+        <div style="font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase;margin-bottom:4px">Data de entrada</div>
+        <input type="date" id="ne-data" style="height:32px;border:1px solid var(--br);border-radius:var(--rs);padding:0 10px;font-size:12px;font-family:'Montserrat',sans-serif"/>
+      </div>
+    </div>
+    <div style="font-size:11px;font-weight:700;color:var(--mu);margin-bottom:8px">Empresas:</div>
+    <div id="ne-empresas"></div>
+    <button onclick="addEmpNovaEntrada()" style="width:100%;padding:6px;border:1.5px dashed var(--blue);border-radius:var(--rs);background:transparent;color:var(--blue);font-size:11px;font-weight:600;cursor:pointer;font-family:'Montserrat',sans-serif;margin-bottom:12px">+ Adicionar empresa</button>
+    <div style="display:flex;gap:8px">
+      <button onclick="salvarNovaEntrada()" style="flex:1;height:36px;background:var(--green);color:#054a36;border:none;border-radius:var(--rs);font-size:12px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif">✓ Salvar entrada</button>
+      <button onclick="toggleNovaEntrada()" style="height:36px;padding:0 14px;background:#f5f5f2;color:var(--mu);border:1px solid var(--br);border-radius:var(--rs);font-size:11px;cursor:pointer;font-family:'Montserrat',sans-serif">Cancelar</button>
+    </div>
+  </div>
 </div>
 
 <div id="tab-pls" class="sec" style="display:none">
@@ -141,9 +158,6 @@ button:disabled{opacity:.5;cursor:not-allowed}
   <button onclick="novoPL()" style="height:36px;padding:0 16px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:11px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif;margin-top:8px">+ Novo PL</button>
 </div>
 
-<div id="tab-alertas" class="sec" style="display:none">
-  <div id="alertas-list"></div>
-</div>
 
 </div>
 
@@ -201,13 +215,27 @@ function fmtFim(dt){
   const ds=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
   return `${ds[fim.getDay()]} ${String(fim.getDate()).padStart(2,'0')}/${String(fim.getMonth()+1).padStart(2,'0')}`;
 }
+function ferNaImersao(dt){
+  const inicio=new Date(dt+'T12:00:00');
+  const fim=addDU(new Date(dt+'T12:00:00'),6);
+  const res=[];
+  const d=new Date(inicio);
+  while(d<=fim){
+    d.setDate(d.getDate()+1);
+    const k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    if(FERIADOS[k]){
+      res.push(`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')} — feriado`);
+    }
+  }
+  return res;
+}
 
 // ── SALAS (configuráveis) ──
 let unidades=[
-  {nome:'Freguesia do Ó', salas:['Sala 1','Sala 2'], capacidade:50},
+  {nome:'Freguesia do Ó', salas:['Sala 1','Sala 2'], capacidade:32},
   {nome:'Polo Liberdade', salas:['Sala 1'], capacidade:50},
 ];
-const CAPACIDADE_DEFAULT=50;
+const CAPACIDADE_DEFAULT=32;
 function capacidadeSala(unidade,sala){
   const u=unidades.find(u=>u.nome===unidade);
   return u?u.capacidade:CAPACIDADE_DEFAULT;
@@ -514,6 +542,7 @@ function renderEmpresas(){
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
           <span class="entrada-data">${fmtData(entrada.data)}</span>
           ${fim?`<span style="font-size:11px;color:var(--mu)">Fim imersão: ${fim}</span>`:''}
+          ${entrada.data?ferNaImersao(entrada.data).map(f=>`<span style="font-size:10px;font-weight:600;background:#fffbeb;color:#856404;border:1px solid #fcd34d55;border-radius:99px;padding:1px 8px">${f}</span>`).join(''):''}
         </div>
         <div class="entrada-badges">
           ${conf?`<span class="badge" style="background:#e8fff9;color:#0a7a60;border-color:#35dcb2">${conf}j confirmados</span>`:''}
@@ -553,10 +582,13 @@ function renderEmpresas(){
         </select>
         <div>${emp.turma?`<span style="font-size:10px;color:var(--blue);font-weight:600;background:#eeefff;padding:2px 7px;border-radius:99px;border:1px solid #b4b6fd;white-space:nowrap">${emp.turma} · ${emp.dia||''}</span>`:'<span style="font-size:10px;color:#ccc">sem turma</span>'}</div>
         <button class="mover-btn" onclick="abrirMover('${entrada.id}','${emp.id}')">
-          ${emp.turma?'↻ Mover':'+ Alocar'}
+          ${emp.turma?'↻ Mover':'Alocar'}
         </button>
       </div>`;
     });
+    h+=`<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--br)">
+        <button onclick="adicionarEmpresa('${entrada.id}')" style="height:30px;padding:0 12px;border:1.5px dashed var(--blue);color:var(--blue);background:transparent;border-radius:var(--rs);font-size:11px;font-weight:600;cursor:pointer;font-family:'Montserrat',sans-serif">+ Adicionar empresa</button>
+      </div>`;
     h+=`</div></div>`;
   });
   el.innerHTML=h||'<div style="color:var(--mu);text-align:center;padding:2rem">Nenhuma empresa encontrada.</div>';
@@ -579,88 +611,104 @@ function abrirMover(eid,empid){
   const emp=entrada?.empresas.find(x=>x.id===empid);
   if(!emp)return;
 
-  document.getElementById('modal-titulo').textContent=`Alocar: ${emp.nome} (${emp.jovens}j)`;
+  document.getElementById('modal-titulo').textContent=`Alocar: ${emp.nome}`;
 
-  // Mostrar opções de destino por dia/sala
-  let h=`<div style="font-size:11px;color:var(--mu);margin-bottom:12px">Escolha o dia e sala de destino:</div>`;
+  let h=`<div style="font-size:12px;font-weight:600;color:var(--tx);margin-bottom:4px">${emp.jovens}j para alocar</div>`;
+  h+=`<div style="font-size:11px;color:var(--mu);margin-bottom:14px">Preencha a quantidade em cada sala. Pode dividir em múltiplos destinos se necessário.</div>`;
 
   DIAS.forEach(dia=>{
+    let blocoSalas='';
     unidades.forEach(u=>{
       u.salas.forEach(sala=>{
-        const ocp=ocupacaoSala(dia,sala);
-        const cabe=ocp.livre>=emp.jovens;
-        const corBar=ocp.jovens>28?'#fc5959':ocp.jovens>20?'#f2cf6b':'#35dcb2';
-        const selecionado=emp.turma&&emp.dia===dia&&ocp.turmas.some(t=>t.nome.replace('Turma ','')===emp.turma);
-        h+=`<div class="destino-opt ${selecionado?'selected':''}" 
-          onclick="${cabe?`confirmarMover('${dia}','${sala}')`:'void(0)'}"
-          style="${!cabe?'opacity:.4;cursor:not-allowed':''}"
-          title="${!cabe?`Não cabe: ${ocp.jovens}/${32} ocupados`:''}">
+        const ocp=ocupacaoSala(dia,sala,u.nome);
+        const cap=ocp.capacidade||32;
+        const livre=Math.max(0,ocp.livre);
+        const corBar=ocp.jovens>=cap?'#fc5959':ocp.jovens>cap*0.8?'#f2cf6b':'#35dcb2';
+        const inputId=`qtd-${dia}-${sala.replace(/ /g,'-')}-${u.nome.replace(/ /g,'-')}`;
+        blocoSalas+=`<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--br);border-radius:var(--rs);margin-bottom:4px;background:#fafafa">
           <div style="flex:1">
-            <div style="font-size:12px;font-weight:700">${dia.charAt(0).toUpperCase()+dia.slice(1)} · ${sala}</div>
-            <div style="font-size:10px;color:var(--mu);margin-top:2px">
-              ${ocp.jovens}j ocupados · ${ocp.livre}j livres
-              ${ocp.turmas.length?` · ${ocp.turmas.map(t=>t.nome).join(', ')}`:'· livre'}
-            </div>
+            <div style="font-size:12px;font-weight:700">${u.nome} — ${sala}</div>
+            <div style="font-size:10px;color:var(--mu);margin-top:2px">${ocp.jovens}/${cap}j · <b style="color:${corBar}">${livre}j livres</b>${ocp.turmas.length?' · '+ocp.turmas.map(t=>t.nome).join(', '):' · livre'}</div>
           </div>
-          <div style="font-size:11px;font-weight:700;color:${corBar}">${ocp.jovens}/32</div>
-          <div style="width:40px;height:6px;background:#eee;border-radius:99px;overflow:hidden">
-            <div style="height:100%;width:${Math.min(100,Math.round(ocp.jovens/32*100))}%;background:${corBar};border-radius:99px"></div>
-          </div>
-          ${cabe?`<span style="font-size:10px;font-weight:700;color:#0a7a60">✓</span>`:`<span style="font-size:10px;color:#ccc">✗</span>`}
+          <div style="width:50px;height:4px;background:#eee;border-radius:99px;overflow:hidden"><div style="height:100%;width:${Math.min(100,Math.round(ocp.jovens/cap*100))}%;background:${corBar};border-radius:99px"></div></div>
+          <input type="number" id="${inputId}" min="1" max="${livre}" placeholder="0"
+            style="width:58px;height:30px;border:1px solid ${livre>0?'var(--blue)':'var(--br)'};border-radius:var(--rs);padding:0 4px;font-size:12px;font-weight:700;color:var(--blue);font-family:'Montserrat',sans-serif;text-align:center;${livre<=0?'opacity:.4;':''}background:var(--sf)"
+            ${livre<=0?'disabled':''}/>
         </div>`;
       });
     });
+    h+=`<details style="margin-bottom:8px" ${['terça','quarta','quinta'].includes(dia)?'open':''}>
+      <summary style="font-size:11px;font-weight:700;color:var(--tx);cursor:pointer;text-transform:capitalize;padding:4px 0;list-style:none">▶ ${dia}</summary>
+      <div style="margin-top:6px">${blocoSalas}</div>
+    </details>`;
   });
+
+  h+=`<div style="background:#fffbeb;border:1px solid #fcd34d55;border-radius:var(--rs);padding:8px 10px;font-size:11px;color:#856404;margin:8px 0">
+    💡 Total da empresa: ${emp.jovens}j. Distribua entre as salas desejadas.
+  </div>`;
+  h+=`<button onclick="confirmarMoverDividido()" style="width:100%;height:38px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:12px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif">✓ Confirmar alocação</button>`;
 
   document.getElementById('modal-body').innerHTML=h;
   document.getElementById('modal-bg').style.display='flex';
 }
 
-function confirmarMover(dia,sala){
+function confirmarMoverDividido(){
   const entrada=entradas.find(e=>e.id===_moverEid);
   const emp=entrada?.empresas.find(x=>x.id===_moverEmpid);
   if(!emp)return;
 
-  // Verificar se é exceção (dia diferente das outras empresas confirmadas desta entrada)
-  const diasConfirmados=entrada.empresas.filter(e=>e.id!==emp.id&&e.turma&&e.dia&&e.status!=='Adiado').map(e=>e.dia);
-  const diasUnicos=[...new Set(diasConfirmados)];
-  const isExcecao=diasUnicos.length>0&&!diasUnicos.includes(dia);
+  const alocacoes=[];
+  DIAS.forEach(dia=>{
+    unidades.forEach(u=>{
+      u.salas.forEach(sala=>{
+        const inputId=`qtd-${dia}-${sala.replace(/ /g,'-')}-${u.nome.replace(/ /g,'-')}`;
+        const inp=document.getElementById(inputId);
+        if(inp&&parseInt(inp.value)>0) alocacoes.push({dia,sala,unidade:u.nome,jovens:parseInt(inp.value)});
+      });
+    });
+  });
 
-  if(isExcecao){
-    if(!confirm(`Atenção: outras empresas desta entrada estão no dia ${diasUnicos[0]}. Marcar ${emp.nome} como exceção no dia ${dia}?`))return;
-    emp.excecao=true;
-  }else{
-    emp.excecao=false;
+  if(!alocacoes.length){alert('Preencha a quantidade em pelo menos uma sala.');return;}
+  const total=alocacoes.reduce((s,a)=>s+a.jovens,0);
+  if(total>emp.jovens){alert(`Total (${total}j) excede os jovens da empresa (${emp.jovens}j).`);return;}
+
+  if(alocacoes.length===1){
+    _alocarEmpresa(emp,entrada,alocacoes[0].dia,alocacoes[0].sala,alocacoes[0].unidade);
+  } else {
+    // Dividir em múltiplas linhas
+    const idx=entrada.empresas.findIndex(x=>x.id===emp.id);
+    const novas=alocacoes.map((a,i)=>({
+      id:'emp'+Date.now()+i+Math.random().toString(36).slice(2),
+      nome:emp.nome,jovens:a.jovens,
+      status:emp.status,turma:null,dia:null,unidade:null,excecao:false
+    }));
+    entrada.empresas.splice(idx,1,...novas);
+    novas.forEach((nova,i)=>_alocarEmpresa(nova,entrada,alocacoes[i].dia,alocacoes[i].sala,alocacoes[i].unidade));
   }
 
-  // Descobrir ou criar turma para este dia
+  fecharModal();
+  renderGrade();renderGradeMini();renderEmpresas();
+}
+
+function _alocarEmpresa(emp,entrada,dia,sala,unidade){
+  const diasConf=entrada.empresas.filter(e=>e.id!==emp.id&&e.turma&&e.dia&&e.status!=='Adiado').map(e=>e.dia);
+  const diasUnicos=[...new Set(diasConf)];
+  emp.excecao=diasUnicos.length>0&&!diasUnicos.includes(dia);
+  emp.unidade=unidade;
   const letra=LETRA[dia]||'A';
-  // Ver se já existe turma simulada neste dia/sala desta entrada
-  const turmaExistente=turmasSim.find(t=>t.dia===dia&&t.sala===sala&&t.entrada===entrada.data&&t.status==='simulada');
-  if(turmaExistente){
-    emp.turma=turmaExistente.nome.replace('Turma ','');
-  }else{
-    // Criar novo nome de turma
+  // Procurar turma existente neste dia/sala/unidade
+  const turmaExist=turmasSim.find(t=>t.dia===dia&&t.sala===sala&&(t.unidade||'Freguesia do Ó')===unidade&&t.status==='simulada');
+  if(turmaExist){
+    emp.turma=turmaExist.nome.replace('Turma ','');
+  } else {
     let max=0;
-    [...TURMAS_FIXAS,...turmasSim].forEach(t=>{
-      const m=t.nome.match(/([A-E])M(\d+)/);
-      if(m&&m[1]===letra)max=Math.max(max,parseInt(m[2]));
-    });
-    // Verificar nas empresas também
-    entradas.forEach(en=>en.empresas.forEach(e=>{
-      if(e.turma){const m=e.turma.match(/([A-E])M(\d+)/);if(m&&m[1]===letra)max=Math.max(max,parseInt(m[2]));}
-    }));
+    [...TURMAS_FIXAS,...turmasSim].forEach(t=>{const m=t.nome.match(/([A-E])[MT](\d+)/);if(m&&m[1]===letra)max=Math.max(max,parseInt(m[2]));});
+    entradas.forEach(en=>en.empresas.forEach(e=>{if(e.turma){const m=e.turma.match(/([A-E])[MT](\d+)/);if(m&&m[1]===letra)max=Math.max(max,parseInt(m[2]));};}));
     emp.turma=letra+TURNO+(max+1);
   }
   emp.dia=dia;
-  if(emp.status==='Em aberto')emp.status='Em aberto'; // mantém
-
-  fecharModal();
-  renderGrade();
-  renderEmpresas();
-  // Scroll para grade
-  setTab('grade',document.querySelectorAll('.tab')[0]);
 }
+
 
 function fecharModal(){document.getElementById('modal-bg').style.display='none';}
 
@@ -766,13 +814,12 @@ function renderAlertasGrade(){
 
 // ── NAVEGAÇÃO ──
 function setTab(t,btn){
-  ['grade','empresas','pls','alertas'].forEach(k=>document.getElementById('tab-'+k).style.display=k===t?'block':'none');
+  ['grade','empresas','pls'].forEach(k=>document.getElementById('tab-'+k).style.display=k===t?'block':'none');
   document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
   if(btn)btn.classList.add('on');
   if(t==='grade')renderGrade();
   if(t==='empresas'){renderGradeMini();renderEmpresas();}
   if(t==='pls')renderPLs();
-  if(t==='alertas')renderAlertasGrade();
 }
 function resetarSim(){
   entradas.forEach(en=>en.empresas.forEach(e=>{if(e.status==='Em aberto'){e.turma=null;e.dia=null;}}));
@@ -780,6 +827,13 @@ function resetarSim(){
 }
 
 // ── EDITAR JOVENS ──
+function adicionarEmpresa(eid){
+  const entrada=entradas.find(e=>e.id===eid);if(!entrada)return;
+  const id='emp'+Date.now();
+  entrada.empresas.push({id,nome:'Nova empresa',jovens:1,status:'Em aberto',turma:null,dia:null,excecao:false});
+  renderEmpresas();renderGradeMini();
+}
+
 function updNomeEmp(eid,empid,val){
   const e=entradas.find(e=>e.id===eid);if(!e)return;
   const emp=e.empresas.find(x=>x.id===empid);if(!emp)return;
@@ -819,20 +873,43 @@ function gerenciarUnidades(){
   renderGrade();renderGradeMini();
 }
 
-function novaEntrada(){
-  const data=prompt('Data de entrada (AAAA-MM-DD):');
-  if(!data||!/^\d{4}-\d{2}-\d{2}$/.test(data)){alert('Formato inválido. Use AAAA-MM-DD');return;}
+let neEmpresas=[];
+function toggleNovaEntrada(){
+  const f=document.getElementById('form-nova-entrada');
+  if(!f)return;
+  const showing=f.style.display!=='none';
+  f.style.display=showing?'none':'block';
+  if(!showing){neEmpresas=[];renderNeEmpresas();document.getElementById('ne-data').value='';}
+}
+function renderNeEmpresas(){
+  const el=document.getElementById('ne-empresas');if(!el)return;
+  el.innerHTML=neEmpresas.map((e,i)=>`
+    <div style="display:grid;grid-template-columns:1fr 80px 24px;gap:6px;align-items:center;margin-bottom:6px">
+      <input type="text" value="${e.nome}" placeholder="Nome da empresa"
+        onchange="neEmpresas[${i}].nome=this.value"
+        style="height:30px;border:1px solid var(--br);border-radius:var(--rs);padding:0 8px;font-size:12px;font-family:'Montserrat',sans-serif"/>
+      <input type="number" value="${e.jovens}" min="1" placeholder="Qtde"
+        onchange="neEmpresas[${i}].jovens=parseInt(this.value)||1"
+        style="height:30px;border:1px solid var(--br);border-radius:var(--rs);padding:0 6px;font-size:12px;font-family:'Montserrat',sans-serif;text-align:center"/>
+      <button onclick="neEmpresas.splice(${i},1);renderNeEmpresas()" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:17px;padding:0">×</button>
+    </div>`).join('');
+}
+function addEmpNovaEntrada(){
+  neEmpresas.push({nome:'',jovens:1});
+  renderNeEmpresas();
+}
+function salvarNovaEntrada(){
+  const data=document.getElementById('ne-data').value;
+  if(!data){alert('Informe a data de entrada.');return;}
+  if(!neEmpresas.length){alert('Adicione pelo menos uma empresa.');return;}
   const id='e'+Date.now();
-  entradas.push({id,data,empresas:[]});
-  // Adicionar primeira empresa
-  const nomeEmp=prompt('Nome da primeira empresa:');
-  if(nomeEmp){
-    const jovens=parseInt(prompt('Quantos jovens?')||'0');
-    entradas[entradas.length-1].empresas.push({
-      id:'emp'+Date.now(),nome:nomeEmp,jovens,
-      status:'Em aberto',turma:null,dia:null,excecao:false
-    });
-  }
+  const emps=neEmpresas.map(e=>({
+    id:'emp'+Date.now()+Math.random(),
+    nome:e.nome||'Empresa',jovens:e.jovens||1,
+    status:'Em aberto',turma:null,dia:null,excecao:false
+  }));
+  entradas.push({id,data,empresas:emps});
+  toggleNovaEntrada();
   renderEmpresas();renderGradeMini();
 }
 
