@@ -83,6 +83,16 @@
           "dia": "sexta",
           "sala": "Sala 2",
           "unidade": "Freguesia do Ó"
+        },
+        {
+          "id": "emp1782909360216",
+          "nome": "Nova empresa",
+          "jovens": 1,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null
         }
       ]
     },
