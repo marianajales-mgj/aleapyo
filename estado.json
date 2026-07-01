@@ -1,0 +1,132 @@
+{
+  "entradas": [
+    {
+      "id": "e_0607",
+      "data": "2026-07-06",
+      "empresas": [
+        {
+          "id": "e1",
+          "nome": "UOL",
+          "jovens": 2,
+          "status": "Confirmado",
+          "turma": "BM7",
+          "dia": "terça",
+          "sala": "Sala 2",
+          "unidade": "Freguesia do Ó"
+        },
+        {
+          "id": "e2",
+          "nome": "Shopee",
+          "jovens": 8,
+          "status": "Confirmado",
+          "turma": "BM7",
+          "dia": "terça",
+          "sala": "Sala 2",
+          "unidade": "Freguesia do Ó"
+        },
+        {
+          "id": "e3",
+          "nome": "UOL",
+          "jovens": 3,
+          "status": "Confirmado",
+          "turma": "EM9",
+          "dia": "sexta",
+          "sala": "Sala 2",
+          "unidade": "Freguesia do Ó"
+        },
+        {
+          "id": "e4",
+          "nome": "Arco",
+          "jovens": 5,
+          "status": "Confirmado",
+          "turma": "EM9",
+          "dia": "sexta",
+          "sala": "Sala 2",
+          "unidade": "Freguesia do Ó"
+        },
+        {
+          "id": "e5",
+          "nome": "Shopee",
+          "jovens": 5,
+          "status": "Confirmado",
+          "turma": "EM9",
+          "dia": "sexta",
+          "sala": "Sala 2",
+          "unidade": "Freguesia do Ó"
+        },
+        {
+          "id": "e6",
+          "nome": "Aramis",
+          "jovens": 1,
+          "status": "Em aberto",
+          "turma": "EM9",
+          "dia": "sexta",
+          "sala": "Sala 2",
+          "unidade": "Freguesia do Ó"
+        },
+        {
+          "id": "e7",
+          "nome": "Flash",
+          "jovens": 1,
+          "status": "Em aberto",
+          "turma": "EM9",
+          "dia": "sexta",
+          "sala": "Sala 2",
+          "unidade": "Freguesia do Ó"
+        },
+        {
+          "id": "e8",
+          "nome": "Cogna",
+          "jovens": 5,
+          "status": "Em aberto",
+          "turma": "EM9",
+          "dia": "sexta",
+          "sala": "Sala 2",
+          "unidade": "Freguesia do Ó"
+        },
+        {
+          "id": "e9",
+          "nome": "Loft",
+          "jovens": 6,
+          "status": "Em aberto",
+          "turma": "EM9",
+          "dia": "sexta",
+          "sala": "Sala 2",
+          "unidade": "Freguesia do Ó"
+        }
+      ]
+    },
+    {
+      "id": "e_2007",
+      "data": "2026-07-20",
+      "empresas": [
+        {
+          "id": "e10",
+          "nome": "Stone",
+          "jovens": 6,
+          "status": "Confirmado",
+          "turma": "EM9",
+          "dia": "sexta",
+          "sala": "Sala 2",
+          "unidade": "Freguesia do Ó"
+        }
+      ]
+    },
+    {
+      "id": "e_1008",
+      "data": "2026-08-10",
+      "empresas": [
+        {
+          "id": "e11",
+          "nome": "WellHub",
+          "jovens": 17,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null
+        }
+      ]
+    }
+  ]
+}
