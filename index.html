@@ -331,7 +331,9 @@ function turmasSimAtivas(){
       const unidade=emp.unidade||'Freguesia do Ó';
       const sala=emp.sala||melhorSala(emp.dia,unidade);
       const chave=nomeT+'|'+emp.dia+'|'+sala+'|'+unidade;
-      if(!mapa[chave]){mapa[chave]={nome:nomeT,dia:emp.dia,sala,unidade,entrada:entrada.data,jovens:0,empresas:[],pl:null,status:'simulada'};}
+      if(!mapa[chave]){mapa[chave]={nome:nomeT,dia:emp.dia,sala,unidade,entrada:entrada.data,jovens:0,empresas:[],pl:emp.pl||null,status:'simulada'};}
+      // Se empresa tem PL definido, usar (primeira que tiver vence)
+      if(emp.pl&&!mapa[chave].pl)mapa[chave].pl=emp.pl;
       mapa[chave].jovens+=emp.jovens;
       mapa[chave].empresas.push({nome:emp.nome,jovens:emp.jovens});
     });
@@ -357,6 +359,8 @@ function atribuirPLs(){
   TURMAS_FIXAS.forEach(t=>{const k=t.dia+'|'+t.sala+'|'+(t.unidade||'Freguesia do Ó');usado[k]=t.pl;});
   turmasSim.forEach(t=>{
     const k=t.dia+'|'+t.sala+'|'+(t.unidade||'Freguesia do Ó');
+    // Se turma já tem PL definido pelo usuário, respeitar
+    if(t.pl){usado[k]=t.pl;return;}
     if(usado[k]){t.pl=usado[k];return;}
     const usadosDia=new Set(Object.entries(usado).filter(([kk])=>kk.startsWith(t.dia+'|')).map(([,v])=>v));
     const livre=plsState.find(p=>!usadosDia.has(p.nome));
@@ -526,13 +530,22 @@ async function salvarOverrideTurma(nome,dia,instancia){
   const unidade=document.getElementById('ov-unidade')?.value;
   const chave=nome+'|'+dia+'|'+instancia;
   salaOverrides[chave]={sala,pl,unidade};
-  // Aplicar imediatamente na grade
+  // Aplicar em turmas fixas
   const sameGroup=TURMAS_FIXAS.filter(x=>x.nome===nome&&x.dia===dia);
   const t=sameGroup[instancia];
   if(t){t.sala=sala;t.pl=pl;t.unidade=unidade;}
+  // Aplicar em turmas simuladas (empresa da entrada)
+  const sufixo=nome.replace('Turma ','');
+  entradas.forEach(en=>en.empresas.forEach(emp=>{
+    if(emp.turma===sufixo&&emp.dia===dia){
+      emp.pl=pl;
+      if(sala)emp.sala=sala;
+      if(unidade)emp.unidade=unidade;
+    }
+  }));
   renderGrade();renderGradeMini();
-  // Salvar no GitHub em background
   await saveSalaOverrides();
+  await saveEstado();
 }
 function confirmarTurma(nome,dia,sala,unidade){
   // Marcar empresas desta turma como confirmadas
