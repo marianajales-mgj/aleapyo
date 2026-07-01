@@ -745,25 +745,46 @@ async function carregarDoDirectus(){
   const statusEl=document.getElementById('sync-status');
   if(statusEl){statusEl.textContent='↻ Sincronizando...';statusEl.style.color='var(--mu)';}
   try{
-    const url=`${DIRECTUS_URL}/items/Turmas?filter[Status_new][_eq]=ativa&filter[dia_de_curso][_nnull]=true&fields=Name,dia_de_curso,program_lead.first_name,program_lead.last_name,data_de_inicio,data_de_termino&limit=200&access_token=${DIRECTUS_TOKEN}`;
-    const r=await fetch(url);
-    if(!r.ok)throw new Error('HTTP '+r.status);
-    const data=await r.json();
-    const turmas=data.data||[];
+    // 1. Buscar turmas ativas (excluindo Ecossistema)
+    const urlTurmas=`${DIRECTUS_URL}/items/Turmas?filter[Status_new][_eq]=ativa&filter[dia_de_curso][_nnull]=true&fields=id,Name,dia_de_curso,program_lead.first_name,program_lead.last_name,data_de_inicio,data_de_termino&access_token=${DIRECTUS_TOKEN}`;
+    const rT=await fetch(urlTurmas);
+    if(!rT.ok)throw new Error('HTTP '+rT.status);
+    const dataTurmas=(await rT.json()).data||[];
+    const turmasLeapy=dataTurmas.filter(t=>t.Name&&t.Name.startsWith('Turma ')&&t.dia_de_curso);
+    const turmaIdMap={};
+    turmasLeapy.forEach(t=>turmaIdMap[t.id]=t);
 
-    // Filtrar apenas turmas com nome no padrão "Turma XX" (não Ecossistema)
-    const turmasLeapy=turmas.filter(t=>t.Name&&t.Name.startsWith('Turma ')&&t.dia_de_curso);
+    // 2. Buscar jovens em andamento com turma e empresa
+    const urlJovens=`${DIRECTUS_URL}/items/user_apprenticeship_data?filter[Status_formacao][_eq]=em_andamento&filter[ativo][_eq]=true&fields=turma_id,empresa_id&access_token=${DIRECTUS_TOKEN}`;
+    const rJ=await fetch(urlJovens);
+    if(!rJ.ok)throw new Error('HTTP jovens '+rJ.status);
+    const jovens=(await rJ.json()).data||[];
 
-    // Construir TURMAS_FIXAS dinamicamente
-    // Manter as que já existem e adicionar/atualizar do Directus
+    // 3. Agrupar jovens por turma e empresa
+    const turmaCounts={};
+    const turmaEmpresas={};
+    jovens.forEach(j=>{
+      if(!j.turma_id||!turmaIdMap[j.turma_id])return;
+      if(!turmaCounts[j.turma_id])turmaCounts[j.turma_id]=0;
+      turmaCounts[j.turma_id]++;
+      if(j.empresa_id){
+        if(!turmaEmpresas[j.turma_id])turmaEmpresas[j.turma_id]={};
+        turmaEmpresas[j.turma_id][j.empresa_id]=(turmaEmpresas[j.turma_id][j.empresa_id]||0)+1;
+      }
+    });
+
+    // 4. Atualizar TURMAS_FIXAS
     const existentes=new Set(TURMAS_FIXAS.map(t=>t.nome));
-    let adicionadas=0,ignoradas=0;
+    let adicionadas=0,atualizadas=0;
 
     turmasLeapy.forEach(t=>{
       const nomeCompleto=t.Name;
-      if(existentes.has(nomeCompleto)){ignoradas++;return;}
       const dia=DIAS_MAP[t.dia_de_curso]||t.dia_de_curso;
       const pl=normPL(t.program_lead?.first_name,t.program_lead?.last_name);
+      const jovensCount=turmaCounts[t.id]||0;
+      const empMap=turmaEmpresas[t.id]||{};
+      const empresas=Object.entries(empMap).map(([eid,cnt])=>({nome:`Empresa #${eid}`,jovens:cnt}));
+
       // Adicionar PL ao estado se não existir
       if(pl&&!plsState.find(p=>p.nome===pl)){
         plsState.push({nome:pl,alocados:[],livres:[],simDias:[]});
@@ -771,30 +792,42 @@ async function carregarDoDirectus(){
         const cor=cores[plsState.length%4];
         plCores[pl]={bg:cor,light:cor+'18',text:'#1d0328',border:cor};
       }
+
+      if(existentes.has(nomeCompleto)){
+        // Atualizar turma existente com dados do backoffice
+        const idx=TURMAS_FIXAS.findIndex(x=>x.nome===nomeCompleto);
+        if(idx>=0){
+          TURMAS_FIXAS[idx].jovens=jovensCount||TURMAS_FIXAS[idx].jovens;
+          if(empresas.length)TURMAS_FIXAS[idx].empresas=empresas;
+          if(pl)TURMAS_FIXAS[idx].pl=pl;
+          atualizadas++;
+        }
+        return;
+      }
+
       TURMAS_FIXAS.push({
         nome:nomeCompleto,
         entrada:t.data_de_inicio?t.data_de_inicio.slice(0,10):null,
-        jovens:0, // sem matrícula por enquanto
-        dia,
-        sala:'Sala 1', // padrão — ajustar manualmente
+        jovens:jovensCount,
+        dia,sala:'Sala 1',
         unidade:'Freguesia do Ó',
         pl:pl||'—',
         status:'ativa',
-        empresas:[],
+        empresas,
         _do_directus:true
       });
       adicionadas++;
     });
 
     if(statusEl){
-      statusEl.textContent=adicionadas>0?`✓ ${adicionadas} turmas carregadas do backoffice`:`✓ Sincronizado (${turmasLeapy.length} turmas ativas)`;
-      statusEl.style.color='#0a7a60';
-      setTimeout(()=>{if(statusEl)statusEl.textContent='';},4000);
+      const msg=`✓ Backoffice: ${adicionadas} novas, ${atualizadas} atualizadas`;
+      statusEl.textContent=msg;statusEl.style.color='#0a7a60';
+      setTimeout(()=>{if(statusEl)statusEl.textContent='';},5000);
     }
     renderGrade();renderGradeMini();renderEmpresas();
   }catch(e){
     console.warn('Directus indisponível:',e.message);
-    if(statusEl){statusEl.textContent='⚠ Backoffice indisponível — usando dados locais';statusEl.style.color='#856404';}
+    if(statusEl){statusEl.textContent='⚠ Backoffice indisponível';statusEl.style.color='#856404';}
   }
 }
 
