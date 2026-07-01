@@ -60,8 +60,9 @@ input[type=text],input[type=number],input[type=date]{height:30px;border:1px soli
     <svg width="30" height="30" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="15" stroke="#373afd" stroke-width="2"/><circle cx="16" cy="16" r="10" stroke="#35dcb2" stroke-width="2"/><circle cx="16" cy="16" r="6" stroke="#fc5959" stroke-width="1.5"/><circle cx="16" cy="16" r="3" fill="#373afd"/></svg>
     <div><div class="logo">Aleapyo</div><div style="font-size:11px;color:#aaa">Simulador de Alocação — Leapy</div></div>
   </div>
-  <div style="display:flex;gap:8px">
-    <button onclick="setTab('grade',document.querySelectorAll('.tab')[1])" style="height:32px;padding:0 14px;background:transparent;color:#aaa;border:1px solid #444;border-radius:var(--rs);font-size:11px;cursor:pointer;font-family:'Montserrat',sans-serif">Ver grade completa</button>
+  <div style="display:flex;gap:8px;align-items:center">
+    <span id="sync-status" style="font-size:10px;color:var(--mu)"></span>
+    <button onclick="carregarDoDirectus()" style="height:32px;padding:0 12px;background:transparent;color:#aaa;border:1px solid #444;border-radius:var(--rs);font-size:11px;cursor:pointer;font-family:'Montserrat',sans-serif">↻ Sincronizar</button>
     <button onclick="if(confirm('Resetar simulações?'))resetarSim()" style="height:32px;padding:0 12px;background:transparent;color:#aaa;border:1px solid #444;border-radius:var(--rs);font-size:11px;cursor:pointer;font-family:'Montserrat',sans-serif">↺ Resetar</button>
   </div>
 </div>
@@ -718,9 +719,89 @@ function resetarSim(){
   turmasSim=[];renderGrade();renderGradeMini();renderEmpresas();
 }
 
+// ── INTEGRAÇÃO DIRECTUS ──
+const DIRECTUS_URL='https://backoffice.leapy.com.br';
+const DIRECTUS_TOKEN='sVG4P24r9CDi-5VohbCDI5FwokC5skxo';
+const DIAS_MAP={'segunda_feira':'segunda','terca_feira':'terça','quarta_feira':'quarta','quinta_feira':'quinta','sexta_feira':'sexta'};
+const SALA_MAP={'Sala 1':'Sala 1','Sala 2':'Sala 2'};
+
+// Normalizar nome do PL para o simulador
+function normPL(first,last){
+  if(!first)return null;
+  const nome=first+' '+(last||'');
+  if(nome.toLowerCase().includes('emanu'))return 'Manu';
+  if(nome.toLowerCase().includes('carol'))return 'Carol';
+  return first; // usar primeiro nome como fallback
+}
+
+// Normalizar nome da turma
+function normNomeTurma(name){
+  if(!name)return null;
+  // Remover "Turma " do início se houver e formatar
+  return name.startsWith('Turma ')?name.slice(6):name;
+}
+
+async function carregarDoDirectus(){
+  const statusEl=document.getElementById('sync-status');
+  if(statusEl){statusEl.textContent='↻ Sincronizando...';statusEl.style.color='var(--mu)';}
+  try{
+    const url=`${DIRECTUS_URL}/items/Turmas?filter[Status_new][_eq]=ativa&filter[dia_de_curso][_nnull]=true&fields=Name,dia_de_curso,program_lead.first_name,program_lead.last_name,data_de_inicio,data_de_termino&limit=200&access_token=${DIRECTUS_TOKEN}`;
+    const r=await fetch(url);
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const data=await r.json();
+    const turmas=data.data||[];
+
+    // Filtrar apenas turmas com nome no padrão "Turma XX" (não Ecossistema)
+    const turmasLeapy=turmas.filter(t=>t.Name&&t.Name.startsWith('Turma ')&&t.dia_de_curso);
+
+    // Construir TURMAS_FIXAS dinamicamente
+    // Manter as que já existem e adicionar/atualizar do Directus
+    const existentes=new Set(TURMAS_FIXAS.map(t=>t.nome));
+    let adicionadas=0,ignoradas=0;
+
+    turmasLeapy.forEach(t=>{
+      const nomeCompleto=t.Name;
+      if(existentes.has(nomeCompleto)){ignoradas++;return;}
+      const dia=DIAS_MAP[t.dia_de_curso]||t.dia_de_curso;
+      const pl=normPL(t.program_lead?.first_name,t.program_lead?.last_name);
+      // Adicionar PL ao estado se não existir
+      if(pl&&!plsState.find(p=>p.nome===pl)){
+        plsState.push({nome:pl,alocados:[],livres:[],simDias:[]});
+        const cores=['#a78bfa','#fb923c','#38bdf8','#f472b6'];
+        const cor=cores[plsState.length%4];
+        plCores[pl]={bg:cor,light:cor+'18',text:'#1d0328',border:cor};
+      }
+      TURMAS_FIXAS.push({
+        nome:nomeCompleto,
+        entrada:t.data_de_inicio?t.data_de_inicio.slice(0,10):null,
+        jovens:0, // sem matrícula por enquanto
+        dia,
+        sala:'Sala 1', // padrão — ajustar manualmente
+        unidade:'Freguesia do Ó',
+        pl:pl||'—',
+        status:'ativa',
+        empresas:[],
+        _do_directus:true
+      });
+      adicionadas++;
+    });
+
+    if(statusEl){
+      statusEl.textContent=adicionadas>0?`✓ ${adicionadas} turmas carregadas do backoffice`:`✓ Sincronizado (${turmasLeapy.length} turmas ativas)`;
+      statusEl.style.color='#0a7a60';
+      setTimeout(()=>{if(statusEl)statusEl.textContent='';},4000);
+    }
+    renderGrade();renderGradeMini();renderEmpresas();
+  }catch(e){
+    console.warn('Directus indisponível:',e.message);
+    if(statusEl){statusEl.textContent='⚠ Backoffice indisponível — usando dados locais';statusEl.style.color='#856404';}
+  }
+}
+
 // ── INIT ──
 renderGradeMini();
 renderEmpresas();
+carregarDoDirectus();
 </script>
 </body>
 </html>
