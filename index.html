@@ -33,7 +33,7 @@ body{font-family:'Montserrat',sans-serif;background:var(--bg);color:var(--tx);mi
 .entrada-header{padding:10px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;border-bottom:1px solid var(--br);background:#fafafa;gap:8px;flex-wrap:wrap}
 .badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;border:1px solid}
 .emp-list{padding:10px 14px}
-.emp-row{display:grid;grid-template-columns:1fr 70px 120px 150px 90px 32px;gap:6px;align-items:center;padding:5px 0;border-bottom:0.5px solid var(--br)}
+.emp-row{display:grid;grid-template-columns:1fr 70px 110px 80px 90px 80px 28px;gap:6px;align-items:center;padding:6px 0;border-bottom:0.5px solid var(--br)}
 .emp-row:last-child{border-bottom:none}
 .status-sel{height:26px;font-size:10px;font-weight:600;border:1px solid var(--br);border-radius:5px;padding:0 4px;background:var(--sf);font-family:'Montserrat',sans-serif;cursor:pointer;width:100%}
 .mover-btn{height:26px;padding:0 8px;font-size:10px;font-weight:600;border:1px solid var(--blue);color:var(--blue);background:#eeefff;border-radius:5px;cursor:pointer;font-family:'Montserrat',sans-serif;white-space:nowrap}
@@ -329,7 +329,7 @@ function buildGradeHTML(tblId,compact){
       const cap=ocp.capacidade;
       const pct=Math.min(100,Math.round(ocp.jovens/cap*100));
       const corBar=ocp.jovens>cap?'#fc5959':ocp.jovens>cap*.85?'#f2cf6b':'#35dcb2';
-      if(ocp.jovens>cap)alertas.push(`${u.nome} ${sala} ${dia}: ${ocp.jovens}j excede ${cap}j!`);
+      if(ocp.jovens>cap)alertas.push(`⚠ ${u.nome} ${sala} (${dia}): ${ocp.jovens}j — excede capacidade de ${cap}j. Turmas simuladas precisam ir para outro dia/unidade.`);
       const uniColor=u.nome==='Polo Liberdade'?'background:#f0fff8;':'background:#f8f8ff;';
         h+=`<td style="${compact?'min-width:140px':'min-width:170px'};${uniColor}">`;
       if(!ocp.turmas.length){
@@ -461,7 +461,7 @@ function renderEmpresas(){
         </div>
       </div>
       <div id="ecb-${entrada.id}" class="emp-list">
-        <div style="display:grid;grid-template-columns:1fr 70px 120px 90px 90px 90px 32px;gap:6px;padding:4px 0;font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase;border-bottom:1px solid var(--br);margin-bottom:6px">
+        <div style="display:grid;grid-template-columns:1fr 70px 110px 80px 90px 80px 28px;gap:6px;padding:4px 0;font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase;border-bottom:1px solid var(--br);margin-bottom:6px">
           <span>Empresa</span><span style="text-align:center">Jovens</span><span>Status</span><span>Turma</span><span>Dia</span><span></span>
         </div>`;
     emps.forEach(emp=>{
