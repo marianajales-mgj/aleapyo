@@ -122,22 +122,6 @@
           "pl": "Carol"
         }
       ]
-    },
-    {
-      "id": "e_1008",
-      "data": "2026-08-10",
-      "empresas": [
-        {
-          "id": "e11",
-          "nome": "WellHub",
-          "jovens": 17,
-          "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
-        }
-      ]
     }
   ]
 }
