@@ -209,24 +209,8 @@ function ferNaImersao(dt){
 function fmtData(dt){if(!dt)return '—';const p=dt.split('-');return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:dt;}
 
 // ── TURMAS FIXAS ──
-const TURMAS_FIXAS=[
-  {nome:'Turma BM3',entrada:'2026-03-02',jovens:6,dia:'terça',sala:'Sala 1',unidade:'Freguesia do Ó',pl:'Manu',status:'ativa',empresas:[]},
-  {nome:'Turma BM4',entrada:'2026-03-16',jovens:10,dia:'terça',sala:'Sala 1',unidade:'Freguesia do Ó',pl:'Manu',status:'ativa',empresas:[]},
-  {nome:'Turma BM5',entrada:'2026-05-18',jovens:7,dia:'terça',sala:'Sala 2',unidade:'Freguesia do Ó',pl:'Carol',status:'ativa',empresas:[{nome:'Votorantim',jovens:1},{nome:'Medway',jovens:1},{nome:'Falconi',jovens:1},{nome:'Flash',jovens:2},{nome:'WellHub',jovens:2}]},
-  {nome:'Turma BM6',entrada:'2026-06-15',jovens:15,dia:'terça',sala:'Sala 2',unidade:'Freguesia do Ó',pl:'Carol',status:'ativa',empresas:[{nome:'UOL',jovens:1},{nome:'Sanar',jovens:9},{nome:'Serena',jovens:1},{nome:'Eletromídia',jovens:1},{nome:'Zubale',jovens:1},{nome:'AccountTech',jovens:1}]},
-  {nome:'Turma BM7',entrada:'2026-06-22',jovens:2,dia:'terça',sala:'Sala 2',unidade:'Freguesia do Ó',pl:'Carol',status:'ativa',empresas:[{nome:'UOL',jovens:2}]},
-  {nome:'Turma CM1',entrada:'2026-03-16',jovens:26,dia:'quarta',sala:'Sala 1',unidade:'Freguesia do Ó',pl:'Carol',status:'ativa',empresas:[]},
-  {nome:'Turma CM1',entrada:'2026-03-16',jovens:21,dia:'quarta',sala:'Sala 2',unidade:'Freguesia do Ó',pl:'Carol',status:'ativa',empresas:[]},
-  {nome:'Turma CM2',entrada:'2026-04-06',jovens:2,dia:'quarta',sala:'Sala 2',unidade:'Freguesia do Ó',pl:'Carol',status:'ativa',empresas:[]},
-  {nome:'Turma DM4',entrada:'2026-05-04',jovens:30,dia:'quinta',sala:'Sala 1',unidade:'Freguesia do Ó',pl:'Manu',status:'ativa',empresas:[]},
-  {nome:'Turma DM5',entrada:'2026-05-04',jovens:30,dia:'quinta',sala:'Sala 2',unidade:'Freguesia do Ó',pl:'Carol',status:'ativa',empresas:[]},
-  {nome:'Turma EM3',entrada:'2026-04-22',jovens:5,dia:'sexta',sala:'Sala 1',unidade:'Freguesia do Ó',pl:'Manu',status:'ativa',empresas:[{nome:'Nuvemshop',jovens:3},{nome:'AccountTech',jovens:1},{nome:'Loft',jovens:1}]},
-  {nome:'Turma EM4',entrada:'2026-05-04',jovens:1,dia:'sexta',sala:'Sala 1',unidade:'Freguesia do Ó',pl:'Manu',status:'ativa',empresas:[{nome:'WellHub',jovens:1}]},
-  {nome:'Turma EM5',entrada:'2026-05-18',jovens:24,dia:'sexta',sala:'Sala 1',unidade:'Freguesia do Ó',pl:'Manu',status:'ativa',empresas:[{nome:'Corpay',jovens:24}]},
-  {nome:'Turma EM6',entrada:'2026-05-18',jovens:7,dia:'sexta',sala:'Sala 2',unidade:'Freguesia do Ó',pl:'Carol',status:'ativa',empresas:[]},
-  {nome:'Turma EM7',entrada:'2026-05-18',jovens:24,dia:'sexta',sala:'Sala 2',unidade:'Freguesia do Ó',pl:'Carol',status:'ativa',empresas:[]},
-  {nome:'Turma AM5',entrada:'2026-05-18',jovens:5,dia:'segunda',sala:'Sala 1',unidade:'Freguesia do Ó',pl:'Manu',status:'ativa',empresas:[{nome:'Stone',jovens:5}]},
-];
+// TURMAS_FIXAS é populado 100% pelo Directus ao abrir — não há dados hardcoded
+const TURMAS_FIXAS=[];
 
 // ── ENTRADAS ──
 let entradas=[
@@ -790,41 +774,37 @@ async function carregarDoDirectus(){
 
     // 4. Atualizar TURMAS_FIXAS
     const existentes=new Set(TURMAS_FIXAS.map(t=>t.nome));
-    let adicionadas=0,atualizadas=0;
+    // Limpar TURMAS_FIXAS antes de re-popular (evita duplicatas em re-sync)
+    TURMAS_FIXAS.length=0;
     const hoje=new Date().toISOString().slice(0,10);
+    let adicionadas=0;
 
-    // Agrupar turmas do Directus por data_de_inicio
-    const turmasPorData={};
+    // Mapear sala por turma: usar o mesmo dia para agrupar turmas e distribuir por sala
+    // Estratégia: ordenar por data_de_inicio e distribuir em salas disponíveis
+    // Agrupar turmas do Directus por dia para distribuir salas corretamente
+    const turmasPorDia={};
     turmasLeapy.forEach(t=>{
-      const d=t.data_de_inicio?t.data_de_inicio.slice(0,10):null;
-      if(!d)return;
-      if(!turmasPorData[d])turmasPorData[d]=[];
-      turmasPorData[d].push(t);
+      if(!turmaCounts[t.id])return; // sem jovens em andamento → ignorar
+      const dia=DIAS_MAP[t.dia_de_curso]||t.dia_de_curso;
+      if(!turmasPorDia[dia])turmasPorDia[dia]=[];
+      turmasPorDia[dia].push(t);
     });
 
-    // Para entradas cuja data já passou: apagar simulação e substituir por dados reais
-    entradas.forEach(entrada=>{
-      if(entrada.data>hoje)return; // entrada futura → mantém simulação
-      const turmasReais=turmasPorData[entrada.data];
-      if(!turmasReais||!turmasReais.length)return; // sem dados no backoffice ainda → mantém
+    // Popular TURMAS_FIXAS com todas as turmas ativas do Directus
+    // Distribuir salas: dentro de cada dia, preencher sala 1 primeiro, depois sala 2
+    Object.entries(turmasPorDia).forEach(([dia,turmasDia])=>{
+      // Ordenar por data_de_inicio para consistência
+      turmasDia.sort((a,b)=>(a.data_de_inicio||'').localeCompare(b.data_de_inicio||''));
 
-      // Remover turmas fixas que vieram de simulação desta entrada (_do_directus ou sem _do_directus mas com data igual)
-      // e não estavam no estado original (não têm dados hardcoded)
-      // Estratégia: marcar turmas da entrada como "realizado" ao invés de apagar
-      // Limpar empresas simuladas da entrada (elas viram dados reais)
-      entrada.empresas.forEach(emp=>{
-        if(emp.status==='Confirmado'||emp.status==='Adiado')return;
-        // Empresa alocada nessa entrada → marcar como realizado (não editar mais)
-        emp._realizado=true;
-      });
+      // Determinar unidade de cada turma (para simplificar, todas em Freguesia do Ó por enquanto)
+      // Polo Liberdade: turmas com sufixo específico podem ser mapeadas depois manualmente
+      const ocupacaoPorSala={};
+      const unidades_lista=unidades.length?unidades:[{nome:'Freguesia do Ó',salas:['Sala 1','Sala 2'],capacidade:32}];
 
-      // Adicionar ou atualizar turmas reais no TURMAS_FIXAS
-      turmasReais.forEach(t=>{
+      turmasDia.forEach(t=>{
         const nomeCompleto=t.Name;
-        const dia=DIAS_MAP[t.dia_de_curso]||t.dia_de_curso;
         const pl=normPL(t.program_lead?.first_name,t.program_lead?.last_name);
         const jovensCount=turmaCounts[t.id]||0;
-        if(!jovensCount)return; // sem jovens → ignorar
         const empMap=turmaEmpresas[t.id]||{};
         const empresas=Object.entries(empMap).map(([eid,cnt])=>({nome:empresaNomes[eid]||`Empresa #${eid}`,jovens:cnt}));
 
@@ -836,66 +816,51 @@ async function carregarDoDirectus(){
           plCores[pl]={bg:cor,light:cor+'18',text:'#1d0328',border:cor};
         }
 
-        const idx=TURMAS_FIXAS.findIndex(x=>x.nome===nomeCompleto);
-        if(idx>=0){
-          // Turma já existe: atualizar com dados reais
-          TURMAS_FIXAS[idx].jovens=jovensCount||TURMAS_FIXAS[idx].jovens;
-          if(empresas.length)TURMAS_FIXAS[idx].empresas=empresas;
-          if(pl)TURMAS_FIXAS[idx].pl=pl;
-          TURMAS_FIXAS[idx]._realizado=true;
-          atualizadas++;
-        } else {
-          // Turma nova: adicionar como realizada (não simulação)
-          // Encontrar sala com espaço no dia
-          const unidade='Freguesia do Ó';
-          const u=unidades.find(x=>x.nome===unidade);
-          const salas=u?u.salas:['Sala 1','Sala 2'];
-          const cap=u?u.capacidade:32;
-          let sala=salas[0];
-          for(const s of salas){
-            const ocp=ocupacaoSala(dia,s,unidade);
-            if(ocp.jovens+jovensCount<=cap){sala=s;break;}
+        // Encontrar unidade e sala: verificar se há turma com mesmo nome já mapeada,
+        // senão distribuir pela sala menos cheia da unidade padrão
+        let unidade='Freguesia do Ó';
+        let sala='Sala 1';
+
+        // Verificar se a turma tem mapeamento de unidade nas entradas existentes
+        let encontrou=false;
+        for(const entrada of entradas){
+          for(const emp of entrada.empresas){
+            if(emp.turma&&('Turma '+emp.turma)===nomeCompleto&&emp.sala&&emp.unidade){
+              unidade=emp.unidade;sala=emp.sala;encontrou=true;break;
+            }
           }
-          TURMAS_FIXAS.push({
-            nome:nomeCompleto,
-            entrada:entrada.data,
-            jovens:jovensCount,
-            dia,sala,unidade,
-            pl:pl||'—',
-            status:'ativa',
-            empresas,
-            _realizado:true,
-            _do_directus:true
-          });
-          adicionadas++;
+          if(encontrou)break;
         }
+
+        if(!encontrou){
+          // Distribuir pela sala menos ocupada dentro do dia
+          const u=unidades.find(x=>x.nome===unidade)||{salas:['Sala 1','Sala 2'],capacidade:32};
+          let menorOcup=9999;
+          for(const s of u.salas){
+            const chave=unidade+'|'+s;
+            const atual=ocupacaoPorSala[chave]||0;
+            if(atual<menorOcup){menorOcup=atual;sala=s;}
+          }
+          const chave=unidade+'|'+sala;
+          ocupacaoPorSala[chave]=(ocupacaoPorSala[chave]||0)+jovensCount;
+        }
+
+        TURMAS_FIXAS.push({
+          nome:nomeCompleto,
+          entrada:t.data_de_inicio?t.data_de_inicio.slice(0,10):null,
+          jovens:jovensCount,
+          dia,sala,unidade,
+          pl:pl||'—',
+          status:'ativa',
+          empresas,
+          _do_directus:true
+        });
+        adicionadas++;
       });
     });
 
-    // Para turmas já existentes no simulador (não ligadas a entrada passada): atualizar jovens/empresas
-    turmasLeapy.forEach(t=>{
-      const nomeCompleto=t.Name;
-      const pl=normPL(t.program_lead?.first_name,t.program_lead?.last_name);
-      const jovensCount=turmaCounts[t.id]||0;
-      const empMap=turmaEmpresas[t.id]||{};
-      const empresas=Object.entries(empMap).map(([eid,cnt])=>({nome:empresaNomes[eid]||`Empresa #${eid}`,jovens:cnt}));
-
-      if(existentes.has(nomeCompleto)){
-        const idx=TURMAS_FIXAS.findIndex(x=>x.nome===nomeCompleto&&!x._realizado);
-        if(idx>=0){
-          TURMAS_FIXAS[idx].jovens=jovensCount||TURMAS_FIXAS[idx].jovens;
-          if(empresas.length)TURMAS_FIXAS[idx].empresas=empresas;
-          if(pl)TURMAS_FIXAS[idx].pl=pl;
-          atualizadas++;
-        }
-      }
-    });
-
     if(statusEl){
-      const partes=[];
-      if(adicionadas)partes.push(`${adicionadas} turmas reais adicionadas`);
-      if(atualizadas)partes.push(`${atualizadas} atualizadas`);
-      const msg=partes.length?`✓ Backoffice: ${partes.join(', ')}`:'✓ Backoffice sincronizado';
+      const msg=`✓ Backoffice: ${adicionadas} turmas ativas carregadas`;
       statusEl.textContent=msg;statusEl.style.color='#0a7a60';
       setTimeout(()=>{if(statusEl)statusEl.textContent='';},5000);
     }
