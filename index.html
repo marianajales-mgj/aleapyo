@@ -820,22 +820,13 @@ async function carregarDoDirectus(){
         return;
       }
 
-      TURMAS_FIXAS.push({
-        nome:nomeCompleto,
-        entrada:t.data_de_inicio?t.data_de_inicio.slice(0,10):null,
-        jovens:jovensCount,
-        dia,sala:'Sala 1',
-        unidade:'Freguesia do Ó',
-        pl:pl||'—',
-        status:'ativa',
-        empresas,
-        _do_directus:true
-      });
+      // Turmas novas do Directus não são adicionadas automaticamente à grade
+      // Apenas turmas já configuradas no simulador são atualizadas
       adicionadas++;
     });
 
     if(statusEl){
-      const msg=`✓ Backoffice: ${adicionadas} novas, ${atualizadas} atualizadas`;
+      const msg=`✓ Backoffice: ${atualizadas} turmas atualizadas`;
       statusEl.textContent=msg;statusEl.style.color='#0a7a60';
       setTimeout(()=>{if(statusEl)statusEl.textContent='';},5000);
     }
