@@ -167,6 +167,22 @@
       ]
     },
     {
+      "id": "e1782999212838",
+      "data": "2026-08-03",
+      "empresas": [
+        {
+          "id": "emp1782999212838ofgmzaoqhi",
+          "nome": "Rappi",
+          "jovens": 20,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null
+        }
+      ]
+    },
+    {
       "id": "e1782999186932",
       "data": "2026-08-17",
       "empresas": [
