@@ -389,16 +389,20 @@ function atribuirPLs(){
 // ── RENDER GRADE (genérica) ──
 
 // Verifica se sala ainda está dentro da janela de cronograma (máx 2 entradas após a mais antiga)
-function salaAindaDisponivel(dia, sala, unidade) {
+// dataRef: data da entrada sendo avaliada (YYYY-MM-DD). Se omitida, usa hoje para a grade.
+function salaAindaDisponivel(dia, sala, unidade, dataRef) {
   unidade = unidade || 'Freguesia do Ó';
-  const turmasSala = TURMAS_FIXAS.filter(t =>
+  const turmasSala = [...TURMAS_FIXAS,...turmasSim].filter(t =>
     t.dia === dia && t.sala === sala && (t.unidade || 'Freguesia do Ó') === unidade && t.entrada
   );
   if (!turmasSala.length) return true; // sala vazia = disponível
   const dataMaisAntiga = turmasSala.reduce((min, t) => t.entrada < min ? t.entrada : min, turmasSala[0].entrada);
-  // Contar entradas com data DEPOIS da turma mais antiga
-  const entradasDepois = entradas.filter(en => en.data > dataMaisAntiga).length;
-  return entradasDepois < 2; // disponível se menos de 2 entradas depois
+  // Contar entradas ENTRE a turma mais antiga e a dataRef (exclusive nos dois extremos)
+  // Se dataRef não fornecida, conta todas as entradas depois da mais antiga
+  const ref = dataRef || '9999-99-99';
+  const entradasNaJanela = entradas.filter(en => en.data > dataMaisAntiga && en.data <= ref).length;
+  // Disponível se 2 ou menos entradas nessa janela (a própria + 1 depois)
+  return entradasNaJanela <= 2;
 }
 
 function buildGradeHTML(tblId,compact){
@@ -428,7 +432,8 @@ function buildGradeHTML(tblId,compact){
       const uniColor=u.nome==='Polo Liberdade'?'background:#f7fffe;':'background:#fafaff;';
         h+=`<td style="${compact?'min-width:140px':'min-width:170px'};${uniColor}">`;
       if(!ocp.turmas.length){
-          if(!salaAindaDisponivel(dia,sala,u.nome)){
+          const ultimaEntVazia=entradas.length?entradas.reduce((a,b)=>b.data>a.data?b:a).data:null;
+          if(!salaAindaDisponivel(dia,sala,u.nome,ultimaEntVazia)){
             // Cronograma distante — não mostrar nada
           } else {
             const hoje=new Date();
@@ -464,7 +469,9 @@ function buildGradeHTML(tblId,compact){
           return enc>doze;
         }).length;
         const emUsoContinuo=ocp.jovens>=cap||(cobertura12m>=2&&ocp.livre<cap*0.4);
-        const salaDisp=salaAindaDisponivel(dia,sala,u.nome);
+        // Para a grade: verificar se sala está disponível para a PRÓXIMA entrada possível
+        const ultimaEntrada=entradas.length?entradas.reduce((a,b)=>b.data>a.data?b:a).data:null;
+        const salaDisp=salaAindaDisponivel(dia,sala,u.nome,ultimaEntrada);
         const livreLabel=!salaDisp?
           '':// cronograma distante: não mostrar nada
           emUsoContinuo?`<span style="color:#f2cf6b;font-weight:600">em uso</span>`:
@@ -477,8 +484,11 @@ function buildGradeHTML(tblId,compact){
             <span>${isSim?'✦ ':''}<b>${t.nome}</b></span><span style="color:${cor.border};font-weight:700">${t.jovens}j</span>
           </div>`;
         });
-        h+=`<div class="barra-wrap"><div class="barra-fill" style="width:${pct}%;background:${corBar}"></div></div>`;
-        h+=`<div class="total-badge" style="color:${corBar}">${ocp.jovens}j</div>`;
+        // Cor da barra: PL da turma com mais jovens na sala
+        const turmaDominante=ocp.turmas.reduce((a,b)=>b.jovens>a.jovens?b:a,ocp.turmas[0]);
+        const corBarPL=turmaDominante?corPL(turmaDominante.pl).border:corBar;
+        h+=`<div class="barra-wrap"><div class="barra-fill" style="width:${pct}%;background:${corBarPL}"></div></div>`;
+        h+=`<div class="total-badge" style="color:${corBarPL}">${ocp.jovens}j</div>`;
       }
       h+=`</td>`;
     });});
@@ -526,7 +536,7 @@ function abrirDetalhe(nomeTurma,dia,sala,unidade){
     const dtFim=`${String(dtFimObj.getDate()).padStart(2,'0')}/${String(dtFimObj.getMonth()+1).padStart(2,'0')}/${dtFimObj.getFullYear()}`;
     h+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
       <div style="background:#fafafa;border:1px solid var(--br);border-radius:var(--rs);padding:8px;text-align:center">
-        <div style="font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase;margin-bottom:3px">Início</div>
+        <div style="font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase;margin-bottom:3px">Início de contrato</div>
         <div style="font-size:13px;font-weight:700">${dtInicio}</div>
       </div>
       <div style="background:#fafafa;border:1px solid var(--br);border-radius:var(--rs);padding:8px;text-align:center">
@@ -805,8 +815,8 @@ function abrirMover(eid,empid){
       const plId=`pl-${dia}-${sala.replace(/ /g,'-')}-${u.nome.replace(/ /g,'-')}`;
       const uBg=u.nome==='Polo Liberdade'?'#f0fffe':'#f3f3ff';
       const uBd=u.nome==='Polo Liberdade'?'#35dcb2':'#a0a3ff';
-      // Verificar se cronograma está distante para esta sala
-      const cronDistanteModal=!salaAindaDisponivel(dia,sala,u.nome);
+      // Verificar se cronograma está distante para esta sala (usando data da entrada atual)
+      const cronDistanteModal=!salaAindaDisponivel(dia,sala,u.nome,entrada?.data);
       // PLs já ocupados neste dia (turmas fixas + simuladas)
       const plsOcupadosDia=new Set([...TURMAS_FIXAS,...turmasSim].filter(t=>t.dia===dia&&(t.sala!==sala||(t.unidade||'Freguesia do Ó')!==u.nome)).map(t=>t.pl).filter(Boolean));
       const plsDisponiveisSala=plsState.filter(p=>!plsOcupadosDia.has(p.nome));
@@ -830,7 +840,7 @@ function abrirMover(eid,empid){
       </div>`;
     });});
     // Abrir o <details> só se houver ao menos uma sala disponível neste dia
-    const temSalaDisp=unidades.some(u2=>u2.salas.some(s2=>salaAindaDisponivel(dia,s2,u2.nome)&&ocupacaoSala(dia,s2,u2.nome).livre>0));
+    const temSalaDisp=unidades.some(u2=>u2.salas.some(s2=>salaAindaDisponivel(dia,s2,u2.nome,entrada?.data)&&ocupacaoSala(dia,s2,u2.nome).livre>0));
     h+=`<details style="margin-bottom:6px" ${temSalaDisp?'open':''}>
       <summary style="font-size:11px;font-weight:700;cursor:pointer;text-transform:capitalize;padding:4px 0;list-style:none;color:var(--tx)">▶ ${dia}</summary>
       <div style="margin-top:4px">${salas}</div>
@@ -897,10 +907,13 @@ function _alocar(emp,entrada,dia,sala,unidade,jovens,pl){
   // Turma existente no mesmo dia/sala/unidade desta entrada
   const companheira=entrada.empresas.find(e=>e.id!==emp.id&&e.dia===dia&&e.sala===sala&&(e.unidade||'Freguesia do Ó')===unidade&&e.turma);
   if(companheira){emp.turma=companheira.turma;return;}
-  // Verificar se empresa da MESMA entrada já tem turma atribuída para este dia/sala (agrupar)
-  const companheiraMesmaSala=entrada.empresas.find(e=>e.id!==emp.id&&e.dia===dia&&e.sala===sala&&(e.unidade||'Freguesia do Ó')===unidade&&e.turma);
+  // Agrupar com empresa da MESMA entrada no mesmo dia/sala
+  const companheiraMesmaSala=entrada.empresas.find(e=>
+    e.id!==emp.id&&e.dia===dia&&e.sala===sala&&
+    (e.unidade||'Freguesia do Ó')===unidade&&e.turma
+  );
   if(companheiraMesmaSala){emp.turma=companheiraMesmaSala.turma;return;}
-  // Criar novo nome — sempre incrementa o max global da letra
+  // Criar novo nome — sempre incrementa o max global da letra (nunca herda de outra entrada)
   let max=0;
   // Base: máximo histórico de todas as turmas do Directus (inclui anteriores a 02/03)
   if(window._maxHistoricoTurma&&window._maxHistoricoTurma[letra]){
