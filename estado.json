@@ -115,10 +115,11 @@
           "nome": "Quinto Andar",
           "jovens": 17,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "BM8",
+          "dia": "terça",
+          "sala": "Sala 1",
+          "unidade": "Polo Liberdade",
+          "pl": "Novo PL"
         },
         {
           "id": "emp1782999247991",
