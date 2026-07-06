@@ -392,18 +392,18 @@ function atribuirPLs(){
 // dataRef: data da entrada sendo avaliada (YYYY-MM-DD). Se omitida, usa hoje para a grade.
 function salaAindaDisponivel(dia, sala, unidade, dataRef) {
   unidade = unidade || 'Freguesia do Ó';
-  // Apenas turmas REAIS do Directus — turmas simuladas não definem o cronograma
+  // Apenas turmas REAIS do Directus
   const turmasSala = TURMAS_FIXAS.filter(t =>
     t.dia === dia && t.sala === sala && (t.unidade || 'Freguesia do Ó') === unidade && t.entrada
   );
-  if (!turmasSala.length) return true; // sala sem turmas reais = disponível
+  if (!turmasSala.length) return true; // sala vazia = disponível
   const dataMaisAntiga = turmasSala.reduce((min, t) => t.entrada < min ? t.entrada : min, turmasSala[0].entrada);
-  // Contar entradas globais com data ESTRITAMENTE depois da mais antiga e ANTES ou IGUAL a dataRef
-  // A sala pode receber na entrada imediatamente seguinte (N+1) e na subsequente (N+2)
-  // Na N+3 em diante, o cronograma está distante demais
+  // Usar datas distintas de TODAS as turmas do Directus como referência de entradas passadas
+  // (não o estado.json, que perde entradas antigas quando elas passam)
   const ref = dataRef || '9999-99-99';
-  const entradasDepois = entradas.filter(en => en.data > dataMaisAntiga && en.data <= ref).length;
-  return entradasDepois <= 2; // até 2 entradas depois da mais antiga = ainda disponível
+  const datasDistintas = new Set(TURMAS_FIXAS.filter(t => t.entrada).map(t => t.entrada));
+  const entradasDepois = [...datasDistintas].filter(d => d > dataMaisAntiga && d <= ref).length;
+  return entradasDepois <= 2; // disponível se 2 ou menos entradas depois da mais antiga
 }
 
 function buildGradeHTML(tblId,compact){
@@ -1132,13 +1132,19 @@ async function carregarDoDirectus(){
         }
 
         if(!encontrou){
-          // Distribuir pela sala menos ocupada dentro do dia
-          const u=unidades.find(x=>x.nome===unidade)||{salas:['Sala 1','Sala 2'],capacidade:32};
-          let menorOcup=9999;
-          for(const s of u.salas){
-            const chave=unidade+'|'+s;
-            const atual=ocupacaoPorSala[chave]||0;
-            if(atual<menorOcup){menorOcup=atual;sala=s;}
+          // Sala determinada pelo PL: Manu → Sala 1, Carol → Sala 2
+          // Regra fixa da Leapy — não distribuir por ocupação
+          if(pl==='Manu') sala='Sala 1';
+          else if(pl==='Carol') sala='Sala 2';
+          else {
+            // PL desconhecido: fallback para sala menos ocupada
+            const u=unidades.find(x=>x.nome===unidade)||{salas:['Sala 1','Sala 2'],capacidade:32};
+            let menorOcup=9999;
+            for(const s of u.salas){
+              const chave=unidade+'|'+s;
+              const atual=ocupacaoPorSala[chave]||0;
+              if(atual<menorOcup){menorOcup=atual;sala=s;}
+            }
           }
           const chave=unidade+'|'+sala;
           ocupacaoPorSala[chave]=(ocupacaoPorSala[chave]||0)+jovensCount;
