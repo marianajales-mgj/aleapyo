@@ -9,20 +9,20 @@
           "nome": "Stone",
           "jovens": 6,
           "status": "Em aberto",
-          "turma": "EM6",
-          "dia": "sexta",
-          "sala": "Sala 2",
-          "unidade": "Freguesia do Ó"
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null
         },
         {
           "id": "emp1782873801447",
           "nome": "NUMEN",
           "jovens": 10,
           "status": "Em aberto",
-          "turma": "DM4",
-          "dia": "quinta",
-          "sala": "Sala 2",
-          "unidade": "Freguesia do Ó",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null,
           "pl": "Carol"
         },
         {
@@ -40,10 +40,10 @@
           "nome": "Sallve",
           "jovens": 1,
           "status": "Em aberto",
-          "turma": "EM6",
-          "dia": "sexta",
-          "sala": "Sala 2",
-          "unidade": "Freguesia do Ó",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null,
           "pl": "Carol"
         },
         {
