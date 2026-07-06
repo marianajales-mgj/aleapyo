@@ -1105,7 +1105,11 @@ async function carregarDoDirectus(){
         const pl=normPL(t.program_lead?.first_name,t.program_lead?.last_name);
         const jovensCount=turmaCounts[t.id]||0;
         const empMap=turmaEmpresas[t.id]||{};
-        const empresas=Object.entries(empMap).map(([eid,cnt])=>({nome:empresaNomes[eid]||`Empresa #${eid}`,jovens:cnt}));
+        // Agrupar por nome (mesma empresa pode ter IDs distintos se entrou em datas diferentes)
+const empresasRaw=Object.entries(empMap).map(([eid,cnt])=>({nome:empresaNomes[eid]||`Empresa #${eid}`,jovens:cnt}));
+const empresasAgrup={};
+empresasRaw.forEach(e=>{empresasAgrup[e.nome]=(empresasAgrup[e.nome]||0)+e.jovens;});
+const empresas=Object.entries(empresasAgrup).map(([nome,jovens])=>({nome,jovens})).sort((a,b)=>b.jovens-a.jovens);
 
         // Só adiciona PL se for Manu ou Carol
         if(pl&&['Manu','Carol'].includes(pl)&&!plsState.find(p=>p.nome===pl)){
