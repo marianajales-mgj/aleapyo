@@ -392,17 +392,18 @@ function atribuirPLs(){
 // dataRef: data da entrada sendo avaliada (YYYY-MM-DD). Se omitida, usa hoje para a grade.
 function salaAindaDisponivel(dia, sala, unidade, dataRef) {
   unidade = unidade || 'Freguesia do Ó';
-  const turmasSala = [...TURMAS_FIXAS,...turmasSim].filter(t =>
+  // Apenas turmas REAIS do Directus — turmas simuladas não definem o cronograma
+  const turmasSala = TURMAS_FIXAS.filter(t =>
     t.dia === dia && t.sala === sala && (t.unidade || 'Freguesia do Ó') === unidade && t.entrada
   );
-  if (!turmasSala.length) return true; // sala vazia = disponível
+  if (!turmasSala.length) return true; // sala sem turmas reais = disponível
   const dataMaisAntiga = turmasSala.reduce((min, t) => t.entrada < min ? t.entrada : min, turmasSala[0].entrada);
-  // Contar entradas ENTRE a turma mais antiga e a dataRef (exclusive nos dois extremos)
-  // Se dataRef não fornecida, conta todas as entradas depois da mais antiga
+  // Contar entradas globais com data ESTRITAMENTE depois da mais antiga e ANTES ou IGUAL a dataRef
+  // A sala pode receber na entrada imediatamente seguinte (N+1) e na subsequente (N+2)
+  // Na N+3 em diante, o cronograma está distante demais
   const ref = dataRef || '9999-99-99';
-  const entradasNaJanela = entradas.filter(en => en.data > dataMaisAntiga && en.data <= ref).length;
-  // Disponível se 2 ou menos entradas nessa janela (a própria + 1 depois)
-  return entradasNaJanela <= 2;
+  const entradasDepois = entradas.filter(en => en.data > dataMaisAntiga && en.data <= ref).length;
+  return entradasDepois <= 2; // até 2 entradas depois da mais antiga = ainda disponível
 }
 
 function buildGradeHTML(tblId,compact){
@@ -432,8 +433,7 @@ function buildGradeHTML(tblId,compact){
       const uniColor=u.nome==='Polo Liberdade'?'background:#f7fffe;':'background:#fafaff;';
         h+=`<td style="${compact?'min-width:140px':'min-width:170px'};${uniColor}">`;
       if(!ocp.turmas.length){
-          const ultimaEntVazia=entradas.length?entradas.reduce((a,b)=>b.data>a.data?b:a).data:null;
-          if(!salaAindaDisponivel(dia,sala,u.nome,ultimaEntVazia)){
+          if(!salaAindaDisponivel(dia,sala,u.nome)){
             // Cronograma distante — não mostrar nada
           } else {
             const hoje=new Date();
@@ -469,9 +469,7 @@ function buildGradeHTML(tblId,compact){
           return enc>doze;
         }).length;
         const emUsoContinuo=ocp.jovens>=cap||(cobertura12m>=2&&ocp.livre<cap*0.4);
-        // Para a grade: verificar se sala está disponível para a PRÓXIMA entrada possível
-        const ultimaEntrada=entradas.length?entradas.reduce((a,b)=>b.data>a.data?b:a).data:null;
-        const salaDisp=salaAindaDisponivel(dia,sala,u.nome,ultimaEntrada);
+        const salaDisp=salaAindaDisponivel(dia,sala,u.nome);
         const livreLabel=!salaDisp?
           '':// cronograma distante: não mostrar nada
           emUsoContinuo?`<span style="color:#f2cf6b;font-weight:600">em uso</span>`:
