@@ -70,6 +70,7 @@ input[type=text],input[type=number],input[type=date]{height:30px;border:1px soli
   <button class="tab on" onclick="setTab('empresas',this)">Empresas & Entradas</button>
   <button class="tab" onclick="setTab('grade',this)">Grade de salas</button>
   <button class="tab" onclick="setTab('pls',this)">Program Leads</button>
+  <button class="tab" onclick="setTab('cronogramas',this)">Cronogramas</button>
 </div>
 
 <!-- TAB EMPRESAS -->
@@ -119,6 +120,22 @@ input[type=text],input[type=number],input[type=date]{height:30px;border:1px soli
   <div id="pls-wrap"></div>
   <button onclick="novoPL()" style="height:34px;padding:0 16px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:11px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif;margin-top:8px">+ Novo PL</button>
 </div>
+
+<!-- TAB CRONOGRAMAS -->
+<div id="tab-cronogramas" class="sec" style="display:none">
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;text-align:center;gap:16px">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.5" style="opacity:.4"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+    <div style="font-size:16px;font-weight:700;color:var(--tx)">Cronogramas</div>
+    <div style="font-size:13px;color:var(--mu);max-width:400px;line-height:1.6">
+      Em breve você poderá visualizar o cronograma de cada turma, verificar qual módulo cai no 1º presencial e comparar cronogramas entre turmas para decidir quando alocar novas entradas.
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;background:#eeefff;border-radius:var(--rs);padding:10px 18px;font-size:12px;font-weight:600;color:var(--blue)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1.2s linear infinite;flex-shrink:0"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      Em desenvolvimento
+    </div>
+  </div>
+</div>
+
 </div>
 
 <!-- MODAL ALOCAR -->
@@ -370,6 +387,20 @@ function atribuirPLs(){
 }
 
 // ── RENDER GRADE (genérica) ──
+
+// Verifica se sala ainda está dentro da janela de cronograma (máx 2 entradas após a mais antiga)
+function salaAindaDisponivel(dia, sala, unidade) {
+  unidade = unidade || 'Freguesia do Ó';
+  const turmasSala = TURMAS_FIXAS.filter(t =>
+    t.dia === dia && t.sala === sala && (t.unidade || 'Freguesia do Ó') === unidade && t.entrada
+  );
+  if (!turmasSala.length) return true; // sala vazia = disponível
+  const dataMaisAntiga = turmasSala.reduce((min, t) => t.entrada < min ? t.entrada : min, turmasSala[0].entrada);
+  // Contar entradas com data DEPOIS da turma mais antiga
+  const entradasDepois = entradas.filter(en => en.data > dataMaisAntiga).length;
+  return entradasDepois < 2; // disponível se menos de 2 entradas depois
+}
+
 function buildGradeHTML(tblId,compact){
   turmasSim=turmasSimAtivas();
   atribuirPLs();
@@ -397,12 +428,8 @@ function buildGradeHTML(tblId,compact){
       const uniColor=u.nome==='Polo Liberdade'?'background:#f7fffe;':'background:#fafaff;';
         h+=`<td style="${compact?'min-width:140px':'min-width:170px'};${uniColor}">`;
       if(!ocp.turmas.length){
-          // Verificar cronograma distante: turma mais antiga da sala tem >=3 entradas depois
-          const turmasSalaVazia=TURMAS_FIXAS.filter(t=>t.dia===dia&&t.sala===sala&&(t.unidade||'Freguesia do Ó')===u.nome);
-          const maisAntigaVazia=turmasSalaVazia.length?turmasSalaVazia.reduce((a,b)=>(!a.entrada||b.entrada<a.entrada)?b:a,turmasSalaVazia[0]):null;
-          const entradasAposVazia=maisAntigaVazia?.entrada?entradas.filter(en=>en.data>maisAntigaVazia.entrada).length:0;
-          if(maisAntigaVazia&&entradasAposVazia>=3){
-            h+=`<div style="color:#f2cf6b;font-size:10px;font-style:italic;font-weight:600">⚠ cronograma distante</div>`;
+          if(!salaAindaDisponivel(dia,sala,u.nome)){
+            // Cronograma distante — não mostrar nada
           } else {
             const hoje=new Date();
             const ocupacaoFutura=TURMAS_FIXAS.some(t=>{
@@ -436,14 +463,10 @@ function buildGradeHTML(tblId,compact){
           enc.setMonth(enc.getMonth()+15);
           return enc>doze;
         }).length;
-        // Cronograma distante: turma mais antiga da sala tem >= 3 entradas depois
-        const turmasNaSalaInfo=[...TURMAS_FIXAS,...turmasSim].filter(t=>t.dia===dia&&t.sala===sala&&(t.unidade||'Freguesia do Ó')===u.nome);
-        const maisAntigaInfo=turmasNaSalaInfo.length?turmasNaSalaInfo.reduce((a,b)=>(!a.entrada||b.entrada<a.entrada)?b:a,turmasNaSalaInfo[0]):null;
-        const entradasAposInfo=maisAntigaInfo?.entrada?entradas.filter(en=>en.data>maisAntigaInfo.entrada).length:0;
-        const cronDistante=maisAntigaInfo&&entradasAposInfo>=3;
         const emUsoContinuo=ocp.jovens>=cap||(cobertura12m>=2&&ocp.livre<cap*0.4);
-        const livreLabel=cronDistante?
-          `<span style="color:#f2cf6b;font-weight:600">⚠ cronograma distante</span>`:
+        const salaDisp=salaAindaDisponivel(dia,sala,u.nome);
+        const livreLabel=!salaDisp?
+          '':// cronograma distante: não mostrar nada
           emUsoContinuo?`<span style="color:#f2cf6b;font-weight:600">em uso</span>`:
           `<span style="color:${ocp.jovens>=cap?'#fc5959':'#888'}">livre:${Math.max(0,ocp.livre)}j</span>`;
         h+=`<div class="sala-info"><span>${ocp.jovens}/${cap}j</span>${livreLabel}</div>`;
@@ -451,7 +474,7 @@ function buildGradeHTML(tblId,compact){
           const cor=corPL(t.pl);
           const isSim=t.status==='simulada';
           h+=`<div class="chip-turma" style="background:${cor.light};color:${cor.text};border:${isSim?`1.5px dashed ${cor.border}`:`1px solid ${cor.border}55`}" onclick="abrirDetalhe('${t.nome}','${dia}','${sala}','${u.nome}')">
-            <span>${isSim?'✦ ':''}<b>${t.nome}</b></span><span style="opacity:.75">${t.jovens}j</span>
+            <span>${isSim?'✦ ':''}<b>${t.nome}</b></span><span style="color:${cor.border};font-weight:700">${t.jovens}j</span>
           </div>`;
         });
         h+=`<div class="barra-wrap"><div class="barra-fill" style="width:${pct}%;background:${corBar}"></div></div>`;
@@ -495,6 +518,23 @@ function abrirDetalhe(nomeTurma,dia,sala,unidade){
       <div style="font-size:14px;font-weight:700">${pp}</div>
     </div>
   </div>`;
+  // Data de início e fim de contrato (15 meses)
+  if(t.entrada){
+    const dtInicio=fmtData(t.entrada);
+    const dtFimObj=new Date(t.entrada+'T12:00:00');
+    dtFimObj.setMonth(dtFimObj.getMonth()+15);
+    const dtFim=`${String(dtFimObj.getDate()).padStart(2,'0')}/${String(dtFimObj.getMonth()+1).padStart(2,'0')}/${dtFimObj.getFullYear()}`;
+    h+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+      <div style="background:#fafafa;border:1px solid var(--br);border-radius:var(--rs);padding:8px;text-align:center">
+        <div style="font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase;margin-bottom:3px">Início</div>
+        <div style="font-size:13px;font-weight:700">${dtInicio}</div>
+      </div>
+      <div style="background:#fafafa;border:1px solid var(--br);border-radius:var(--rs);padding:8px;text-align:center">
+        <div style="font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase;margin-bottom:3px">Fim de contrato</div>
+        <div style="font-size:13px;font-weight:700">${dtFim}</div>
+      </div>
+    </div>`;
+  }
   if(t.empresas?.length){
     h+=`<div style="font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase;margin-bottom:6px">Empresas</div>`;
     t.empresas.forEach(e=>{h+=`<div style="display:flex;justify-content:space-between;padding:5px 8px;background:#fafafa;border:1px solid var(--br);border-radius:5px;margin-bottom:3px;font-size:11px"><span style="font-weight:600">${e.nome}</span><span style="color:var(--blue);font-weight:700">${e.jovens}j</span></div>`;});
@@ -531,18 +571,7 @@ function abrirDetalhe(nomeTurma,dia,sala,unidade){
       ${t.jovens>16&&!t._split?'<button onclick="splitTurma(\''+nomeTurma+'\',\''+dia+'\','+instancia+');fecharModalTurma();" style="width:100%;height:32px;background:#fff;color:var(--blue);border:1px solid var(--blue);border-radius:var(--rs);font-size:11px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">✂ Dividir em 2 salas</button>':''}
     </div>`;
   }
-  // Seção de cronograma — em breve
-  h+=`<div style="margin-top:14px;padding:12px 14px;background:#fafafa;border:1px solid var(--br);border-radius:var(--rs)">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-      <div style="font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase">Cronograma</div>
-      <div style="font-size:9px;font-weight:600;background:#eeefff;color:var(--blue);border-radius:99px;padding:2px 8px">em breve</div>
-    </div>
-    <div style="display:flex;align-items:center;gap:8px;color:var(--mu);font-size:11px">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1.2s linear infinite;flex-shrink:0"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-      Módulos, alinhamento de cronograma e validação de 1º presencial em desenvolvimento
-    </div>
-  </div>
-  <style>@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}</style>`;
+
   document.getElementById('modal-turma-titulo').textContent=nomeTurma;
   document.getElementById('modal-turma-body').innerHTML=h;
   document.getElementById('modal-turma-bg').style.display='flex';
@@ -777,10 +806,7 @@ function abrirMover(eid,empid){
       const uBg=u.nome==='Polo Liberdade'?'#f0fffe':'#f3f3ff';
       const uBd=u.nome==='Polo Liberdade'?'#35dcb2':'#a0a3ff';
       // Verificar se cronograma está distante para esta sala
-      const turmasSalaModal=[...TURMAS_FIXAS,...turmasSim].filter(t=>t.dia===dia&&t.sala===sala&&(t.unidade||'Freguesia do Ó')===u.nome);
-      const maisAntigaModal=turmasSalaModal.length?turmasSalaModal.reduce((a,b)=>(!a.entrada||b.entrada<a.entrada)?b:a,turmasSalaModal[0]):null;
-      const entradasAposModal=maisAntigaModal?.entrada?entradas.filter(en=>en.data>maisAntigaModal.entrada).length:0;
-      const cronDistanteModal=maisAntigaModal&&entradasAposModal>=3;
+      const cronDistanteModal=!salaAindaDisponivel(dia,sala,u.nome);
       // PLs já ocupados neste dia (turmas fixas + simuladas)
       const plsOcupadosDia=new Set([...TURMAS_FIXAS,...turmasSim].filter(t=>t.dia===dia&&(t.sala!==sala||(t.unidade||'Freguesia do Ó')!==u.nome)).map(t=>t.pl).filter(Boolean));
       const plsDisponiveisSala=plsState.filter(p=>!plsOcupadosDia.has(p.nome));
@@ -803,7 +829,9 @@ function abrirMover(eid,empid){
           ${(livre<=0||cronDistanteModal)?'disabled':''}/>
       </div>`;
     });});
-    h+=`<details style="margin-bottom:6px" ${['terça','quarta','quinta'].includes(dia)?'open':''}>
+    // Abrir o <details> só se houver ao menos uma sala disponível neste dia
+    const temSalaDisp=unidades.some(u2=>u2.salas.some(s2=>salaAindaDisponivel(dia,s2,u2.nome)&&ocupacaoSala(dia,s2,u2.nome).livre>0));
+    h+=`<details style="margin-bottom:6px" ${temSalaDisp?'open':''}>
       <summary style="font-size:11px;font-weight:700;cursor:pointer;text-transform:capitalize;padding:4px 0;list-style:none;color:var(--tx)">▶ ${dia}</summary>
       <div style="margin-top:4px">${salas}</div>
     </details>`;
@@ -869,10 +897,10 @@ function _alocar(emp,entrada,dia,sala,unidade,jovens,pl){
   // Turma existente no mesmo dia/sala/unidade desta entrada
   const companheira=entrada.empresas.find(e=>e.id!==emp.id&&e.dia===dia&&e.sala===sala&&(e.unidade||'Freguesia do Ó')===unidade&&e.turma);
   if(companheira){emp.turma=companheira.turma;return;}
-  // Turma simulada existente
-  const simExist=turmasSim.find(t=>t.dia===dia&&t.sala===sala&&(t.unidade||'Freguesia do Ó')===unidade);
-  if(simExist){emp.turma=simExist.nome.replace('Turma ','');return;}
-  // Criar novo nome
+  // Verificar se empresa da MESMA entrada já tem turma atribuída para este dia/sala (agrupar)
+  const companheiraMesmaSala=entrada.empresas.find(e=>e.id!==emp.id&&e.dia===dia&&e.sala===sala&&(e.unidade||'Freguesia do Ó')===unidade&&e.turma);
+  if(companheiraMesmaSala){emp.turma=companheiraMesmaSala.turma;return;}
+  // Criar novo nome — sempre incrementa o max global da letra
   let max=0;
   // Base: máximo histórico de todas as turmas do Directus (inclui anteriores a 02/03)
   if(window._maxHistoricoTurma&&window._maxHistoricoTurma[letra]){
@@ -929,7 +957,7 @@ function gerenciarUnidades(){
 
 // ── NAVEGAÇÃO ──
 function setTab(t,btn){
-  ['empresas','grade','pls'].forEach(k=>document.getElementById('tab-'+k).style.display=k===t?'block':'none');
+  ['empresas','grade','pls','cronogramas'].forEach(k=>document.getElementById('tab-'+k).style.display=k===t?'block':'none');
   document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
   if(btn)btn.classList.add('on');
   if(t==='grade')renderGrade();
