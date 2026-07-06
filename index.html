@@ -397,18 +397,25 @@ function buildGradeHTML(tblId,compact){
       const uniColor=u.nome==='Polo Liberdade'?'background:#f7fffe;':'background:#fafaff;';
         h+=`<td style="${compact?'min-width:140px':'min-width:170px'};${uniColor}">`;
       if(!ocp.turmas.length){
-          // Sala sem turmas hoje: verificar se há turmas futuras ainda ativas (15 meses)
-          const hoje=new Date();
-          const ocupacaoFutura=TURMAS_FIXAS.some(t=>{
-            if(t.dia!==dia||t.sala!==sala||(t.unidade||'Freguesia do Ó')!==u.nome)return false;
-            if(!t.entrada)return false;
-            const enc=new Date(t.entrada+'T12:00:00');
-            enc.setMonth(enc.getMonth()+15);
-            return enc>hoje;
-          });
-          h+=ocupacaoFutura?
-            `<div style="color:#f2cf6b;font-size:10px;font-style:italic;font-weight:600">⚠ em uso</div>`:
-            `<div class="livre">livre · ${cap}j</div>`;
+          // Verificar cronograma distante: turma mais antiga da sala tem >=3 entradas depois
+          const turmasSalaVazia=TURMAS_FIXAS.filter(t=>t.dia===dia&&t.sala===sala&&(t.unidade||'Freguesia do Ó')===u.nome);
+          const maisAntigaVazia=turmasSalaVazia.length?turmasSalaVazia.reduce((a,b)=>(!a.entrada||b.entrada<a.entrada)?b:a,turmasSalaVazia[0]):null;
+          const entradasAposVazia=maisAntigaVazia?.entrada?entradas.filter(en=>en.data>maisAntigaVazia.entrada).length:0;
+          if(maisAntigaVazia&&entradasAposVazia>=3){
+            h+=`<div style="color:#f2cf6b;font-size:10px;font-style:italic;font-weight:600">⚠ cronograma distante</div>`;
+          } else {
+            const hoje=new Date();
+            const ocupacaoFutura=TURMAS_FIXAS.some(t=>{
+              if(t.dia!==dia||t.sala!==sala||(t.unidade||'Freguesia do Ó')!==u.nome)return false;
+              if(!t.entrada)return false;
+              const enc=new Date(t.entrada+'T12:00:00');
+              enc.setMonth(enc.getMonth()+15);
+              return enc>hoje;
+            });
+            h+=ocupacaoFutura?
+              `<div style="color:#f2cf6b;font-size:10px;font-style:italic;font-weight:600">⚠ em uso</div>`:
+              `<div class="livre">livre · ${cap}j</div>`;
+          }
         }
       else{
         // Verificar se sala está efetivamente cheia considerando horizonte de 15 meses
@@ -429,9 +436,15 @@ function buildGradeHTML(tblId,compact){
           enc.setMonth(enc.getMonth()+15);
           return enc>doze;
         }).length;
+        // Cronograma distante: turma mais antiga da sala tem >= 3 entradas depois
+        const turmasNaSalaInfo=[...TURMAS_FIXAS,...turmasSim].filter(t=>t.dia===dia&&t.sala===sala&&(t.unidade||'Freguesia do Ó')===u.nome);
+        const maisAntigaInfo=turmasNaSalaInfo.length?turmasNaSalaInfo.reduce((a,b)=>(!a.entrada||b.entrada<a.entrada)?b:a,turmasNaSalaInfo[0]):null;
+        const entradasAposInfo=maisAntigaInfo?.entrada?entradas.filter(en=>en.data>maisAntigaInfo.entrada).length:0;
+        const cronDistante=maisAntigaInfo&&entradasAposInfo>=3;
         const emUsoContinuo=ocp.jovens>=cap||(cobertura12m>=2&&ocp.livre<cap*0.4);
-        const livreLabel=emUsoContinuo?
-          `<span style="color:#f2cf6b;font-weight:600">em uso</span>`:
+        const livreLabel=cronDistante?
+          `<span style="color:#f2cf6b;font-weight:600">⚠ cronograma distante</span>`:
+          emUsoContinuo?`<span style="color:#f2cf6b;font-weight:600">em uso</span>`:
           `<span style="color:${ocp.jovens>=cap?'#fc5959':'#888'}">livre:${Math.max(0,ocp.livre)}j</span>`;
         h+=`<div class="sala-info"><span>${ocp.jovens}/${cap}j</span>${livreLabel}</div>`;
         ocp.turmas.forEach(t=>{
@@ -518,6 +531,18 @@ function abrirDetalhe(nomeTurma,dia,sala,unidade){
       ${t.jovens>16&&!t._split?'<button onclick="splitTurma(\''+nomeTurma+'\',\''+dia+'\','+instancia+');fecharModalTurma();" style="width:100%;height:32px;background:#fff;color:var(--blue);border:1px solid var(--blue);border-radius:var(--rs);font-size:11px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">✂ Dividir em 2 salas</button>':''}
     </div>`;
   }
+  // Seção de cronograma — em breve
+  h+=`<div style="margin-top:14px;padding:12px 14px;background:#fafafa;border:1px solid var(--br);border-radius:var(--rs)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <div style="font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase">Cronograma</div>
+      <div style="font-size:9px;font-weight:600;background:#eeefff;color:var(--blue);border-radius:99px;padding:2px 8px">em breve</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;color:var(--mu);font-size:11px">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1.2s linear infinite;flex-shrink:0"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      Módulos, alinhamento de cronograma e validação de 1º presencial em desenvolvimento
+    </div>
+  </div>
+  <style>@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}</style>`;
   document.getElementById('modal-turma-titulo').textContent=nomeTurma;
   document.getElementById('modal-turma-body').innerHTML=h;
   document.getElementById('modal-turma-bg').style.display='flex';
@@ -751,8 +776,18 @@ function abrirMover(eid,empid){
       const plId=`pl-${dia}-${sala.replace(/ /g,'-')}-${u.nome.replace(/ /g,'-')}`;
       const uBg=u.nome==='Polo Liberdade'?'#f0fffe':'#f3f3ff';
       const uBd=u.nome==='Polo Liberdade'?'#35dcb2':'#a0a3ff';
-      const plOpts=plsState.map(p=>`<option value="${p.nome}">${p.nome}</option>`).join('');
-      salas+=`<div class="destino-row" style="background:${uBg};border:1px solid ${uBd};border-radius:var(--rs);padding:8px 10px;margin-bottom:4px">
+      // Verificar se cronograma está distante para esta sala
+      const turmasSalaModal=[...TURMAS_FIXAS,...turmasSim].filter(t=>t.dia===dia&&t.sala===sala&&(t.unidade||'Freguesia do Ó')===u.nome);
+      const maisAntigaModal=turmasSalaModal.length?turmasSalaModal.reduce((a,b)=>(!a.entrada||b.entrada<a.entrada)?b:a,turmasSalaModal[0]):null;
+      const entradasAposModal=maisAntigaModal?.entrada?entradas.filter(en=>en.data>maisAntigaModal.entrada).length:0;
+      const cronDistanteModal=maisAntigaModal&&entradasAposModal>=3;
+      // PLs já ocupados neste dia (turmas fixas + simuladas)
+      const plsOcupadosDia=new Set([...TURMAS_FIXAS,...turmasSim].filter(t=>t.dia===dia&&(t.sala!==sala||(t.unidade||'Freguesia do Ó')!==u.nome)).map(t=>t.pl).filter(Boolean));
+      const plsDisponiveisSala=plsState.filter(p=>!plsOcupadosDia.has(p.nome));
+      const plOpts=plsDisponiveisSala.map(p=>`<option value="${p.nome}">${p.nome}</option>`).join('');
+      const salaIndisponivel=cronDistanteModal||(ocp.livre<=0);
+      const motivoIndisponivel=cronDistanteModal?'Cronograma distante demais para novas entradas':ocp.livre<=0?'Sem vagas disponíveis':'';
+      salas+=`<div class="destino-row" style="background:${salaIndisponivel?'#f9f9f9;opacity:.5':'${uBg}'};border:1px solid ${salaIndisponivel?'#ddd':'${uBd}'};border-radius:var(--rs);padding:8px 10px;margin-bottom:4px">
         <div style="flex:1">
           <div style="font-size:12px;font-weight:700">${u.nome} — ${sala}</div>
           <div style="font-size:10px;color:var(--mu)">${ocp.jovens}/${cap}j · <b style="color:${corBar}">${livre}j livres</b>${ocp.turmas.length?' · '+ocp.turmas.map(t=>t.nome).join(', '):''}</div>
@@ -765,7 +800,7 @@ function abrirMover(eid,empid){
         <input type="number" id="${inputId}" min="0" max="${livre}" placeholder="0" value="0"
           oninput="atualizarCtr(${emp.jovens},${livre},'${inputId}','${plId}')"
           style="width:58px;height:28px;border:1px solid ${livre>0?'var(--blue)':'var(--br)'};border-radius:var(--rs);padding:0 4px;font-size:12px;font-weight:700;color:var(--blue);font-family:'Montserrat',sans-serif;text-align:center"
-          ${livre<=0?'disabled':''}/>
+          ${(livre<=0||cronDistanteModal)?'disabled':''}/>
       </div>`;
     });});
     h+=`<details style="margin-bottom:6px" ${['terça','quarta','quinta'].includes(dia)?'open':''}>
