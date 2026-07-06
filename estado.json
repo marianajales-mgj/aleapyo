@@ -9,10 +9,11 @@
           "nome": "Stone",
           "jovens": 6,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "EM7",
+          "dia": "sexta",
+          "sala": "Sala 2",
+          "unidade": "Freguesia do Ó",
+          "pl": "Carol"
         },
         {
           "id": "emp1782873801447",
