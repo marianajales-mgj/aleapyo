@@ -52,10 +52,10 @@
           "nome": "Koin",
           "jovens": 4,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "AM6",
+          "dia": "segunda",
+          "sala": "Sala 2",
+          "unidade": "Freguesia do Ó"
         },
         {
           "id": "emp1783435470346",
