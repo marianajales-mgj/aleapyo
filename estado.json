@@ -67,6 +67,16 @@
           "sala": "Sala 2",
           "unidade": "Freguesia do Ó",
           "pl": "Carol"
+        },
+        {
+          "id": "emp1783438527329",
+          "nome": "Nova empresa",
+          "jovens": 1,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null
         }
       ]
     },
