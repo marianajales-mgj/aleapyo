@@ -62,10 +62,11 @@
           "nome": "UOL",
           "jovens": 2,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "EM7",
+          "dia": "sexta",
+          "sala": "Sala 2",
+          "unidade": "Freguesia do Ó",
+          "pl": "Carol"
         },
         {
           "id": "emp1783435629118",
