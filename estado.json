@@ -48,16 +48,6 @@
           "pl": "Carol"
         },
         {
-          "id": "emp17834383665780",
-          "nome": "Aramis",
-          "jovens": 1,
-          "status": "Em aberto",
-          "turma": "DM8",
-          "dia": "quinta",
-          "sala": "Sala 1",
-          "unidade": "Polo Liberdade"
-        },
-        {
           "id": "emp1783436900659",
           "nome": "Koin",
           "jovens": 4,
