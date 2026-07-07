@@ -198,10 +198,10 @@
           "nome": "Wellhub",
           "jovens": 17,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "CM5",
+          "dia": "quarta",
+          "sala": "Sala 1",
+          "unidade": "Polo Liberdade"
         },
         {
           "id": "emp17834349274905rd1dtawk7k",
