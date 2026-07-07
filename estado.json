@@ -204,14 +204,24 @@
           "unidade": "Polo Liberdade"
         },
         {
-          "id": "emp17834349274905rd1dtawk7k",
+          "id": "emp17834377034570",
           "nome": "Nubank",
-          "jovens": 66,
+          "jovens": 22,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "CM5",
+          "dia": "quarta",
+          "sala": "Sala 1",
+          "unidade": "Polo Liberdade"
+        },
+        {
+          "id": "emp17834377034571",
+          "nome": "Nubank",
+          "jovens": 44,
+          "status": "Em aberto",
+          "turma": "DM7",
+          "dia": "quinta",
+          "sala": "Sala 1",
+          "unidade": "Polo Liberdade"
         }
       ]
     }
