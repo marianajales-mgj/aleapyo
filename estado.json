@@ -27,17 +27,6 @@
           "pl": "Carol"
         },
         {
-          "id": "emp1782998622786",
-          "nome": "Sallve",
-          "jovens": 1,
-          "status": "Em aberto",
-          "turma": "AM6",
-          "dia": "segunda",
-          "sala": "Sala 2",
-          "unidade": "Freguesia do Ó",
-          "pl": "Carol"
-        },
-        {
           "id": "emp1782998640192",
           "nome": "Blip",
           "jovens": 2,
@@ -80,7 +69,7 @@
         },
         {
           "id": "emp1783436924443",
-          "nome": "Nova empresa",
+          "nome": "Sallve",
           "jovens": 1,
           "status": "Em aberto",
           "turma": null,
