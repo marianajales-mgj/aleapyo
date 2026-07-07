@@ -90,10 +90,11 @@
           "nome": "Rappi",
           "jovens": 20,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "AM7",
+          "dia": "segunda",
+          "sala": "Sala 1",
+          "unidade": "Freguesia do Ó",
+          "pl": "Manu"
         },
         {
           "id": "emp1782999226419",
