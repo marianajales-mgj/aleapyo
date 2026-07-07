@@ -255,17 +255,6 @@
           "dia": "quinta",
           "sala": "Sala 1",
           "unidade": "Polo Liberdade"
-        },
-        {
-          "id": "emp1783455721115",
-          "nome": "Teste",
-          "jovens": 1,
-          "status": "Em aberto",
-          "turma": "AM8",
-          "dia": "segunda",
-          "sala": "Sala 1",
-          "unidade": "Freguesia do Ó",
-          "pl": "Manu"
         }
       ]
     }
