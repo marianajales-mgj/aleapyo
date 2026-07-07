@@ -48,15 +48,24 @@
           "pl": "Carol"
         },
         {
-          "id": "emp1783435629118",
+          "id": "emp17834383665780",
           "nome": "Aramis",
-          "jovens": 7,
+          "jovens": 1,
           "status": "Em aberto",
-          "turma": "AM6",
-          "dia": "segunda",
-          "sala": "Sala 2",
-          "unidade": "Freguesia do Ó",
-          "pl": "Carol"
+          "turma": "DM8",
+          "dia": "quinta",
+          "sala": "Sala 1",
+          "unidade": "Polo Liberdade"
+        },
+        {
+          "id": "emp17834383665781",
+          "nome": "Aramis",
+          "jovens": 6,
+          "status": "Em aberto",
+          "turma": "EM8",
+          "dia": "sexta",
+          "sala": "Sala 1",
+          "unidade": "Polo Liberdade"
         },
         {
           "id": "emp1783436900659",
