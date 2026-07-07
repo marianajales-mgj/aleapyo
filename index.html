@@ -700,17 +700,20 @@ function toggleEC(id){const el=document.getElementById(id);if(el)el.style.displa
 
 // ── CRUD ENTRADAS/EMPRESAS ──
 function excluirEntrada(eid){
+  if(bloquearSeNaoAutenticado(()=>excluirEntrada(eid)))return;
   if(!confirm('Excluir esta entrada e todas as empresas?'))return;
   entradas=entradas.filter(e=>e.id!==eid);
   renderEmpresas();renderGradeMini();saveEstado();
 }
 function excluirEmp(eid,empid){
+  if(bloquearSeNaoAutenticado(()=>excluirEmp(eid,empid)))return;
   if(!confirm('Excluir esta empresa?'))return;
   const e=entradas.find(x=>x.id===eid);if(!e)return;
   e.empresas=e.empresas.filter(x=>x.id!==empid);
   renderEmpresas();renderGradeMini();saveEstado();
 }
 function adicionarEmp(eid){
+  if(bloquearSeNaoAutenticado(()=>adicionarEmp(eid)))return;
   const e=entradas.find(x=>x.id===eid);if(!e)return;
   e.empresas.push({id:'emp'+Date.now(),nome:'Nova empresa',jovens:1,status:'Em aberto',turma:null,dia:null,sala:null,unidade:null});
   renderEmpresas();renderGradeMini();saveEstado();
@@ -721,6 +724,7 @@ function updJovens(eid,empid,val){
   if(emp){emp.jovens=parseInt(val)||0;renderGradeMini();saveEstado();}
 }
 function updStatus(eid,empid,val){
+  if(bloquearSeNaoAutenticado(()=>updStatus(eid,empid,val)))return;
   const e=entradas.find(x=>x.id===eid);const emp=e?.empresas.find(x=>x.id===empid);
   if(!emp)return;
   const antigo=emp.status;
@@ -773,7 +777,7 @@ function renderNE(){
     </div>`).join('');
 }
 function addEmpNE(){neEmpresas.push({nome:'',jovens:1});renderNE();}
-function salvarNE(){
+function salvarNE(){if(bloquearSeNaoAutenticado(salvarNE))return;
   const data=document.getElementById('ne-data').value;
   if(!data){alert('Informe a data.');return;}
   if(entradas.find(e=>e.data===data)){alert(`Já existe uma entrada para ${fmtData(data)}. Adicione empresas diretamente nela.`);return;}
@@ -791,7 +795,7 @@ function salvarNE(){
 }
 
 // ── MODAL ALOCAR ──
-function abrirMover(eid,empid){
+function abrirMover(eid,empid){if(bloquearSeNaoAutenticado(()=>abrirMover(eid,empid)))return;
   _moverEid=eid;_moverEmpid=empid;
   const entrada=entradas.find(e=>e.id===eid);
   const emp=entrada?.empresas.find(x=>x.id===empid);
@@ -867,7 +871,7 @@ function atualizarCtr(total,maxSala,inputId,plId){
   if(el){el.textContent=rest+'j';el.style.color=rest<0?'#fc5959':rest===0?'#35dcb2':'var(--blue)';}
 }
 
-function confirmarAlocacao(){
+function confirmarAlocacao(){if(bloquearSeNaoAutenticado(confirmarAlocacao))return;
   const entrada=entradas.find(e=>e.id===_moverEid);
   const emp=entrada?.empresas.find(x=>x.id===_moverEmpid);
   if(!emp)return;
@@ -982,6 +986,68 @@ function resetarSim(){
 
 // ── INTEGRAÇÃO DIRECTUS ──
 const DIRECTUS_URL='https://backoffice.leapy.com.br';
+
+// ── SISTEMA DE SENHA ──
+const SENHA_CORRETA='Aleapyo_2026';
+let _autenticado=false;
+
+async function verificarSenha(tentativa){
+  return tentativa===SENHA_CORRETA;
+}
+
+function isAutenticado(){return _autenticado;}
+
+async function pedirSenha(){
+  return new Promise(resolve=>{
+    const overlay=document.createElement('div');
+    overlay.id='senha-overlay';
+    overlay.style.cssText='position:fixed;inset:0;background:rgba(29,3,40,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;';
+    overlay.innerHTML=`
+      <div style="background:#fff;border-radius:12px;padding:32px 28px;width:320px;box-shadow:0 8px 32px #0004;text-align:center">
+        <div style="font-family:'Krona One',sans-serif;font-size:20px;font-weight:800;color:#1d0328;margin-bottom:4px">Aleapyo</div>
+        <div style="font-size:12px;color:#888;margin-bottom:24px">Simulador de Alocação — Leapy</div>
+        <div style="font-size:11px;font-weight:700;color:#555;text-align:left;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Senha de acesso</div>
+        <input id="senha-input" type="password" placeholder="Digite a senha"
+          style="width:100%;box-sizing:border-box;height:38px;border:1.5px solid #ddd;border-radius:8px;padding:0 12px;font-size:13px;font-family:'Montserrat',sans-serif;margin-bottom:8px;outline:none"
+          onkeydown="if(event.key==='Enter')document.getElementById('senha-btn').click()"/>
+        <div id="senha-erro" style="color:#fc5959;font-size:11px;min-height:16px;margin-bottom:8px"></div>
+        <button id="senha-btn" style="width:100%;height:38px;background:#fc5959;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif">
+          Entrar
+        </button>
+        <div style="margin-top:16px;font-size:10px;color:#bbb">
+          Sem a senha? Você pode visualizar o simulador, mas não editar.
+        </div>
+        <button onclick="document.getElementById('senha-overlay').remove();resolve(false)" 
+          style="margin-top:8px;background:none;border:none;color:#aaa;font-size:11px;cursor:pointer;font-family:'Montserrat',sans-serif;text-decoration:underline">
+          Continuar sem editar
+        </button>
+      </div>`;
+    document.body.appendChild(overlay);
+    document.getElementById('senha-btn').onclick=async()=>{
+      const val=document.getElementById('senha-input').value;
+      const ok=await verificarSenha(val);
+      if(ok){
+        _autenticado=true;
+        sessionStorage.setItem('aleapyo_auth','1');
+        overlay.remove();
+        resolve(true);
+      } else {
+        document.getElementById('senha-erro').textContent='Senha incorreta. Tente novamente.';
+        document.getElementById('senha-input').value='';
+        document.getElementById('senha-input').focus();
+      }
+    };
+    setTimeout(()=>document.getElementById('senha-input')?.focus(),100);
+  });
+}
+
+function bloquearSeNaoAutenticado(acao){
+  if(!_autenticado){
+    pedirSenha().then(ok=>{if(ok)acao();});
+    return true;
+  }
+  return false;
+}
 const DIRECTUS_TOKEN='sVG4P24r9CDi-5VohbCDI5FwokC5skxo';
 const DIAS_MAP={'segunda_feira':'segunda','terca_feira':'terça','quarta_feira':'quarta','quinta_feira':'quinta','sexta_feira':'sexta'};
 const SALA_MAP={'Sala 1':'Sala 1','Sala 2':'Sala 2'};
@@ -1210,6 +1276,8 @@ const empresas=Object.entries(empresasAgrup).map(([nome,jovens])=>({nome,jovens}
 // ── INIT ──
 renderGradeMini();
 renderEmpresas();
+// Restaurar autenticação da sessão
+if(sessionStorage.getItem('aleapyo_auth')==='1')_autenticado=true;
 // Carregar estado (entradas) + overrides do GitHub, depois sincronizar com Directus
 Promise.all([loadEstado(), loadOverrides()]).then(()=>{
   renderEmpresas();
