@@ -41,10 +41,11 @@
           "nome": "Aramis",
           "jovens": 2,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "DM5",
+          "dia": "quinta",
+          "sala": "Sala 2",
+          "unidade": "Freguesia do Ó",
+          "pl": "Carol"
         },
         {
           "id": "emp1783521299495",
