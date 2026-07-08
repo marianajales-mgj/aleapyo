@@ -47,17 +47,6 @@
           "unidade": "Freguesia do Ó"
         },
         {
-          "id": "emp1783436924443",
-          "nome": "Sallve",
-          "jovens": 1,
-          "status": "Em aberto",
-          "turma": "EM7",
-          "dia": "sexta",
-          "sala": "Sala 2",
-          "unidade": "Freguesia do Ó",
-          "pl": "Carol"
-        },
-        {
           "id": "emp1783438527329",
           "nome": "Aramis",
           "jovens": 2,
@@ -131,7 +120,7 @@
         },
         {
           "id": "emp1783519240101",
-          "nome": "Nova empresa",
+          "nome": "Sallve",
           "jovens": 1,
           "status": "Em aberto",
           "turma": null,
