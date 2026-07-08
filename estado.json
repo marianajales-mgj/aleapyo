@@ -76,17 +76,6 @@
       "data": "2026-08-03",
       "empresas": [
         {
-          "id": "emp1782999212838ofgmzaoqhi",
-          "nome": "Rappi",
-          "jovens": 20,
-          "status": "Em aberto",
-          "turma": "AM7",
-          "dia": "segunda",
-          "sala": "Sala 1",
-          "unidade": "Freguesia do Ó",
-          "pl": "Manu"
-        },
-        {
           "id": "emp1782999226419",
           "nome": "Sumup",
           "jovens": 3,
