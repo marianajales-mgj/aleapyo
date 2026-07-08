@@ -70,7 +70,7 @@
         },
         {
           "id": "emp1783519963585",
-          "nome": "Nova empresa",
+          "nome": "Blip",
           "jovens": 1,
           "status": "Em aberto",
           "turma": null,
@@ -120,7 +120,7 @@
         {
           "id": "emp17834367403231",
           "nome": "Shopee",
-          "jovens": 32,
+          "jovens": 0,
           "status": "Em aberto",
           "turma": "DM5",
           "dia": "quinta",
