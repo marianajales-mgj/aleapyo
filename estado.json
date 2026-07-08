@@ -188,6 +188,16 @@
           "sala": "Sala 2",
           "unidade": "Freguesia do Ó",
           "pl": "Carol"
+        },
+        {
+          "id": "emp1783512953434",
+          "nome": "Nova empresa",
+          "jovens": 1,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null
         }
       ]
     },
@@ -197,7 +207,7 @@
       "empresas": [
         {
           "id": "emp17834419847771qbx3uop5z4",
-          "nome": "Empresa",
+          "nome": "Nova empresa",
           "jovens": 9,
           "status": "Em aberto",
           "turma": null,
@@ -213,7 +223,7 @@
       "empresas": [
         {
           "id": "emp1783442012279lyaji7jzzbc",
-          "nome": "Empresa",
+          "nome": "Nova empresa",
           "jovens": 0,
           "status": "Em aberto",
           "turma": null,
