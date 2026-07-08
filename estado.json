@@ -19,7 +19,7 @@
           "id": "emp1782998640192",
           "nome": "Blip",
           "jovens": 1,
-          "status": "Em aberto",
+          "status": "Confirmado",
           "turma": "AM6",
           "dia": "segunda",
           "sala": "Sala 2",
@@ -28,7 +28,7 @@
         {
           "id": "emp1783435470346",
           "nome": "UOL",
-          "jovens": 2,
+          "jovens": 3,
           "status": "Confirmado",
           "turma": "EM7",
           "dia": "sexta",
