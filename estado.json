@@ -179,17 +179,6 @@
           "pl": "Novo(a) PL"
         },
         {
-          "id": "emp1783448600618",
-          "nome": "NUMEN",
-          "jovens": 10,
-          "status": "Em aberto",
-          "turma": "AM8",
-          "dia": "segunda",
-          "sala": "Sala 2",
-          "unidade": "Freguesia do Ó",
-          "pl": "Carol"
-        },
-        {
           "id": "emp1783512953434",
           "nome": "NUMEN",
           "jovens": 10,
@@ -208,7 +197,7 @@
         {
           "id": "emp17834419847771qbx3uop5z4",
           "nome": "Nova empresa",
-          "jovens": 9,
+          "jovens": 1,
           "status": "Em aberto",
           "turma": null,
           "dia": null,
