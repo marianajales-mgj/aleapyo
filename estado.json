@@ -20,10 +20,11 @@
           "nome": "Blip",
           "jovens": 1,
           "status": "Confirmado",
-          "turma": "AM6",
-          "dia": "segunda",
+          "turma": "DM8",
+          "dia": "quinta",
           "sala": "Sala 2",
-          "unidade": "Freguesia do Ó"
+          "unidade": "Freguesia do Ó",
+          "pl": "Carol"
         },
         {
           "id": "emp1783435470346",
