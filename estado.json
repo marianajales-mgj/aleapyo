@@ -82,7 +82,7 @@
         {
           "id": "emp1783521291134",
           "nome": "Aramis",
-          "jovens": 1,
+          "jovens": 2,
           "status": "Em aberto",
           "turma": null,
           "dia": null,
@@ -91,7 +91,7 @@
         },
         {
           "id": "emp1783521299495",
-          "nome": "Nova empresa",
+          "nome": "Cogna",
           "jovens": 1,
           "status": "Em aberto",
           "turma": null,
