@@ -62,10 +62,11 @@
           "nome": "Cogna",
           "jovens": 7,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "AM6",
+          "dia": "segunda",
+          "sala": "Sala 2",
+          "unidade": "Freguesia do Ó",
+          "pl": "Carol"
         }
       ]
     },
