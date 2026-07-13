@@ -48,16 +48,6 @@
           "pl": "Carol"
         },
         {
-          "id": "emp1783521657470",
-          "nome": "Blip",
-          "jovens": 1,
-          "status": "Confirmado",
-          "turma": "DM5",
-          "dia": "quinta",
-          "sala": "Sala 2",
-          "unidade": "Freguesia do Ó"
-        },
-        {
           "id": "emp1783969712835",
           "nome": "Flash",
           "jovens": 1,
