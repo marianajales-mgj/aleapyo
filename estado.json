@@ -70,13 +70,14 @@
         },
         {
           "id": "emp1783969712835",
-          "nome": "Nova empresa",
+          "nome": "Flash",
           "jovens": 1,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "DM5",
+          "dia": "quinta",
+          "sala": "Sala 2",
+          "unidade": "Freguesia do Ó",
+          "pl": "Carol"
         }
       ]
     },
