@@ -5,17 +5,6 @@
       "data": "2026-07-20",
       "empresas": [
         {
-          "id": "e10",
-          "nome": "Stone",
-          "jovens": 6,
-          "status": "Confirmado",
-          "turma": "EM7",
-          "dia": "sexta",
-          "sala": "Sala 2",
-          "unidade": "Freguesia do Ó",
-          "pl": "Carol"
-        },
-        {
           "id": "emp1783435470346",
           "nome": "UOL",
           "jovens": 3,
