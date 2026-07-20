@@ -1123,6 +1123,7 @@ async function carregarDoDirectus(){
       if(EXCLUIR_NOMES.includes(t.Name))return false;
       return true;
     });
+    console.log('[Aleapyo] Turmas após filtro:',turmasLeapy.map(t=>t.Name+'|'+t.dia_de_curso));
     const turmaIdMap={};
     turmasLeapy.forEach(t=>turmaIdMap[t.id]=t);
 
@@ -1140,6 +1141,7 @@ async function carregarDoDirectus(){
       window._maxHistoricoTurma[letra]=Math.max(window._maxHistoricoTurma[letra]||0,parseInt(num));
     });
     console.log('[Aleapyo] máximos históricos por letra:',window._maxHistoricoTurma);
+    console.log('[Aleapyo] turmaCounts:',JSON.stringify(turmaCounts));
 
     // 2. Buscar jovens em andamento com turma e empresa
     const urlJovens=`${DIRECTUS_URL}/items/user_apprenticeship_data?filter[Status_formacao][_eq]=em_andamento&filter[ativo][_eq]=true&fields=turma_id,empresa_id&access_token=${DIRECTUS_TOKEN}`;
