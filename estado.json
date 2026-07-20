@@ -5,16 +5,6 @@
       "data": "2026-07-20",
       "empresas": [
         {
-          "id": "emp1783436900659",
-          "nome": "Koin",
-          "jovens": 4,
-          "status": "Confirmado",
-          "turma": "EM7",
-          "dia": "sexta",
-          "sala": "Sala 2",
-          "unidade": "Freguesia do Ó"
-        },
-        {
           "id": "emp1783521299495",
           "nome": "Cogna",
           "jovens": 6,
