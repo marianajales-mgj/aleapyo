@@ -331,7 +331,7 @@ let _moverEid=null,_moverEmpid=null;
 function ocupacaoSala(dia,sala,unidade){
   unidade=unidade||'Freguesia do Ó';
   let j=0,ts=[];
-  TURMAS_FIXAS.forEach(t=>{if(t.dia===dia&&t.sala===sala&&(t.unidade||'Freguesia do Ó')===unidade){j+=t.jovens;ts.push({...t});}});
+  TURMAS_FIXAS.forEach(t=>{if(t._sem_sala)return;if(t.dia===dia&&t.sala===sala&&(t.unidade||'Freguesia do Ó')===unidade){j+=t.jovens;ts.push({...t});}});
   turmasSim.forEach(t=>{if(t.dia===dia&&t.sala===sala&&(t.unidade||'Freguesia do Ó')===unidade){j+=t.jovens;ts.push({...t});}});
   const cap=unidades.find(u=>u.nome===unidade)?.capacidade||32;
   return {jovens:j,turmas:ts,livre:cap-j,capacidade:cap};
@@ -1085,7 +1085,8 @@ async function carregarDoDirectus(){
       const sufixo=t.Name.slice(6); // tudo após "Turma "
       if(/N/i.test(sufixo))return false;
       // Excluir turmas ecossistema específicas
-      const EXCLUIR_NOMES=['Turma CM3'];
+      const EXCLUIR_NOMES=[]; // turmas completamente ignoradas
+const TURMAS_SEM_SALA=['Turma CM3','Turma EM8','Turma DM6']; // contam na numeração mas não ocupam sala
       if(EXCLUIR_NOMES.includes(t.Name))return false;
       return true;
     });
@@ -1218,6 +1219,7 @@ const empresas=Object.entries(empresasAgrup).map(([nome,jovens])=>({nome,jovens}
           ocupacaoPorSala[chave]=(ocupacaoPorSala[chave]||0)+jovensCount;
         }
 
+        const _semSala=TURMAS_SEM_SALA.includes(nomeCompleto);
         TURMAS_FIXAS.push({
           nome:nomeCompleto,
           entrada:t.data_de_inicio?t.data_de_inicio.slice(0,10):null,
@@ -1226,7 +1228,8 @@ const empresas=Object.entries(empresasAgrup).map(([nome,jovens])=>({nome,jovens}
           pl:pl||'—',
           status:'ativa',
           empresas,
-          _do_directus:true
+          _do_directus:true,
+          _sem_sala:_semSala
         });
         adicionadas++;
       });
@@ -1278,9 +1281,34 @@ renderEmpresas();
 if(sessionStorage.getItem('aleapyo_auth')==='1')_autenticado=true;
 // Carregar estado (entradas) + overrides do GitHub, depois sincronizar com Directus
 Promise.all([loadEstado(), loadOverrides()]).then(()=>{
+  limparEntradasPassadas();
   renderEmpresas();
   carregarDoDirectus();
 });
+
+function limparEntradasPassadas(){
+  const hoje=new Date().toISOString().slice(0,10);
+  const passadas=entradas.filter(e=>e.data<=hoje);
+  if(!passadas.length)return;
+  // Próxima entrada (primeira com data > hoje)
+  const proxima=entradas.filter(e=>e.data>hoje).sort((a,b)=>a.data.localeCompare(b.data))[0];
+  passadas.forEach(entrada=>{
+    // Migrar empresas em aberto para a próxima entrada (sem alocação)
+    if(proxima){
+      entrada.empresas.filter(e=>e.status==='Em aberto').forEach(e=>{
+        proxima.empresas.push({
+          id:'emp'+Date.now()+Math.random(),
+          nome:e.nome,jovens:e.jovens,status:'Em aberto',
+          turma:null,dia:null,sala:null,unidade:null,pl:null
+        });
+      });
+    }
+    // Remover a entrada passada
+    const idx=entradas.indexOf(entrada);
+    if(idx>=0)entradas.splice(idx,1);
+  });
+  if(passadas.length>0)saveEstado();
+}
 </script>
 </body>
 </html>
