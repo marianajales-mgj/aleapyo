@@ -1273,6 +1273,15 @@ const empresas=Object.entries(empresasAgrup).map(([nome,jovens])=>({nome,jovens}
     });
     paraRemover.forEach(t=>{const i=TURMAS_FIXAS.indexOf(t);if(i>=0)TURMAS_FIXAS.splice(i,1);});
     paraAdicionar.forEach(t=>TURMAS_FIXAS.push(t));
+    // Injetar turmas que estão no override com _injetar:true mas não vieram do Directus
+    Object.entries(salaOverrides).forEach(([chave,ov])=>{
+      if(!ov._injetar)return;
+      const [nome,dia]=chave.split('|');
+      if(TURMAS_FIXAS.some(t=>t.nome===nome&&t.dia===dia))return;
+      TURMAS_FIXAS.push({nome,dia,sala:ov.sala||'Sala 2',pl:ov.pl||'—',
+        unidade:ov.unidade||'Freguesia do Ó',jovens:ov.jovens_override||0,
+        entrada:ov.entrada||null,empresas:[],status:'ativa',_injetada:true});
+    });
 
     if(statusEl){
       const msg=`✓ Backoffice: ${adicionadas} turmas ativas carregadas`;
