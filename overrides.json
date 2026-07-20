@@ -30,6 +30,8 @@
     "pl": "Carol",
     "unidade": "Freguesia do Ó",
     "jovens_override": 11,
+    "entrada": "2026-07-06",
+    "_injetar": true,
     "_temp": true
   }
 }
