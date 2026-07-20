@@ -3,19 +3,7 @@
     {
       "id": "e_2007",
       "data": "2026-07-20",
-      "empresas": [
-        {
-          "id": "emp1784038119411",
-          "nome": "Aramis",
-          "jovens": 2,
-          "status": "Em aberto",
-          "turma": "DM5",
-          "dia": "quinta",
-          "sala": "Sala 2",
-          "unidade": "Freguesia do Ó",
-          "pl": "Carol"
-        }
-      ]
+      "empresas": []
     },
     {
       "id": "e1782999212838",
