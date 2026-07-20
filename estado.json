@@ -56,17 +56,6 @@
           "pl": "Carol"
         },
         {
-          "id": "emp1784559598495",
-          "nome": "Sallve",
-          "jovens": 1,
-          "status": "Em aberto",
-          "turma": "DM7",
-          "dia": "quinta",
-          "sala": "Sala 2",
-          "unidade": "Freguesia do Ó",
-          "pl": "Carol"
-        },
-        {
           "id": "emp1784560067363",
           "nome": "Cogna",
           "jovens": 4,
@@ -79,7 +68,7 @@
         },
         {
           "id": "emp1784560366660",
-          "nome": "Nova empresa",
+          "nome": "Sallve",
           "jovens": 1,
           "status": "Em aberto",
           "turma": null,
