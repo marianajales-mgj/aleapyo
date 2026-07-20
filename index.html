@@ -1269,6 +1269,7 @@ const empresas=Object.entries(empresasAgrup).map(([nome,jovens])=>({nome,jovens}
       if(ov.sala)t.sala=ov.sala;
       if(ov.pl)t.pl=ov.pl;
       if(ov.unidade)t.unidade=ov.unidade;
+      if(ov.jovens_override)t.jovens=ov.jovens_override;
     });
     paraRemover.forEach(t=>{const i=TURMAS_FIXAS.indexOf(t);if(i>=0)TURMAS_FIXAS.splice(i,1);});
     paraAdicionar.forEach(t=>TURMAS_FIXAS.push(t));
