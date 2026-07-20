@@ -930,11 +930,16 @@ function _alocar(emp,entrada,dia,sala,unidade,jovens,pl){
     const m=t.nome.match(/([A-E])[MT](\d+)/);
     if(m&&m[1]===letra)max=Math.max(max,parseInt(m[2]));
   });
-  // E turmas simuladas já alocadas nesta sessão (para não repetir nome)
-  turmasSim.forEach(t=>{
+  // E turmas simuladas já alocadas nesta sessão (recalcular para pegar estado atual)
+  const simAtual=turmasSimAtivas();
+  simAtual.forEach(t=>{
     const m=t.nome.match(/([A-E])[MT](\d+)/);
     if(m&&m[1]===letra)max=Math.max(max,parseInt(m[2]));
   });
+  // Também entradas já salvas com turma atribuída
+  entradas.forEach(en=>en.empresas.forEach(e=>{
+    if(e.turma){const m=e.turma.match(/([A-E])[MT](\d+)/);if(m&&m[1]===letra)max=Math.max(max,parseInt(m[2]));}
+  }));
   // Não contar entradas salvas — evita inflacionar sequência após simulações apagadas
   console.log('[Aleapyo] próxima turma de',dia,'→ letra='+letra+' max='+max+' próxima='+letra+'M'+(max+1));
   emp.turma=letra+TURNO+(max+1);
