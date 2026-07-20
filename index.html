@@ -395,7 +395,7 @@ function salaAindaDisponivel(dia, sala, unidade, dataRef) {
   unidade = unidade || 'Freguesia do Ó';
   // Apenas turmas REAIS do Directus
   const turmasSala = TURMAS_FIXAS.filter(t =>
-    t.dia === dia && t.sala === sala && (t.unidade || 'Freguesia do Ó') === unidade && t.entrada
+    t.dia === dia && t.sala === sala && (t.unidade || 'Freguesia do Ó') === unidade && t.entrada && !t._sem_sala
   );
   if (!turmasSala.length) return true; // sala vazia = disponível
   const dataMaisAntiga = turmasSala.reduce((min, t) => t.entrada < min ? t.entrada : min, turmasSala[0].entrada);
@@ -438,13 +438,14 @@ function buildGradeHTML(tblId,compact){
             // Cronograma distante — não mostrar nada
           } else {
             const hoje=new Date();
-            const ocupacaoFutura=TURMAS_FIXAS.some(t=>{
+            const turmasFuturasSala=TURMAS_FIXAS.filter(t=>{
               if(t.dia!==dia||t.sala!==sala||(t.unidade||'Freguesia do Ó')!==u.nome)return false;
-              if(!t.entrada)return false;
+              if(!t.entrada||t._sem_sala)return false;
               const enc=new Date(t.entrada+'T12:00:00');
               enc.setMonth(enc.getMonth()+15);
               return enc>hoje;
             });
+            const ocupacaoFutura=turmasFuturasSala.length>0;
             h+=ocupacaoFutura?
               `<div style="color:#f2cf6b;font-size:10px;font-style:italic;font-weight:600">⚠ em uso</div>`:
               `<div class="livre">livre · ${cap}j</div>`;
@@ -1141,8 +1142,6 @@ async function carregarDoDirectus(){
       window._maxHistoricoTurma[letra]=Math.max(window._maxHistoricoTurma[letra]||0,parseInt(num));
     });
     console.log('[Aleapyo] máximos históricos por letra:',window._maxHistoricoTurma);
-    console.log('[Aleapyo] turmaCounts:',JSON.stringify(turmaCounts));
-
     // 2. Buscar jovens em andamento com turma e empresa
     const urlJovens=`${DIRECTUS_URL}/items/user_apprenticeship_data?filter[Status_formacao][_eq]=em_andamento&filter[ativo][_eq]=true&fields=turma_id,empresa_id&access_token=${DIRECTUS_TOKEN}`;
     const rJ=await fetch(urlJovens);
@@ -1171,6 +1170,7 @@ async function carregarDoDirectus(){
       }
     });
 
+    console.log('[Aleapyo] turmaCounts:',JSON.stringify(turmaCounts));
     // 4. Atualizar TURMAS_FIXAS
     const existentes=new Set(TURMAS_FIXAS.map(t=>t.nome));
     // Limpar TURMAS_FIXAS antes de re-popular (evita duplicatas em re-sync)
