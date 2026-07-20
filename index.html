@@ -1066,7 +1066,8 @@ async function obterTokenDirectus(){
       sessionStorage.setItem('directus_token',_directusToken);
       return _directusToken;
     } else {
-      alert('Senha incorreta ou erro no backoffice. Tente novamente.');
+      console.error('Resposta login Directus:',JSON.stringify(data));
+      alert('Senha incorreta ou erro: '+JSON.stringify(data?.errors||data));
       return null;
     }
   }catch(e){
@@ -1298,8 +1299,8 @@ const empresas=Object.entries(empresasAgrup).map(([nome,jovens])=>({nome,jovens}
     }
     renderGrade();renderGradeMini();renderEmpresas();
   }catch(e){
-    console.warn('Directus indisponível:',e.message);
-    if(statusEl){statusEl.textContent='⚠ Backoffice indisponível';statusEl.style.color='#856404';}
+    console.warn('Directus indisponível:',e.message,e);
+    if(statusEl){statusEl.textContent='⚠ Backoffice indisponível: '+e.message;statusEl.style.color='#856404';}
   }
 }
 
