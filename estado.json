@@ -5,17 +5,6 @@
       "data": "2026-07-20",
       "empresas": [
         {
-          "id": "emp1783969712835",
-          "nome": "Flash",
-          "jovens": 1,
-          "status": "Confirmado",
-          "turma": "DM5",
-          "dia": "quinta",
-          "sala": "Sala 2",
-          "unidade": "Freguesia do Ó",
-          "pl": "Carol"
-        },
-        {
           "id": "emp1784038119411",
           "nome": "Aramis",
           "jovens": 2,
