@@ -70,11 +70,12 @@
           "id": "emp1784560067363",
           "nome": "Cogna",
           "jovens": 4,
-          "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "status": "Confirmado",
+          "turma": "DM7",
+          "dia": "quinta",
+          "sala": "Sala 2",
+          "unidade": "Freguesia do Ó",
+          "pl": "Carol"
         }
       ]
     },
