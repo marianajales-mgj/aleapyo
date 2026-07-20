@@ -345,7 +345,9 @@ function turmasSimAtivas(){
     entrada.empresas.forEach(emp=>{
       if(!emp.turma||!emp.dia||emp.status==='Adiado'||!emp.jovens)return;
       const nomeT='Turma '+emp.turma;
-      if(fixasNomes.has(nomeT))return;
+      // Ignorar só se a turma fixa real existe E não é injetada temporariamente
+      const fixaReal=TURMAS_FIXAS.find(t=>t.nome===nomeT&&!t._injetada);
+      if(fixaReal)return;
       const unidade=emp.unidade||'Freguesia do Ó';
       const sala=emp.sala||melhorSala(emp.dia,unidade);
       const chave=nomeT+'|'+emp.dia+'|'+sala+'|'+unidade;
@@ -919,12 +921,17 @@ function _alocar(emp,entrada,dia,sala,unidade,jovens,pl){
   if(companheiraMesmaSala){emp.turma=companheiraMesmaSala.turma;return;}
   // Criar novo nome — sempre incrementa o max global da letra (nunca herda de outra entrada)
   let max=0;
-  // Base: máximo histórico de todas as turmas do Directus (inclui anteriores a 02/03)
+  // Base: máximo histórico de todas as turmas do Directus
   if(window._maxHistoricoTurma&&window._maxHistoricoTurma[letra]){
     max=window._maxHistoricoTurma[letra];
   }
-  // Considerar também turmas ativas atuais e entradas já alocadas
+  // Também considerar TURMAS_FIXAS ativas (garante que turmas recentes contam)
   TURMAS_FIXAS.forEach(t=>{
+    const m=t.nome.match(/([A-E])[MT](\d+)/);
+    if(m&&m[1]===letra)max=Math.max(max,parseInt(m[2]));
+  });
+  // E turmas simuladas já alocadas nesta sessão (para não repetir nome)
+  turmasSim.forEach(t=>{
     const m=t.nome.match(/([A-E])[MT](\d+)/);
     if(m&&m[1]===letra)max=Math.max(max,parseInt(m[2]));
   });
@@ -1106,7 +1113,7 @@ async function carregarDoDirectus(){
 
     // Buscar histórico completo de nomes de turmas (para numeração correta)
     // Sem filtro de data — pega AMx, DMx anteriores a 02/03
-    const urlHistorico=`${DIRECTUS_URL}/items/Turmas?fields=Name&filter[Name][_starts_with]=Turma&access_token=${DIRECTUS_TOKEN}`;
+    const urlHistorico=`${DIRECTUS_URL}/items/Turmas?fields=Name&filter[Name][_starts_with]=Turma&limit=-1&access_token=${DIRECTUS_TOKEN}`;
     const rH=await fetch(urlHistorico);
     const historicoNomes=rH.ok?((await rH.json()).data||[]).map(t=>t.Name):[];
     // Calcular máximo histórico por letra
