@@ -5,17 +5,6 @@
       "data": "2026-08-03",
       "empresas": [
         {
-          "id": "emp1783519240101",
-          "nome": "Sallve",
-          "jovens": 1,
-          "status": "Em aberto",
-          "turma": "DM5",
-          "dia": "quinta",
-          "sala": "Sala 2",
-          "unidade": "Freguesia do Ó",
-          "pl": "Carol"
-        },
-        {
           "id": "emp1783519662964",
           "nome": "Sumup",
           "jovens": 3,
