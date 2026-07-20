@@ -1048,34 +1048,10 @@ function bloquearSeNaoAutenticado(acao){
   }
   return false;
 }
-const DIRECTUS_EMAIL='mariana.jales@leapy.com.br';
-let _directusToken=sessionStorage.getItem('directus_token')||null;
+const DIRECTUS_TOKEN='FXAdWLdfo_YKGCTwDs0LzPToWu3XxW2l';
 
 async function obterTokenDirectus(){
-  if(_directusToken)return _directusToken;
-  // Pedir senha ao usuário
-  const senha=prompt('Senha do backoffice Leapy (mariana.jales@leapy.com.br):');
-  if(!senha)return null;
-  try{
-    const r=await fetch(`${DIRECTUS_URL}/auth/login`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({email:DIRECTUS_EMAIL,password:senha})
-    });
-    const data=await r.json();
-    if(data.data?.access_token){
-      _directusToken=data.data.access_token;
-      sessionStorage.setItem('directus_token',_directusToken);
-      return _directusToken;
-    } else {
-      console.error('Resposta login Directus:',JSON.stringify(data));
-      alert('Senha incorreta ou erro: '+JSON.stringify(data?.errors||data));
-      return null;
-    }
-  }catch(e){
-    alert('Não foi possível conectar ao backoffice: '+e.message);
-    return null;
-  }
+  return DIRECTUS_TOKEN;
 }
 const DIAS_MAP={'segunda_feira':'segunda','terca_feira':'terça','quarta_feira':'quarta','quinta_feira':'quinta','sexta_feira':'sexta'};
 const SALA_MAP={'Sala 1':'Sala 1','Sala 2':'Sala 2'};
