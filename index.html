@@ -1108,6 +1108,7 @@ async function carregarDoDirectus(){
     if(!rT.ok)throw new Error('HTTP '+rT.status);
     const dataTurmas=(await rT.json()).data||[];
     const DATA_MINIMA='2026-03-02';
+    console.log('[Aleapyo] Todas turmas do Directus:',dataTurmas.map(t=>t.Name+'|'+t.dia_de_curso+'|'+t.data_de_inicio?.slice(0,10)));
     const turmasLeapy=dataTurmas.filter(t=>{
       if(!t.Name||!t.Name.startsWith('Turma ')||!t.dia_de_curso)return false;
       if(!t.data_de_inicio)return false;
