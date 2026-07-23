@@ -148,6 +148,22 @@
       ]
     },
     {
+      "id": "e1784806956126",
+      "data": "2026-08-31",
+      "empresas": [
+        {
+          "id": "emp1784806956126vnamvw7u72l",
+          "nome": "Empresa",
+          "jovens": 1,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null
+        }
+      ]
+    },
+    {
       "id": "e1783442012279",
       "data": "2026-09-21",
       "empresas": [
