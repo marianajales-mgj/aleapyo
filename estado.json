@@ -38,7 +38,7 @@
           "id": "emp17848113635950",
           "nome": "Shopee",
           "jovens": 8,
-          "status": "Em aberto",
+          "status": "Confirmado",
           "turma": "DM9",
           "dia": "quinta",
           "sala": "Sala 1",
@@ -202,7 +202,8 @@
           "turma": "DM8",
           "dia": "quinta",
           "sala": "Sala 1",
-          "unidade": "Polo Liberdade"
+          "unidade": "Polo Liberdade",
+          "pl": "Carol"
         },
         {
           "id": "emp17834377034570",
@@ -212,7 +213,8 @@
           "turma": "DM8",
           "dia": "quinta",
           "sala": "Sala 1",
-          "unidade": "Polo Liberdade"
+          "unidade": "Polo Liberdade",
+          "pl": "Carol"
         },
         {
           "id": "emp1783521715982",
