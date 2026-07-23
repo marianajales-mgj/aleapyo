@@ -35,14 +35,25 @@
           "unidade": null
         },
         {
-          "id": "emp1783521150174",
+          "id": "emp17848113635950",
           "nome": "Shopee",
-          "jovens": 17,
+          "jovens": 8,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "DM9",
+          "dia": "quinta",
+          "sala": "Sala 1",
+          "unidade": "Freguesia do Ó"
+        },
+        {
+          "id": "emp17848113635951",
+          "nome": "Shopee",
+          "jovens": 9,
+          "status": "Em aberto",
+          "turma": "DM7",
+          "dia": "quinta",
+          "sala": "Sala 2",
+          "unidade": "Freguesia do Ó",
+          "pl": "Carol"
         },
         {
           "id": "emp1784559308160",
