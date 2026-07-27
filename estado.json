@@ -5,16 +5,6 @@
       "data": "2026-08-03",
       "empresas": [
         {
-          "id": "emp1783521130150",
-          "nome": "Eletromidia",
-          "jovens": 10,
-          "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
-        },
-        {
           "id": "emp17848113635950",
           "nome": "Shopee",
           "jovens": 8,
