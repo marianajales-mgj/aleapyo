@@ -75,10 +75,11 @@
           "nome": "Shopee",
           "jovens": 2,
           "status": "Confirmado",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "DM7",
+          "dia": "quinta",
+          "sala": "Sala 2",
+          "unidade": "Freguesia do Ó",
+          "pl": "Manu"
         }
       ]
     },
