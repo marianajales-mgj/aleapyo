@@ -24,7 +24,7 @@
           "dia": "quinta",
           "sala": "Sala 2",
           "unidade": "Freguesia do Ó",
-          "pl": "Manu"
+          "pl": "Carol"
         },
         {
           "id": "emp1785157325579",
@@ -35,7 +35,7 @@
           "dia": "quinta",
           "sala": "Sala 2",
           "unidade": "Freguesia do Ó",
-          "pl": "Manu"
+          "pl": "Carol"
         },
         {
           "id": "emp1785157424713",
@@ -46,7 +46,7 @@
           "dia": "quinta",
           "sala": "Sala 2",
           "unidade": "Freguesia do Ó",
-          "pl": "Manu"
+          "pl": "Carol"
         },
         {
           "id": "emp1785157459878",
@@ -57,7 +57,7 @@
           "dia": "quinta",
           "sala": "Sala 2",
           "unidade": "Freguesia do Ó",
-          "pl": "Manu"
+          "pl": "Carol"
         },
         {
           "id": "emp1785157477706",
@@ -68,7 +68,7 @@
           "dia": "quinta",
           "sala": "Sala 2",
           "unidade": "Freguesia do Ó",
-          "pl": "Manu"
+          "pl": "Carol"
         },
         {
           "id": "emp1785157502305",
@@ -79,7 +79,7 @@
           "dia": "quinta",
           "sala": "Sala 2",
           "unidade": "Freguesia do Ó",
-          "pl": "Manu"
+          "pl": "Carol"
         },
         {
           "id": "emp1785157535054",
@@ -100,7 +100,8 @@
           "turma": "DM7",
           "dia": "quinta",
           "sala": "Sala 2",
-          "unidade": "Freguesia do Ó"
+          "unidade": "Freguesia do Ó",
+          "pl": "Carol"
         }
       ]
     },
