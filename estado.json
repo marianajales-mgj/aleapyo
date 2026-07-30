@@ -49,17 +49,6 @@
           "pl": "Carol"
         },
         {
-          "id": "emp1785157477706",
-          "nome": "Flash",
-          "jovens": 1,
-          "status": "Confirmado",
-          "turma": "DM9",
-          "dia": "quinta",
-          "sala": "Sala 1",
-          "unidade": "Freguesia do Ó",
-          "pl": "Manu"
-        },
-        {
           "id": "emp1785157502305",
           "nome": "Shopee",
           "jovens": 10,
