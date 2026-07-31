@@ -118,10 +118,11 @@
           "nome": "Pipo",
           "jovens": 4,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "DM9",
+          "dia": "quinta",
+          "sala": "Sala 1",
+          "unidade": "Freguesia do Ó",
+          "pl": "Manu"
         }
       ]
     },
