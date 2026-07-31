@@ -59,16 +59,6 @@
           "pl": "Manu"
         },
         {
-          "id": "emp1783520253929",
-          "nome": "Rappi",
-          "jovens": 11,
-          "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
-        },
-        {
           "id": "emp1785507919328",
           "nome": "UOL",
           "jovens": 1,
