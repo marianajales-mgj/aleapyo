@@ -1,67 +1,6 @@
 {
   "entradas": [
     {
-      "id": "e1782999212838",
-      "data": "2026-08-03",
-      "empresas": [
-        {
-          "id": "emp1784559308160",
-          "nome": "UOL",
-          "jovens": 1,
-          "status": "Confirmado",
-          "turma": "DM7",
-          "dia": "quinta",
-          "sala": "Sala 2",
-          "unidade": "Freguesia do Ó",
-          "pl": "Carol"
-        },
-        {
-          "id": "emp1784560366660",
-          "nome": "LivUp",
-          "jovens": 1,
-          "status": "Confirmado",
-          "turma": "DM7",
-          "dia": "quinta",
-          "sala": "Sala 2",
-          "unidade": "Freguesia do Ó",
-          "pl": "Carol"
-        },
-        {
-          "id": "emp1785157325579",
-          "nome": "Sallve",
-          "jovens": 1,
-          "status": "Confirmado",
-          "turma": "DM7",
-          "dia": "quinta",
-          "sala": "Sala 2",
-          "unidade": "Freguesia do Ó",
-          "pl": "Carol"
-        },
-        {
-          "id": "emp1785157459878",
-          "nome": "Sanar",
-          "jovens": 1,
-          "status": "Confirmado",
-          "turma": "DM7",
-          "dia": "quinta",
-          "sala": "Sala 2",
-          "unidade": "Freguesia do Ó",
-          "pl": "Carol"
-        },
-        {
-          "id": "emp1785157502305",
-          "nome": "Shopee",
-          "jovens": 10,
-          "status": "Confirmado",
-          "turma": "DM7",
-          "dia": "quinta",
-          "sala": "Sala 2",
-          "unidade": "Freguesia do Ó",
-          "pl": "Carol"
-        }
-      ]
-    },
-    {
       "id": "e1782999186932",
       "data": "2026-08-17",
       "empresas": [
