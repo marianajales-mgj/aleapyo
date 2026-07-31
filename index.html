@@ -482,8 +482,9 @@ function buildGradeHTML(tblId,compact){
         ocp.turmas.forEach(t=>{
           const cor=corPL(t.pl);
           const isSim=t.status==='simulada';
+          const unidadeTag=t.unidade==='Polo Liberdade'?`<span style="font-size:8px;background:#35dcb222;color:#054a36;border-radius:3px;padding:1px 4px;margin-left:3px;font-weight:600">PL</span>`:`<span style="font-size:8px;background:#373afd18;color:#373afd;border-radius:3px;padding:1px 4px;margin-left:3px;font-weight:600">FO</span>`;
           h+=`<div class="chip-turma" style="background:${cor.light};color:${cor.text};border:${isSim?`1.5px dashed ${cor.border}`:`1px solid ${cor.border}55`}" onclick="abrirDetalhe('${t.nome}','${dia}','${sala}','${u.nome}')">
-            <span>${isSim?'✦ ':''}<b>${t.nome}</b></span><span style="color:${cor.border};font-weight:700">${t.jovens}j</span>
+            <span>${isSim?'✦ ':''}<b>${t.nome}</b>${unidadeTag}</span><span style="color:${cor.border};font-weight:700">${t.jovens}j</span>
           </div>`;
         });
         // Cor da barra: PL da turma com mais jovens na sala
