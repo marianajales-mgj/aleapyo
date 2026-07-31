@@ -69,13 +69,14 @@
         },
         {
           "id": "emp1785507919328",
-          "nome": "Nova empresa",
+          "nome": "UOL",
           "jovens": 1,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "DM9",
+          "dia": "quinta",
+          "sala": "Sala 1",
+          "unidade": "Freguesia do Ó",
+          "pl": "Manu"
         }
       ]
     },
