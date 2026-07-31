@@ -5,16 +5,6 @@
       "data": "2026-08-17",
       "empresas": [
         {
-          "id": "emp17834376305971",
-          "nome": "Corpay",
-          "jovens": 11,
-          "status": "Em aberto",
-          "turma": "CM4",
-          "dia": "quarta",
-          "sala": "Sala 1",
-          "unidade": "Polo Liberdade"
-        },
-        {
           "id": "emp1782999236140",
           "nome": "Quinto Andar",
           "jovens": 21,
