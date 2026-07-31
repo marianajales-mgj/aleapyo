@@ -5,17 +5,6 @@
       "data": "2026-08-17",
       "empresas": [
         {
-          "id": "emp17834376305970",
-          "nome": "Corpay",
-          "jovens": 13,
-          "status": "Em aberto",
-          "turma": "BM8",
-          "dia": "terça",
-          "sala": "Sala 1",
-          "unidade": "Polo Liberdade",
-          "pl": "Novo (a) PL"
-        },
-        {
           "id": "emp17834376305971",
           "nome": "Corpay",
           "jovens": 11,
