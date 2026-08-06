@@ -690,7 +690,7 @@ function renderEmpresas(){
     emps.forEach(emp=>{
       const sCor={Confirmado:'#0a7a60','Em aberto':'#856404',Adiado:'#888'}[emp.status]||'#888';
       const sBg={Confirmado:'#e8fff9','Em aberto':'#fffbeb',Adiado:'#f5f5f5'}[emp.status]||'#f5f5f5';
-      h+=`<div class="emp-row"><input type="text" value="${emp.nome}" onchange="updNome('${entrada.id}','${emp.id}',this.value)" style="border:none;border-bottom:1px solid transparent;background:transparent;font-size:12px;font-weight:600;font-family:'Montserrat',sans-serif;color:var(--tx);width:100%;padding:0;height:auto" onfocus="this.style.borderBottomColor='var(--blue)'" onblur="this.style.borderBottomColor='transparent'"/><input type="number" min="1" max="9999" value="${emp.jovens}" onchange="updJovens('${entrada.id}','${emp.id}',this.value)" style="width:100%;height:26px;border:1px solid var(--br);border-radius:5px;padding:0 4px;font-size:12px;font-weight:700;color:var(--blue);font-family:'Montserrat',sans-serif;text-align:center"/><select class="status-sel" onchange="updStatus('${entrada.id}','${emp.id}',this.value)" style="background:${sBg};color:${sCor};border-color:${sCor}55">${['Confirmado','Em aberto','Adiado'].map(s=>`<option ${emp.status===s?'selected':''}>${s}</option>`).join('')}</select><div>${emp.turma?`<span style="font-size:10px;color:var(--blue);font-weight:600;background:#eeefff;padding:2px 6px;border-radius:99px;border:1px solid #b4b6fd">${emp.turma}</span>`:'<span style="font-size:10px;color:#ccc">—</span>'}</div><div>${emp.dia?`<span style="font-size:10px;color:var(--mu);font-weight:600;background:#f5f5f2;padding:2px 6px;border-radius:99px;border:1px solid var(--br);text-transform:capitalize">${emp.dia}</span>`:'<span style="font-size:10px;color:#ccc">—</span>'}</div><div>${emp.unidade==='Polo Liberdade'?`<span style="font-size:10px;font-weight:700;background:#35dcb222;color:#054a36;padding:2px 6px;border-radius:99px;border:1px solid #35dcb244">Liberdade</span>`:emp.unidade==='Freguesia do Ó'?`<span style="font-size:10px;font-weight:700;background:#373afd18;color:#373afd;padding:2px 6px;border-radius:99px;border:1px solid #373afd44">Freguesia</span>`:'<span style="font-size:10px;color:#ccc">—</span>'}</div><button class="mover-btn" onclick="abrirMover('${entrada.id}','${emp.id}')">${emp.turma?'↻ Mover':'Alocar'}</button><button class="del-btn" onclick="excluirEmp('${entrada.id}','${emp.id}')" title="Excluir">×</button></div>`;
+      h+=`<div class="emp-row"><input type="text" value="${emp.nome}" onchange="updNome('${entrada.id}','${emp.id}',this.value)" style="border:none;border-bottom:1px solid transparent;background:transparent;font-size:12px;font-weight:600;font-family:'Montserrat',sans-serif;color:var(--tx);width:100%;padding:0;height:auto" onfocus="this.style.borderBottomColor='var(--blue)'" onblur="this.style.borderBottomColor='transparent'"/><input type="number" min="1" max="9999" value="${emp.jovens}" onchange="updJovens('${entrada.id}','${emp.id}',this.value)" style="width:100%;height:26px;border:1px solid var(--br);border-radius:5px;padding:0 4px;font-size:12px;font-weight:700;color:var(--blue);font-family:'Montserrat',sans-serif;text-align:center"/><select class="status-sel" onchange="updStatus('${entrada.id}','${emp.id}',this.value)" style="background:${sBg};color:${sCor};border-color:${sCor}55">${['Confirmado','Em aberto','Adiado'].map(s=>`<option ${emp.status===s?'selected':''}>${s}</option>`).join('')}</select><div>${emp.turma?`<span style="font-size:10px;color:var(--blue);font-weight:600;background:#eeefff;padding:2px 6px;border-radius:99px;border:1px solid #b4b6fd">${emp.turma}</span>`:'<span style="font-size:10px;color:#ccc">—</span>'}</div><div>${emp.dia?`<span style="font-size:10px;color:var(--mu);font-weight:600;background:#f5f5f2;padding:2px 6px;border-radius:99px;border:1px solid var(--br);text-transform:capitalize">${emp.dia}</span>`:'<span style="font-size:10px;color:#ccc">—</span>'}</div><div>${emp.unidade==='Polo Liberdade'?`<span style="font-size:10px;font-weight:700;background:#35dcb222;color:#054a36;padding:2px 6px;border-radius:99px;border:1px solid #35dcb244">Liberdade</span>`:emp.unidade==='Freguesia do Ó'?`<span style="font-size:10px;font-weight:700;background:#373afd18;color:#373afd;padding:2px 6px;border-radius:99px;border:1px solid #373afd44">Freguesia</span>`:'<span style="font-size:10px;color:#ccc">—</span>'}</div><button class="mover-btn" onclick="abrirMover('${entrada.id}','${emp.id}')">${emp.turma?'↻ Mover':'Alocar'}</button><button onclick="abrirMoverEntrada('${entrada.id}','${emp.id}')" title="Mover para outra entrada" style="height:28px;width:28px;background:#f5f5f2;color:#888;border:1px solid var(--br);border-radius:var(--rs);font-size:12px;cursor:pointer;font-family:'Montserrat',sans-serif">⇄</button><button class="del-btn" onclick="excluirEmp('${entrada.id}','${emp.id}')" title="Excluir">×</button></div>`;
     });
     h+=`<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--br)">
         <button onclick="adicionarEmp('${entrada.id}')" style="height:28px;padding:0 10px;border:1.5px dashed var(--blue);color:var(--blue);background:transparent;border-radius:var(--rs);font-size:11px;font-weight:600;cursor:pointer;font-family:'Montserrat',sans-serif">+ Empresa</button>
@@ -946,6 +946,69 @@ function _alocar(emp,entrada,dia,sala,unidade,jovens,pl){
 }
 
 function fecharModal(){document.getElementById('modal-bg').style.display='none';}
+
+function abrirMoverEntrada(eid, empid){
+  if(bloquearSeNaoAutenticado(()=>abrirMoverEntrada(eid,empid)))return;
+  const entradaAtual=entradas.find(e=>e.id===eid);
+  const emp=entradaAtual?.empresas.find(x=>x.id===empid);
+  if(!emp)return;
+  // Montar opções — todas as entradas exceto a atual
+  const outras=entradas.filter(e=>e.id!==eid).sort((a,b)=>a.data.localeCompare(b.data));
+  const opts=outras.map(e=>`<option value="${e.id}">${fmtData(e.data)}</option>`).join('');
+  const h=`<div style="padding:4px 0 12px">
+    <div style="font-size:20px;font-weight:800;font-family:'Krona One',sans-serif;margin-bottom:4px">${emp.nome}</div>
+    <div style="font-size:11px;color:var(--mu);margin-bottom:16px">${emp.jovens}j · mover para outra entrada</div>
+    <div style="font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase;margin-bottom:6px">Entrada de destino</div>
+    <select id="destino-entrada-sel" style="width:100%;height:36px;border:1.5px solid var(--blue);border-radius:var(--rs);font-size:13px;padding:0 8px;font-family:'Montserrat',sans-serif;margin-bottom:6px">
+      ${opts}
+      <option value="__nova__">+ Nova entrada (digitar data)</option>
+    </select>
+    <div id="nova-data-wrap" style="display:none;margin-bottom:6px">
+      <div style="font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase;margin-bottom:4px">Data da nova entrada</div>
+      <input id="nova-data-inp" type="date" style="width:100%;height:36px;border:1.5px solid var(--blue);border-radius:var(--rs);font-size:13px;padding:0 8px;box-sizing:border-box;font-family:'Montserrat',sans-serif"/>
+    </div>
+    <div style="font-size:10px;color:var(--mu);background:#fafafa;border-radius:var(--rs);padding:8px;margin-bottom:12px">
+      A empresa será movida com <b>${emp.jovens} jovens</b>. Turma, dia e sala serão zerados para realocar na nova entrada.
+    </div>
+    <button onclick="confirmarMoverEntrada('${eid}','${empid}')" style="width:100%;height:38px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:12px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif">⇄ Confirmar mudança de entrada</button>
+  </div>`;
+  document.getElementById('modal-titulo').textContent='Mover para outra entrada';
+  document.getElementById('modal-body').innerHTML=h;
+  document.getElementById('modal-bg').style.display='flex';
+  // Mostrar/esconder campo de nova data
+  document.getElementById('destino-entrada-sel').onchange=function(){
+    document.getElementById('nova-data-wrap').style.display=this.value==='__nova__'?'block':'none';
+  };
+}
+
+function confirmarMoverEntrada(eid, empid){
+  const entradaAtual=entradas.find(e=>e.id===eid);
+  const emp=entradaAtual?.empresas.find(x=>x.id===empid);
+  if(!emp)return;
+  const sel=document.getElementById('destino-entrada-sel');
+  let destinoId=sel?.value;
+  // Criar nova entrada se necessário
+  if(destinoId==='__nova__'){
+    const dataVal=document.getElementById('nova-data-inp')?.value;
+    if(!dataVal){alert('Informe a data da nova entrada.');return;}
+    const novaEntrada={id:'e_'+dataVal.replace(/-/g,''),data:dataVal,empresas:[]};
+    entradas.push(novaEntrada);
+    entradas.sort((a,b)=>a.data.localeCompare(b.data));
+    destinoId=novaEntrada.id;
+  }
+  const destino=entradas.find(e=>e.id===destinoId);
+  if(!destino){alert('Entrada de destino não encontrada.');return;}
+  // Mover empresa: remover da atual, adicionar na destino sem alocação
+  entradaAtual.empresas=entradaAtual.empresas.filter(x=>x.id!==empid);
+  destino.empresas.push({
+    id:'emp'+Date.now(),
+    nome:emp.nome,
+    jovens:emp.jovens,
+    status:emp.status==='Confirmado'?'Confirmado':'Em aberto',
+    turma:null,dia:null,sala:null,unidade:null,pl:null
+  });
+  fecharModal();renderGrade();renderGradeMini();renderEmpresas();saveEstado();
+}
 
 // ── PLs ──
 function renderPLs(){
