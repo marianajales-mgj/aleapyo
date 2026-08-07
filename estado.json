@@ -144,6 +144,17 @@
           "dia": null,
           "sala": null,
           "unidade": null
+        },
+        {
+          "id": "emp1786111711245",
+          "nome": "Pipo",
+          "jovens": 4,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null,
+          "pl": null
         }
       ]
     },
@@ -170,17 +181,6 @@
           "dia": null,
           "sala": null,
           "unidade": null
-        },
-        {
-          "id": "emp1786107696030",
-          "nome": "Pipo",
-          "jovens": 4,
-          "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null,
-          "pl": null
         }
       ]
     },
