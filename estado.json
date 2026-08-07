@@ -197,10 +197,11 @@
           "nome": "Shopee",
           "jovens": 22,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "AM7",
+          "dia": "segunda",
+          "sala": "Sala 2",
+          "unidade": "Freguesia do Ó",
+          "pl": "Carol"
         }
       ]
     },
