@@ -285,13 +285,24 @@ async function loadEstado(){
       if(saved.entradas&&saved.entradas.length){
         entradas=saved.entradas;
       }
+      if(saved.pls&&saved.pls.length){
+        saved.pls.forEach(p=>{
+          if(!plsState.find(x=>x.nome===p.nome)){
+            plsState.push({nome:p.nome,alocados:p.alocados||[],livres:[],simDias:[]});
+            const cores=['#a78bfa','#fb923c','#38bdf8','#f472b6'];
+            const cor=cores[plsState.length%4];
+            plCores[p.nome]={bg:cor,light:cor+'18',text:'#1d0328',border:cor};
+          }
+        });
+      }
     }
   }catch(e){console.warn('Estado não carregado:',e.message);}
 }
 
 async function saveEstado(){
   try{
-    const conteudo=btoa(unescape(encodeURIComponent(JSON.stringify({entradas},null,2))));
+    const plsExtras=plsState.filter(p=>p.nome!=='Manu'&&p.nome!=='Carol').map(p=>({nome:p.nome,alocados:p.alocados}));
+    const conteudo=btoa(unescape(encodeURIComponent(JSON.stringify({entradas,pls:plsExtras},null,2))));
     const body={message:'estado: entradas atualizadas',content:conteudo,branch:'main'};
     if(_estadoSha)body.sha=_estadoSha;
     const r=await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${ESTADO_FILE}`,{
@@ -661,7 +672,14 @@ function renderEmpresas(){
   const el=document.getElementById('empresas-list');if(!el)return;
   let h='';
   entradas.forEach((entrada,ei)=>{
-    const emps=filtroAtivo==='todos'?entrada.empresas:entrada.empresas.filter(e=>e.status===filtroAtivo);
+    const empsRaw=filtroAtivo==='todos'?entrada.empresas:entrada.empresas.filter(e=>e.status===filtroAtivo);
+    // Ordenar: Freguesia primeiro, depois Liberdade; dentro de cada polo por turma
+    const emps=[...empsRaw].sort((a,b)=>{
+      const poloA=a.unidade==='Polo Liberdade'?1:0;
+      const poloB=b.unidade==='Polo Liberdade'?1:0;
+      if(poloA!==poloB)return poloA-poloB;
+      return (a.turma||'zzz').localeCompare(b.turma||'zzz');
+    });
     if(!emps.length&&filtroAtivo!=='todos')return;
     const conf=entrada.empresas.filter(e=>e.status==='Confirmado').reduce((s,e)=>s+e.jovens,0);
     const aberto=entrada.empresas.filter(e=>e.status==='Em aberto').reduce((s,e)=>s+e.jovens,0);
@@ -1032,7 +1050,7 @@ function novoPL(){
   const cores=['#a78bfa','#fb923c','#38bdf8','#f472b6'];
   const cor=cores[plsState.length%4];
   plCores[nome]={bg:cor,light:cor+'18',text:'#1d0328',border:cor};
-  renderPLs();renderGrade();renderGradeMini();
+  renderPLs();renderGrade();renderGradeMini();saveEstado();
 }
 
 // ── UNIDADES ──
@@ -1407,5 +1425,4 @@ function limparEntradasPassadas(){
 }
 </script>
 </body>
-<!-- deploy -->
 </html>
