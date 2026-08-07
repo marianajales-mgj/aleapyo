@@ -248,5 +248,17 @@
         }
       ]
     }
+  ],
+  "pls": [
+    {
+      "nome": "Marialice",
+      "alocados": [
+        "Seg",
+        "Ter",
+        "Qua",
+        "Qui",
+        "Sex"
+      ]
+    }
   ]
 }
