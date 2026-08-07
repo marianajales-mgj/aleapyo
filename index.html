@@ -675,10 +675,16 @@ function renderEmpresas(){
     const empsRaw=filtroAtivo==='todos'?entrada.empresas:entrada.empresas.filter(e=>e.status===filtroAtivo);
     // Ordenar: Freguesia primeiro, depois Liberdade; dentro de cada polo por turma
     const emps=[...empsRaw].sort((a,b)=>{
+      // Sem alocação vai para o final
+      const semA=!a.turma?1:0;
+      const semB=!b.turma?1:0;
+      if(semA!==semB)return semA-semB;
+      // Freguesia antes de Liberdade
       const poloA=a.unidade==='Polo Liberdade'?1:0;
       const poloB=b.unidade==='Polo Liberdade'?1:0;
       if(poloA!==poloB)return poloA-poloB;
-      return (a.turma||'zzz').localeCompare(b.turma||'zzz');
+      // Por turma
+      return (a.turma||'').localeCompare(b.turma||'');
     });
     if(!emps.length&&filtroAtivo!=='todos')return;
     const conf=entrada.empresas.filter(e=>e.status==='Confirmado').reduce((s,e)=>s+e.jovens,0);
