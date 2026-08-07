@@ -94,13 +94,13 @@
         },
         {
           "id": "emp1786111334156",
-          "nome": "Nova empresa",
+          "nome": "Alice",
           "jovens": 1,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "CM4",
+          "dia": "quarta",
+          "sala": "Sala 1",
+          "unidade": "Polo Liberdade"
         }
       ]
     },
