@@ -1224,12 +1224,17 @@ async function carregarDoDirectus(){
     const jovens=(await rJ.json()).data||[];
 
     // 3. Buscar nomes das empresas
-    const urlEmpresas=`${DIRECTUS_URL}/items/Empresas?fields=id,Empresa&access_token=${DIRECTUS_TOKEN}`;
+    const urlEmpresas=`${DIRECTUS_URL}/items/Empresas?fields=id,Empresa,account.name&limit=-1&access_token=${DIRECTUS_TOKEN}`;
     const rE=await fetch(urlEmpresas);
     const empresaNomes={};
     if(rE.ok){
       const eData=(await rE.json()).data||[];
-      eData.forEach(e=>{if(e.id&&e.Empresa)empresaNomes[e.id]=e.Empresa;});
+      eData.forEach(e=>{
+        if(!e.id)return;
+        // Preferir account.name (nome padronizado da conta); fallback para Empresa
+        const nome=e.account?.name||e.Empresa;
+        if(nome)empresaNomes[e.id]=nome;
+      });
     }
 
     // 4. Agrupar jovens por turma e empresa
