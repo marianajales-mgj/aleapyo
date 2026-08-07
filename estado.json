@@ -115,13 +115,14 @@
         },
         {
           "id": "emp1786111464541",
-          "nome": "Nova empresa",
+          "nome": "Loft",
           "jovens": 1,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "DM10",
+          "dia": "quinta",
+          "sala": "Sala 2",
+          "unidade": "Freguesia do Ó",
+          "pl": "Carol"
         }
       ]
     },
