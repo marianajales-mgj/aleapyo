@@ -101,6 +101,16 @@
           "dia": "quarta",
           "sala": "Sala 1",
           "unidade": "Polo Liberdade"
+        },
+        {
+          "id": "emp1786111368138",
+          "nome": "Nova empresa",
+          "jovens": 1,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null
         }
       ]
     },
