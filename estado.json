@@ -80,17 +80,6 @@
           "sala": "Sala 1",
           "unidade": "Freguesia do Ó",
           "pl": "Manu"
-        },
-        {
-          "id": "emp1785508762430",
-          "nome": "Pipo",
-          "jovens": 4,
-          "status": "Em aberto",
-          "turma": "DM9",
-          "dia": "quinta",
-          "sala": "Sala 1",
-          "unidade": "Freguesia do Ó",
-          "pl": "Manu"
         }
       ]
     },
@@ -117,6 +106,17 @@
           "dia": null,
           "sala": null,
           "unidade": null
+        },
+        {
+          "id": "emp1786107696030",
+          "nome": "Pipo",
+          "jovens": 4,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null,
+          "pl": null
         }
       ]
     },
