@@ -97,10 +97,11 @@
           "nome": "Alice",
           "jovens": 1,
           "status": "Confirmado",
-          "turma": "CM4",
-          "dia": "quarta",
+          "turma": "AM9",
+          "dia": "segunda",
           "sala": "Sala 1",
-          "unidade": "Polo Liberdade"
+          "unidade": "Polo Liberdade",
+          "pl": "Marialice"
         },
         {
           "id": "emp1786111368138",
