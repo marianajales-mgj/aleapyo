@@ -194,10 +194,11 @@
           "nome": "Corpay",
           "jovens": 1,
           "status": "Confirmado",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "DM9",
+          "dia": "quinta",
+          "sala": "Sala 1",
+          "unidade": "Freguesia do Ó",
+          "pl": "Manu"
         }
       ]
     },
