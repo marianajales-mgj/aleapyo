@@ -303,6 +303,22 @@
           "unidade": null
         }
       ]
+    },
+    {
+      "id": "e1786538300837",
+      "data": "2026-10-19",
+      "empresas": [
+        {
+          "id": "emp1786538300837vkb49bhm00b",
+          "nome": "Ifood",
+          "jovens": 1,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null
+        }
+      ]
     }
   ],
   "pls": [
