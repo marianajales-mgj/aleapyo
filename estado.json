@@ -333,6 +333,16 @@
         "Qui",
         "Sex"
       ]
+    },
+    {
+      "nome": "Guilherme",
+      "alocados": [
+        "Seg",
+        "Ter",
+        "Qua",
+        "Qui",
+        "Sex"
+      ]
     }
   ]
 }
