@@ -71,6 +71,7 @@ input[type=text],input[type=number],input[type=date]{height:30px;border:1px soli
   <button class="tab" onclick="setTab('grade',this)">Grade de salas</button>
   <button class="tab" onclick="setTab('pls',this)">Program Leads</button>
   <button class="tab" onclick="setTab('cronogramas',this)">Cronogramas</button>
+  <button class="tab" onclick="setTab('ecossistema',this)">Ecossistema Plus</button>
 </div>
 
 <!-- TAB EMPRESAS -->
@@ -121,27 +122,28 @@ input[type=text],input[type=number],input[type=date]{height:30px;border:1px soli
   <button onclick="novoPL()" style="height:34px;padding:0 16px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:11px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif;margin-top:8px">+ Novo PL</button>
 </div>
 
+<!-- TAB ECOSSISTEMA PLUS -->
+<div id="tab-ecossistema" class="sec" style="display:none">
+  <div style="margin-bottom:16px">
+    <div style="font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Ecossistema Plus</div>
+    <div style="font-size:12px;color:var(--mu)">Turmas sem sala física — contam na numeração mas não ocupam a grade presencial.</div>
+  </div>
+  <div id="eco-grade"></div>
+</div>
+
 <!-- TAB CRONOGRAMAS -->
 <div id="tab-cronogramas" class="sec" style="display:none">
-  <div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--r);padding:14px 16px;margin-bottom:14px">
-    <div style="font-size:13px;font-weight:700;margin-bottom:10px">Gerar cronograma</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:10px">
-      <div><div style="font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase;margin-bottom:3px">Turma (opcional)</div>
-        <select id="cron-turma-select" style="height:30px;border:1px solid var(--br);border-radius:var(--rs);font-size:12px;font-family:'Montserrat',sans-serif;min-width:200px" onchange="cronPreencherDaTurma()"><option value="">— manual —</option></select></div>
-      <div><div style="font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase;margin-bottom:3px">Rótulo</div>
-        <input type="text" id="cron-label" placeholder="Ex: AM6+AM7+AM10" style="width:170px"/></div>
-      <div><div style="font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase;margin-bottom:3px">Data de entrada</div>
-        <input type="date" id="cron-entrada" style="width:150px"/></div>
-      <div><div style="font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase;margin-bottom:3px">Dia semanal (após imersão)</div>
-        <select id="cron-dia" style="height:30px;border:1px solid var(--br);border-radius:var(--rs);font-size:12px;font-family:'Montserrat',sans-serif">
-          <option value="segunda">Segunda</option><option value="terça">Terça</option><option value="quarta">Quarta</option><option value="quinta">Quinta</option><option value="sexta">Sexta</option>
-        </select></div>
-      <button onclick="cronAdicionar()" style="height:30px;padding:0 14px;background:var(--green);color:#054a36;border:none;border-radius:var(--rs);font-size:11px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif">+ Gerar e comparar</button>
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;text-align:center;gap:16px">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.5" style="opacity:.4"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+    <div style="font-size:16px;font-weight:700;color:var(--tx)">Cronogramas</div>
+    <div style="font-size:13px;color:var(--mu);max-width:400px;line-height:1.6">
+      Em breve você poderá visualizar o cronograma de cada turma, verificar qual módulo cai no 1º presencial e comparar cronogramas entre turmas para decidir quando alocar novas entradas.
     </div>
-    <div id="cron-erro" style="font-size:11px;color:var(--red);margin-bottom:4px"></div>
+    <div style="display:flex;align-items:center;gap:8px;background:#eeefff;border-radius:var(--rs);padding:10px 18px;font-size:12px;font-weight:600;color:var(--blue)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1.2s linear infinite;flex-shrink:0"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      Em desenvolvimento
+    </div>
   </div>
-  <div id="cron-tabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px"></div>
-  <div id="cron-resultado"></div>
 </div>
 
 </div>
@@ -237,242 +239,10 @@ function ferNaImersao(dt){
 }
 function fmtData(dt){if(!dt)return '—';const p=dt.split('-');return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:dt;}
 
-// ── CRONOGRAMAS (calendarização Aprendizagem Leapy) ──
-// Fonte: planilha "Calendarização ADM > RH — Técnico Articulado a Aprendizagem", colunas Aprendizagem Leapy
-// Aulas 1-7 = Imersão (dias úteis consecutivos a partir da entrada); 8-67 = Aula Semanal (1x/semana, no dia fixo da turma)
-const CRONOGRAMA_LEAPY=[
-{aula:1,tipo:'Atividade',tema:'Integração e Pertencimento'},
-{aula:2,tipo:'Atividade',tema:'Autoconhecimento e Responsabilidade Coletiva'},
-{aula:3,tipo:'Módulo',tema:'Comunicação'},
-{aula:4,tipo:'Módulo',tema:'Resolução de Problemas'},
-{aula:5,tipo:'Módulo',tema:'Ferramentas básicas de trabalho (Microsoft/Google)'},
-{aula:6,tipo:'Módulo',tema:'Meus primeiros 90 dias'},
-{aula:7,tipo:'Atividade',tema:'Consolidação e Transição'},
-{aula:8,tipo:'Módulo',tema:'Relacionamentos interpessoais'},
-{aula:9,tipo:'Módulo',tema:'Introdução a Adm'},
-{aula:10,tipo:'Módulo',tema:'Direito trabalhista + Lei do Jovem Aprendiz'},
-{aula:11,tipo:'Módulo',tema:'Gestão de tempo e produtividade'},
-{aula:12,tipo:'Módulo',tema:'Google Sheets / Excel — Parte 1'},
-{aula:13,tipo:'Módulo',tema:'Google Sheets / Excel — Parte 2'},
-{aula:14,tipo:'Módulo',tema:'Google Sheets / Excel — Parte 3'},
-{aula:15,tipo:'Módulo',tema:'Google Sheets / Excel — Parte 4'},
-{aula:16,tipo:'Módulo',tema:'Aprendendo a aprender'},
-{aula:17,tipo:'Módulo',tema:'Gestão emocional'},
-{aula:18,tipo:'Módulo',tema:'Introdução a estatística'},
-{aula:19,tipo:'Módulo',tema:'Feedback assertivo'},
-{aula:20,tipo:'Módulo',tema:'Fundamentos e base de estatísticas — Parte 1'},
-{aula:21,tipo:'Módulo',tema:'Fundamentos e base de estatísticas — Parte 2'},
-{aula:22,tipo:'Módulo',tema:'Fundamentos e base de estatísticas — Parte 3'},
-{aula:23,tipo:'Módulo',tema:'Fundamentos e base de estatísticas — Parte 4'},
-{aula:24,tipo:'Módulo',tema:'IA e o impacto no mercado do trabalho'},
-{aula:25,tipo:'Módulo',tema:'Raciocínio analítico — Parte 1'},
-{aula:26,tipo:'Módulo',tema:'Raciocínio analítico — Parte 2'},
-{aula:27,tipo:'Módulo',tema:'Raciocínio analítico — Parte 3'},
-{aula:28,tipo:'Módulo',tema:'Raciocínio analítico — Parte 4'},
-{aula:29,tipo:'Módulo',tema:'Gestão de Projetos'},
-{aula:30,tipo:'Módulo',tema:'Empreendedor 1 a 1'},
-{aula:31,tipo:'Módulo',tema:'Projeto Empreendedor — Entrega 1 — Parte 1'},
-{aula:32,tipo:'Atividade',tema:'Projeto Empreendedor — Entrega 1 — Parte 2'},
-{aula:33,tipo:'Módulo',tema:'Planejamento de um negócio'},
-{aula:34,tipo:'Módulo',tema:'Marketing'},
-{aula:35,tipo:'Atividade',tema:'Projeto Empreendedor — Entrega 1 — Parte 3'},
-{aula:36,tipo:'Módulo',tema:'Análise de Dados com SQL — Parte 1/4'},
-{aula:37,tipo:'Módulo',tema:'Análise de Dados com SQL — Parte 2/4'},
-{aula:38,tipo:'Módulo',tema:'Análise de Dados com SQL — Parte 3/4'},
-{aula:39,tipo:'Módulo',tema:'Análise de Dados com SQL — Parte 4/4'},
-{aula:40,tipo:'Módulo',tema:'Projeto Empreendedor — Entrega 2 — Parte 1'},
-{aula:41,tipo:'Atividade',tema:'Projeto Empreendedor — Entrega 2 — Parte 2'},
-{aula:42,tipo:'Módulo',tema:'Finanças corporativas'},
-{aula:43,tipo:'Módulo',tema:'Projeto Empreendedor — Entrega 3 — Parte 1'},
-{aula:44,tipo:'Módulo',tema:'Pensamento sistêmico'},
-{aula:45,tipo:'Módulo',tema:'Negociação e comunicação empresarial'},
-{aula:46,tipo:'Atividade',tema:'Projeto Empreendedor — Entrega 3 — Parte 2'},
-{aula:47,tipo:'Módulo',tema:'Projeto Empreendedor — Entrega 4 — Parte 1'},
-{aula:48,tipo:'Módulo',tema:'Inovação no dia a dia do trabalho'},
-{aula:49,tipo:'Módulo',tema:'Projeto Empreendedor — Entrega 5 — Parte 1'},
-{aula:50,tipo:'Atividade',tema:'Projeto Empreendedor — Entrega 5 — Apresentação Final'},
-{aula:51,tipo:'Atividade',tema:'Projeto Empreendedor — Entrega 5 — Apresentação Final'},
-{aula:52,tipo:'Módulo',tema:'Saúde no trabalho'},
-{aula:53,tipo:'Módulo',tema:'Métodos Ágeis'},
-{aula:54,tipo:'Módulo',tema:'Visualização de dados — Parte 1/4'},
-{aula:55,tipo:'Módulo',tema:'Visualização de dados — Parte 2/4'},
-{aula:56,tipo:'Módulo',tema:'Visualização de dados — Parte 3/4'},
-{aula:57,tipo:'Módulo',tema:'Visualização de dados — Parte 4/4'},
-{aula:58,tipo:'Módulo',tema:'Planejamento de carreira'},
-{aula:59,tipo:'Módulo',tema:'Protagonismo e autoliderança'},
-{aula:60,tipo:'Módulo',tema:'Recursos Humanos'},
-{aula:61,tipo:'Módulo',tema:'Diversidade, equidade e inclusão'},
-{aula:62,tipo:'Módulo',tema:'Construção de hábitos'},
-{aula:63,tipo:'Módulo',tema:'Lógica de programação'},
-{aula:64,tipo:'Módulo',tema:'Ética'},
-{aula:65,tipo:'Módulo',tema:'Privacidade de Dados'},
-{aula:66,tipo:'Módulo',tema:'Projeto de vida'},
-{aula:67,tipo:'Módulo',tema:'Planejamento financeiro'}
-];
-
-function calcPPDate(entradaDate,dia){
-  const dow=DIASDOW[normDia(dia)];if(!dow&&dow!==0)return null;
-  const fim=addDU(entradaDate,6);
-  let d=new Date(fim);d.setDate(d.getDate()+1);
-  for(let i=0;i<30;i++){if(d.getDay()===dow&&!isFer(d))return new Date(d);d.setDate(d.getDate()+1);}
-  return null;
-}
-
-// Gera o cronograma completo (67 aulas) para uma data de entrada + dia semanal fixo pós-imersão
-function gerarCronograma(entradaISO,dia,n){
-  n=n||67;
-  const entrada=new Date(entradaISO+'T12:00:00');
-  if(isFer(entrada)||entrada.getDay()===0||entrada.getDay()===6){
-    throw new Error('Data de entrada cai em fim de semana ou feriado.');
-  }
-  const datas=[new Date(entrada)];
-  let d=new Date(entrada);
-  for(let i=1;i<7;i++){d=addDU(d,1);datas.push(new Date(d));}
-  const pp=calcPPDate(entrada,dia);
-  if(!pp)throw new Error('Não foi possível calcular o 1º presencial.');
-  datas.push(pp);
-  d=pp;
-  for(let i=9;i<=n;i++){
-    let nxt=new Date(d);nxt.setDate(nxt.getDate()+7);
-    while(isFer(nxt))nxt.setDate(nxt.getDate()+7);
-    datas.push(new Date(nxt));
-    d=nxt;
-  }
-  const dsAbrev=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
-  return datas.map((dt,idx)=>({
-    aula:CRONOGRAMA_LEAPY[idx].aula,
-    classificacao:CRONOGRAMA_LEAPY[idx].aula<=7?'Imersão':'Aula Semanal',
-    data:dt,
-    dow:dsAbrev[dt.getDay()],
-    feriadoProximo:isFer(dt),
-    tipo:CRONOGRAMA_LEAPY[idx].tipo,
-    tema:CRONOGRAMA_LEAPY[idx].tema
-  }));
-}
-
-// ── UI: comparação de cronogramas ──
-let cronogramasGerados=[]; // {label,entrada,dia,linhas}
-let cronAtivo=null;
-
-function cronListaTurmasDisponiveis(){
-  const vistos=new Set();const out=[];
-  [...TURMAS_FIXAS,...turmasSim].forEach(t=>{
-    if(!t.entrada||!t.dia)return;
-    const k=t.nome+'|'+t.dia+'|'+t.entrada;
-    if(vistos.has(k))return;vistos.add(k);
-    out.push({nome:t.nome,dia:t.dia,entrada:t.entrada});
-  });
-  return out.sort((a,b)=>a.entrada.localeCompare(b.entrada));
-}
-
-function renderCronTurmaSelect(){
-  const sel=document.getElementById('cron-turma-select');if(!sel)return;
-  const atual=sel.value;
-  const opcoes=cronListaTurmasDisponiveis();
-  sel.innerHTML='<option value="">— manual —</option>'+opcoes.map((o,i)=>
-    `<option value="${i}">${o.nome} · ${DABR[o.dia]||o.dia} · entrada ${fmtData(o.entrada)}</option>`).join('');
-  sel._opcoes=opcoes;
-  if(atual)sel.value=atual;
-}
-
-function cronPreencherDaTurma(){
-  const sel=document.getElementById('cron-turma-select');
-  const idx=sel.value;if(idx===''){return;}
-  const o=sel._opcoes[parseInt(idx)];if(!o)return;
-  document.getElementById('cron-label').value=o.nome.replace('Turma ','');
-  document.getElementById('cron-entrada').value=o.entrada;
-  document.getElementById('cron-dia').value=o.dia;
-}
-
-function cronAdicionar(){
-  const label=document.getElementById('cron-label').value.trim()||'Sem rótulo';
-  const entrada=document.getElementById('cron-entrada').value;
-  const dia=document.getElementById('cron-dia').value;
-  const erroEl=document.getElementById('cron-erro');
-  erroEl.textContent='';
-  if(!entrada){erroEl.textContent='Informe a data de entrada.';return;}
-  try{
-    const linhas=gerarCronograma(entrada,dia);
-    const id='c'+Date.now();
-    cronogramasGerados.push({id,label,entrada,dia,linhas});
-    cronAtivo=id;
-    renderCronTabs();renderCronResultado();
-  }catch(e){erroEl.textContent=e.message;}
-}
-
-function cronRemover(id){
-  cronogramasGerados=cronogramasGerados.filter(c=>c.id!==id);
-  if(cronAtivo===id)cronAtivo=cronogramasGerados.length?cronogramasGerados[0].id:null;
-  renderCronTabs();renderCronResultado();
-}
-
-function cronSelecionar(id){cronAtivo=id;renderCronTabs();renderCronResultado();}
-
-function renderCronTabs(){
-  const wrap=document.getElementById('cron-tabs');if(!wrap)return;
-  if(!cronogramasGerados.length){wrap.innerHTML='';return;}
-  wrap.innerHTML=cronogramasGerados.map(c=>`
-    <div onclick="cronSelecionar('${c.id}')" style="cursor:pointer;display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:99px;font-size:11px;font-weight:600;
-      background:${c.id===cronAtivo?'var(--blue)':'#eee'};color:${c.id===cronAtivo?'#fff':'var(--tx)'}">
-      ${c.label} <span style="opacity:.7">(${DABR[c.dia]||c.dia})</span>
-      <span onclick="event.stopPropagation();cronRemover('${c.id}')" style="opacity:.6;font-weight:900">✕</span>
-    </div>`).join('');
-}
-
-function renderCronResultado(){
-  const wrap=document.getElementById('cron-resultado');if(!wrap)return;
-  if(!cronogramasGerados.length){
-    wrap.innerHTML=`<div style="text-align:center;padding:40px;color:var(--mu);font-size:12px">Nenhum cronograma gerado ainda. Selecione uma turma ou preencha os campos acima.</div>`;
-    return;
-  }
-  const modoComparar=cronogramasGerados.length>1;
-  if(!modoComparar){
-    const c=cronogramasGerados[0];
-    wrap.innerHTML=cronTabelaHTML(c);
-    return;
-  }
-  // Comparação: uma coluna por cronograma, mesma linha = mesmo nº de aula
-  const max=Math.max(...cronogramasGerados.map(c=>c.linhas.length));
-  let h=`<div class="grade-wrap"><table class="grade"><thead><tr><th class="dia-col">Aula</th>`;
-  cronogramasGerados.forEach(c=>{h+=`<th>${c.label}<br><span style="font-weight:400;text-transform:none;font-size:9px">entrada ${fmtData(c.entrada)}</span></th>`;});
-  h+=`</tr></thead><tbody>`;
-  for(let i=0;i<max;i++){
-    h+=`<tr><td class="dia-cell">${i+1}</td>`;
-    cronogramasGerados.forEach(c=>{
-      const l=c.linhas[i];
-      if(!l){h+=`<td>—</td>`;return;}
-      const imersao=l.classificacao==='Imersão';
-      h+=`<td style="${imersao?'background:#fffbeb':''}"><div style="font-size:10px;font-weight:700">${l.dow} ${fmtDataObj(l.data)}</div><div style="font-size:10px;color:var(--mu)">${l.tema}</div></td>`;
-    });
-    h+=`</tr>`;
-  }
-  h+=`</tbody></table></div>`;
-  wrap.innerHTML=h;
-}
-
-function fmtDataObj(d){return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;}
-
-function cronTabelaHTML(c){
-  let h=`<div style="font-size:12px;color:var(--mu);margin-bottom:10px">Entrada em <b>${fmtData(c.entrada)}</b> · dia semanal fixo pós-imersão: <b>${DABR[c.dia]||c.dia}</b> · 1º presencial (aula 8): <b>${fmtDataObj(c.linhas[7].data)}</b> · encerramento (aula ${c.linhas.length}): <b>${fmtDataObj(c.linhas[c.linhas.length-1].data)}</b></div>`;
-  h+=`<div class="grade-wrap"><table class="grade"><thead><tr><th class="dia-col">Aula</th><th>Classificação</th><th>Data</th><th>Dia</th><th>Tipo</th><th style="text-align:left">Tema</th></tr></thead><tbody>`;
-  c.linhas.forEach(l=>{
-    h+=`<tr style="${l.classificacao==='Imersão'?'background:#fffbeb':''}">
-      <td class="dia-cell">${l.aula}</td>
-      <td>${l.classificacao}</td>
-      <td>${fmtDataObj(l.data)}${l.feriadoProximo?' ⚠':''}</td>
-      <td>${l.dow}</td>
-      <td>${l.tipo}</td>
-      <td style="text-align:left">${l.tema}</td>
-    </tr>`;
-  });
-  h+=`</tbody></table></div>`;
-  return h;
-}
-
 // ── TURMAS FIXAS ──
 // TURMAS_FIXAS é populado 100% pelo Directus ao abrir — não há dados hardcoded
 const TURMAS_FIXAS=[];
-const TURMAS_SEM_SALA=['Turma CM3','Turma EM8','Turma DM6','Turma AM5']; // contam na numeração mas não ocupam sala
+const TURMAS_SEM_SALA=['Turma CM3','Turma EM8','Turma DM6','Turma DM9','Turma EM9','Turma AM5']; // contam na numeração mas não ocupam sala
 
 // Overrides de sala e PL: persistem via GitHub (overrides.json no repo)
 let salaOverrides={};
@@ -1211,6 +981,46 @@ function _alocar(emp,entrada,dia,sala,unidade,jovens,pl){
 
 function fecharModal(){document.getElementById('modal-bg').style.display='none';}
 
+function renderEcossistema(){
+  const el=document.getElementById('eco-grade');
+  if(!el)return;
+  // Buscar turmas sem sala do TURMAS_FIXAS
+  const turmasEco=TURMAS_FIXAS.filter(t=>TURMAS_SEM_SALA.includes(t.nome));
+  if(!turmasEco.length){
+    el.innerHTML='<div style="color:var(--mu);font-size:13px;padding:20px 0">Nenhuma turma de ecossistema encontrada. Sincronize com o backoffice.</div>';
+    return;
+  }
+  // Agrupar por dia
+  const DIAS_ORD=['segunda','terça','quarta','quinta','sexta'];
+  const DIAS_LABEL={segunda:'Segunda-feira',terça:'Terça-feira',quarta:'Quarta-feira',quinta:'Quinta-feira',sexta:'Sexta-feira'};
+  const porDia={};
+  turmasEco.forEach(t=>{
+    if(!porDia[t.dia])porDia[t.dia]=[];
+    porDia[t.dia].push(t);
+  });
+  let h='';
+  DIAS_ORD.forEach(dia=>{
+    if(!porDia[dia])return;
+    h+=`<div style="margin-bottom:20px">
+      <div style="font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">${DIAS_LABEL[dia]||dia}</div>`;
+    porDia[dia].forEach(t=>{
+      const pl=t.pl||'—';
+      const plLabel=t.nome==='Turma CM3'?'Tutor Ecossistema':(pl==='Guilherme'?'Guilherme':pl);
+      const corPl=t.nome==='Turma CM3'?{bg:'#a78bfa',light:'#a78bfa18',border:'#a78bfa'}:corPL('Guilherme');
+      const empList=t.empresas&&t.empresas.length?t.empresas.map(e=>`<span style="font-size:10px;background:#f5f5f2;padding:1px 6px;border-radius:99px;margin-right:4px">${e.nome} (${e.jovens}j)</span>`).join(''):'<span style="font-size:10px;color:var(--mu)">—</span>';
+      h+=`<div style="background:${corPl.light};border:1px solid ${corPl.border}44;border-radius:var(--rs);padding:12px 14px;margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <div><b style="font-size:14px">${t.nome}</b> <span style="font-size:11px;color:var(--mu);margin-left:6px">${t.jovens}j</span></div>
+          <span style="font-size:11px;font-weight:600;color:${corPl.border};background:${corPl.light};border:1px solid ${corPl.border}55;border-radius:99px;padding:2px 10px">${plLabel}</span>
+        </div>
+        <div style="margin-top:4px">${empList}</div>
+      </div>`;
+    });
+    h+='</div>';
+  });
+  el.innerHTML=h;
+}
+
 function abrirMoverEntrada(eid, empid){
   if(bloquearSeNaoAutenticado(()=>abrirMoverEntrada(eid,empid)))return;
   const entradaAtual=entradas.find(e=>e.id===eid);
@@ -1311,13 +1121,13 @@ function gerenciarUnidades(){
 
 // ── NAVEGAÇÃO ──
 function setTab(t,btn){
-  ['empresas','grade','pls','cronogramas'].forEach(k=>document.getElementById('tab-'+k).style.display=k===t?'block':'none');
+  ['empresas','grade','pls','cronogramas','ecossistema'].forEach(k=>document.getElementById('tab-'+k).style.display=k===t?'block':'none');
   document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
   if(btn)btn.classList.add('on');
   if(t==='grade')renderGrade();
+  if(t==='ecossistema')renderEcossistema();
   if(t==='empresas'){renderGradeMini();renderEmpresas();}
   if(t==='pls')renderPLs();
-  if(t==='cronogramas'){renderCronTurmaSelect();renderCronTabs();renderCronResultado();}
 }
 function resetarSim(){
   entradas.forEach(en=>en.empresas.forEach(e=>{if(e.status==='Em aberto'){e.turma=null;e.dia=null;e.sala=null;e.unidade=null;}}));
@@ -1633,7 +1443,7 @@ const empresas=Object.entries(empresasAgrup).map(([nome,jovens])=>({nome,jovens}
       statusEl.textContent=msg;statusEl.style.color='#0a7a60';
       setTimeout(()=>{if(statusEl)statusEl.textContent='';},5000);
     }
-    renderGrade();renderGradeMini();renderEmpresas();renderCronTurmaSelect();
+    renderGrade();renderGradeMini();renderEmpresas();
   }catch(e){
     console.warn('Directus indisponível:',e.message,e);
     if(statusEl){statusEl.textContent='⚠ Backoffice indisponível: '+e.message;statusEl.style.color='#856404';}
