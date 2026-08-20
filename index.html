@@ -72,6 +72,7 @@ input[type=text],input[type=number],input[type=date]{height:30px;border:1px soli
   <button class="tab" onclick="setTab('pls',this)">Program Leads</button>
   <button class="tab" onclick="setTab('cronogramas',this)">Cronogramas</button>
   <button class="tab" onclick="setTab('ecossistema',this)">Ecossistema Plus</button>
+<button class="tab" onclick="setTab('mudancaturma',this)">Mudança de Turma</button>
 </div>
 
 <!-- TAB EMPRESAS -->
@@ -149,6 +150,18 @@ input[type=text],input[type=number],input[type=date]{height:30px;border:1px soli
 
 </div>
 
+<!-- TAB MUDANÇA DE TURMA -->
+<div id="tab-mudancaturma" class="sec" style="display:none">
+  <div style="margin-bottom:16px">
+    <div style="font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Mudança de Turma</div>
+    <div style="font-size:12px;color:var(--mu)">Busque um jovem pela matrícula (ID) ou nome para simular cenários de troca de turma — considerando cronograma já cursado e vaga na grade de salas. Nada é alterado no backoffice; é só simulação.</div>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+    <input type="text" id="mt-busca" placeholder="ID da matrícula ou nome do jovem" style="flex:1;min-width:220px" onkeydown="if(event.key==='Enter')buscarJovemMT()"/>
+    <button onclick="buscarJovemMT()" style="height:30px;padding:0 16px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:11px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif">Buscar</button>
+  </div>
+  <div id="mt-resultado"></div>
+</div>
 <!-- MODAL ALOCAR -->
 <div id="modal-bg" class="modal-bg" style="display:none" onclick="if(event.target===this)fecharModal()">
   <div class="modal">
@@ -1149,7 +1162,7 @@ function gerenciarUnidades(){
 
 // ── NAVEGAÇÃO ──
 function setTab(t,btn){
-  ['empresas','grade','pls','cronogramas','ecossistema'].forEach(k=>document.getElementById('tab-'+k).style.display=k===t?'block':'none');
+  ['empresas','grade','pls','cronogramas','ecossistema','mudancaturma'].forEach(k=>document.getElementById('tab-'+k).style.display=k===t?'block':'none');
   document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
   if(btn)btn.classList.add('on');
   if(t==='grade')renderGrade();
@@ -1528,6 +1541,171 @@ function limparEntradasPassadas(){
   });
   if(passadas.length>0)saveEstado();
 }
+
+// ── MUDANÇA DE TURMA ──
+const MODULO_TEMA_MT={5:"Marketing",6:"Empreendedor 1 a 1",7:"Projeto de vida",8:"Lógica de programação",10:"Privacidade de Dados",11:"Planejamento de carreira",15:"IA e o impacto no mercado do trabalho",17:"Direito trabalhistas + Lei do Jovem aprendiz",21:"Relacionamentos interpessoais",24:"Finanças corporativas",25:"Ética",31:"Inovação no dia a dia do trabalho",32:"Planejamento de um negócio",33:"Saúde no trabalho",34:"Raciocínio analítico",36:"Gestão de tempo e produtividade",38:"Introdução a estatística",40:"Planejamento financeiro",50:"Fundamentos e base de estatísticas",58:"Feedback assertivo",94:"Métodos Ágeis",97:"Construção de hábitos",98:"Aprendendo a aprender",101:"Pensamento sistêmico",251:"Negociação e comunicação empresarial",310:"Gestão emocional",311:"Protagonismo e autoliderança",312:"Análise de Dados com SQL - Parte 1/4",313:"Visualização de dados - Parte 1/4",314:"Análise de Dados com SQL - Parte 2/4",315:"Visualização de dados - Parte 2/4",316:"Análise de Dados com SQL - Parte 3/4",317:"Análise de Dados com SQL - Parte 4/4",318:"Visualização de dados - Parte 3/4",319:"Projeto Empreendedor - Entrega 1",320:"Projeto Empreendedor - Entrega 2",321:"Projeto Empreendedor - Entrega 3 - Parte 1",322:"Projeto Empreendedor - Entrega 4 - Parte 1",323:"Projeto Empreendedor - Entrega 5",325:"Visualização de dados - Parte 4/4",328:"Recursos Humanos",329:"Google Sheets - Parte 1",330:"Excel - Parte 1",331:"Google Sheets - Parte 2",332:"Excel - Parte 2",333:"Google Sheets - Parte 3",334:"Google Sheets - Parte 4",335:"Excel - Parte 3",336:"Excel - Parte 4",337:"Diversidade, equidade e inclusão",341:"Gestão de Projetos"};
+function nomeModuloMT(id){return MODULO_TEMA_MT[id]||('Módulo #'+id);}
+
+let _mtCandidatosBusca=[];
+let _mtJovemAtual=null;
+let _mtTurmasAtivasCache=null;
+
+async function buscarJovemMT(){
+  const el=document.getElementById('mt-resultado');
+  const q=(document.getElementById('mt-busca').value||'').trim();
+  if(!q){alert('Informe o ID da matrícula ou o nome do jovem.');return;}
+  el.innerHTML='<div style="color:var(--mu);font-size:12px;padding:8px 0">Buscando…</div>';
+  const TOKEN=await obterTokenDirectus();
+  if(!TOKEN){el.innerHTML='<div class="alerta-err">⚠ Sem token do backoffice.</div>';return;}
+  try{
+    let lista=[];
+    if(/^\d+$/.test(q)){
+      const r=await fetch(`${DIRECTUS_URL}/items/user_apprenticeship_data/${q}?fields=id,Name,turma_id,empresa_id.account.name,empresa_id.Empresa,cohort_entrada,Modulos,Status_formacao&access_token=${TOKEN}`);
+      if(r.ok){const d=(await r.json()).data;if(d)lista=[d];}
+    }
+    if(!lista.length){
+      const r=await fetch(`${DIRECTUS_URL}/items/user_apprenticeship_data?filter[Name][_contains]=${encodeURIComponent(q)}&filter[Status_formacao][_eq]=em_andamento&fields=id,Name,turma_id,empresa_id.account.name,empresa_id.Empresa,cohort_entrada,Modulos&limit=10&access_token=${TOKEN}`);
+      if(r.ok)lista=(await r.json()).data||[];
+    }
+    _mtCandidatosBusca=lista;
+    if(!lista.length){el.innerHTML='<div class="alerta-err">⚠ Nenhum jovem em andamento encontrado com esse ID ou nome.</div>';return;}
+    if(lista.length>1){
+      el.innerHTML='<div style="font-size:11px;font-weight:700;color:var(--mu);margin-bottom:8px">Mais de um resultado — selecione:</div>'+
+        lista.map((j,i)=>`<div class="entrada-card" style="cursor:pointer;padding:10px 14px" onclick="selecionarJovemMT(${i})"><b>${j.Name||'(sem nome)'}</b><span style="color:var(--mu);font-size:11px;margin-left:8px">matrícula ${j.id} · ${j.empresa_id&&j.empresa_id.account?j.empresa_id.account.name:(j.empresa_id?j.empresa_id.Empresa:'—')}</span></div>`).join('');
+      return;
+    }
+    await selecionarJovemMT(0);
+  }catch(e){
+    el.innerHTML=`<div class="alerta-err">⚠ Erro ao buscar no backoffice: ${e.message}</div>`;
+  }
+}
+
+async function selecionarJovemMT(i){
+  _mtJovemAtual=_mtCandidatosBusca[i];
+  await analisarCenariosMT();
+}
+
+async function turmasAtivasMT(){
+  if(_mtTurmasAtivasCache)return _mtTurmasAtivasCache;
+  const TOKEN=await obterTokenDirectus();
+  const r=await fetch(`${DIRECTUS_URL}/items/Turmas?filter[Status_new][_eq]=ativa&filter[Name][_starts_with]=Turma&filter[dia_de_curso][_nnull]=true&fields=id,Name,dia_de_curso,data_de_inicio,data_de_termino,program_lead.first_name,program_lead.last_name&limit=-1&access_token=${TOKEN}`);
+  if(!r.ok)throw new Error('HTTP '+r.status+' ao buscar turmas');
+  const data=(await r.json()).data||[];
+  data.forEach(t=>{if(t.dia_de_curso)t.dia_de_curso=DIAS_MAP[t.dia_de_curso]||t.dia_de_curso;});
+  _mtTurmasAtivasCache=data;
+  return data;
+}
+
+async function coberturaTurmaMT(turmaId){
+  const TOKEN=await obterTokenDirectus();
+  const r=await fetch(`${DIRECTUS_URL}/items/user_apprenticeship_data?filter[turma_id][_eq]=${turmaId}&filter[Status_formacao][_eq]=em_andamento&fields=id,Modulos&limit=50&access_token=${TOKEN}`);
+  if(!r.ok)return {modulos:[],jovens:0};
+  const lista=(await r.json()).data||[];
+  let melhor=[];
+  lista.forEach(j=>{const m=j.Modulos||[];if(m.length>melhor.length)melhor=m;});
+  return {modulos:melhor,jovens:lista.length};
+}
+
+function capacidadeTurmaMT(nomeTurma){
+  // Usa TURMAS_FIXAS (populado no sync) para achar sala/unidade/capacidade real, igual à Grade de Salas.
+  const grupo=TURMAS_FIXAS.filter(t=>t.nome==='Turma '+nomeTurma);
+  if(TURMAS_SEM_SALA.includes('Turma '+nomeTurma)){
+    return {semSalaFisica:true,jovens:grupo.reduce((s,t)=>s+(t.jovens||0),0),capacidade:null,livre:null,sala:null,unidade:null};
+  }
+  if(!grupo.length)return {semSalaFisica:false,jovens:null,capacidade:null,livre:null,sala:null,unidade:null,semDados:true};
+  let melhor=null;
+  grupo.forEach(t=>{
+    const cap=(unidades.find(u=>u.nome===(t.unidade||'Freguesia do Ó'))||{capacidade:32}).capacidade;
+    const livre=cap-(t.jovens||0);
+    if(!melhor||livre>melhor.livre)melhor={sala:t.sala,unidade:t.unidade||'Freguesia do Ó',capacidade:cap,jovens:t.jovens||0,livre};
+  });
+  return Object.assign({semSalaFisica:false},melhor);
+}
+
+async function analisarCenariosMT(){
+  const el=document.getElementById('mt-resultado');
+  const j=_mtJovemAtual;
+  if(!j)return;
+  el.innerHTML='<div style="color:var(--mu);font-size:12px;padding:8px 0">Carregando cronograma atual e sincronizando com a grade de salas…</div>';
+  try{
+    if(!TURMAS_FIXAS.length)await carregarDoDirectus();
+    const todasTurmas=await turmasAtivasMT();
+    const turmaAtualInfo=todasTurmas.find(t=>String(t.id)===String(j.turma_id));
+    if(!turmaAtualInfo){
+      el.innerHTML='<div class="alerta-err">⚠ Não encontrei a turma atual desse jovem no backoffice (turma_id '+j.turma_id+'). Verifique se a turma ainda está ativa.</div>';
+      return;
+    }
+    const nomeAtual=normNomeTurma(turmaAtualInfo.Name);
+    const diaAtual=turmaAtualInfo.dia_de_curso;
+    const jovemMods=new Set((j.Modulos||[]).map(Number));
+
+    let h=`<div style="background:#eeefff;border:1px solid #b4b6fd;border-radius:var(--r);padding:12px 16px;margin-bottom:16px">
+      <div style="font-size:16px;font-weight:800">${j.Name||'(sem nome)'}</div>
+      <div style="font-size:11px;color:var(--mu);margin-top:2px">matrícula ${j.id} · ${j.empresa_id&&j.empresa_id.account?j.empresa_id.account.name:(j.empresa_id?j.empresa_id.Empresa:'—')} · turma atual <b>${nomeAtual}</b> (${diaAtual}) · ${jovemMods.size} módulo(s) concluído(s)</div>
+    </div>`;
+
+    const candidatas=todasTurmas.filter(t=>t.dia_de_curso&&t.dia_de_curso!==diaAtual);
+    if(!candidatas.length){
+      h+='<div class="alerta-err">⚠ Não há turmas ativas em outro dia de curso no momento. Mudança de turma não é possível agora.</div>';
+      el.innerHTML=h;
+      return;
+    }
+
+    const cenarios=[];
+    for(const t of candidatas){
+      const nome=normNomeTurma(t.Name);
+      const cap=capacidadeTurmaMT(nome);
+      const cob=await coberturaTurmaMT(t.id);
+      const turmaMods=new Set((cob.modulos||[]).map(Number));
+      const gap=[...turmaMods].filter(m=>!jovemMods.has(m));
+      const adiantado=[...jovemMods].filter(m=>!turmaMods.has(m));
+      const temVaga=cap.semSalaFisica?true:(cap.semDados?null:(cap.livre>0));
+      cenarios.push({nome,dia:t.dia_de_curso,cap,gap,adiantado,temVaga,jovensNaTurma:cob.jovens});
+    }
+
+    cenarios.sort((a,b)=>{
+      const va=a.temVaga===true?0:a.temVaga===null?1:2;
+      const vb=b.temVaga===true?0:b.temVaga===null?1:2;
+      if(va!==vb)return va-vb;
+      return a.gap.length-b.gap.length;
+    });
+
+    const comVaga=cenarios.filter(c=>c.temVaga===true);
+    if(!comVaga.length){
+      h+='<div class="alerta-err">⚠ Nenhuma turma em outro dia tem vaga disponível agora. Mudança de turma não é possível no momento.</div>';
+    } else {
+      h+=`<div class="alerta-ok">✓ ${comVaga.length} turma(s) em outro dia com vaga disponível. Cenários abaixo, do mais compatível pro menos:</div>`;
+    }
+
+    cenarios.forEach(c=>{
+      const corBorda=c.temVaga===true?(c.gap.length===0?'#35dcb2':'#f2cf6b'):'#fca5a5';
+      const bgTop=c.temVaga===true?(c.gap.length===0?'#e8fff9':'#fffbeb'):'#fef2f2';
+      let vagaLabel;
+      if(c.temVaga===true){
+        vagaLabel=c.cap.semSalaFisica?'✓ Ecossistema Plus (sem sala física, sem limite conhecido)':`✓ ${c.cap.livre}j livre(s) em ${c.cap.sala} · ${c.cap.unidade}`;
+      } else if(c.temVaga===null){
+        vagaLabel='? Sem dados de sala sincronizados para esta turma — sincronize a Grade de Salas';
+      } else {
+        vagaLabel=`✕ Sem vaga (${c.cap.jovens}/${c.cap.capacidade}j em ${c.cap.sala} · ${c.cap.unidade})`;
+      }
+      h+=`<div style="background:${bgTop};border:1px solid ${corBorda}66;border-radius:var(--r);padding:12px 16px;margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
+          <div><b style="font-size:14px">${c.nome}</b> <span style="font-size:11px;color:var(--mu);text-transform:capitalize;margin-left:6px">${c.dia}</span></div>
+          <span style="font-size:11px;font-weight:600">${vagaLabel}</span>
+        </div>
+        <div style="margin-top:8px;font-size:11px;color:var(--mu)">${c.jovensNaTurma} jovem(ns) atualmente na turma (referência de cronograma)</div>
+        ${c.gap.length?`<div style="margin-top:8px"><div style="font-size:10px;font-weight:700;color:#856404;margin-bottom:4px">⚠ Conteúdo que o jovem perderia (${c.gap.length}) — a turma já viu e ele não:</div>${c.gap.map(m=>`<span style="font-size:10px;background:#fffbeb;color:#856404;border:1px solid #fcd34d55;border-radius:99px;padding:2px 8px;margin:0 3px 3px 0;display:inline-block">${nomeModuloMT(m)}</span>`).join('')}</div>`:`<div style="margin-top:8px;font-size:11px;color:#0a7a60">✓ Nenhum conteúdo perdido — cronogramas totalmente compatíveis.</div>`}
+        ${c.adiantado.length?`<div style="margin-top:8px"><div style="font-size:10px;font-weight:700;color:var(--mu);margin-bottom:4px">Conteúdo que o jovem já viu e a turma ainda não chegou lá (${c.adiantado.length}) — sem problema, só aguarda:</div>${c.adiantado.map(m=>`<span style="font-size:10px;background:#f5f5f2;color:var(--mu);border:1px solid var(--br);border-radius:99px;padding:2px 8px;margin:0 3px 3px 0;display:inline-block">${nomeModuloMT(m)}</span>`).join('')}</div>`:''}
+      </div>`;
+    });
+
+    el.innerHTML=h;
+  }catch(e){
+    el.innerHTML=`<div class="alerta-err">⚠ Erro ao analisar cenários: ${e.message}</div>`;
+  }
+}
+
+
 </script>
 </body>
 </html>
