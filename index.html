@@ -1421,10 +1421,12 @@ const empresas=Object.entries(empresasAgrup).map(([nome,jovens])=>({nome,jovens}
           ocupacaoPorSala[chave]=(ocupacaoPorSala[chave]||0)+jovensCount;
         }
 
-        // Override final de unidade/sala — tem prioridade absoluta sobre tudo
-        const SALA_OVERRIDE={'Turma AM7':'Sala 1'};
-        if(UNIDADE_OVERRIDE[nomeCompleto]) unidade=UNIDADE_OVERRIDE[nomeCompleto];
-        if(SALA_OVERRIDE[nomeCompleto]) sala=SALA_OVERRIDE[nomeCompleto];
+        // Override final de unidade/sala — prioridade absoluta
+        const TURMA_OVERRIDE={'Turma AM7':{unidade:'Polo Liberdade',sala:'Sala 1'}};
+        if(TURMA_OVERRIDE[nomeCompleto]){
+          unidade=TURMA_OVERRIDE[nomeCompleto].unidade;
+          sala=TURMA_OVERRIDE[nomeCompleto].sala;
+        }
 
         const _semSala=TURMAS_SEM_SALA.includes(nomeCompleto);
         TURMAS_FIXAS.push({
