@@ -1369,7 +1369,6 @@ async function carregarDoDirectus(){
         // Override de PL por turma (ex: AM7 → Marialice mesmo com PL errado no backoffice)
         const PL_OVERRIDE={'Turma AM7':'Marialice'};
         const plFinal=PL_OVERRIDE[nomeCompleto]||pl||'—';
-        if(nomeCompleto==='Turma AM7')console.log('[AM7 debug] pl=',pl,'plFinal=',plFinal,'encontrou será:',entradas.some(en=>en.empresas.some(emp=>emp.turma&&('Turma '+emp.turma)===nomeCompleto&&emp.sala&&emp.unidade)));
         const jovensCount=turmaCounts[t.id]||0;
         const empMap=turmaEmpresas[t.id]||{};
         // Agrupar por nome (mesma empresa pode ter IDs distintos se entrou em datas diferentes)
@@ -1426,6 +1425,11 @@ const empresas=Object.entries(empresasAgrup).map(([nome,jovens])=>({nome,jovens}
           ocupacaoPorSala[chave]=(ocupacaoPorSala[chave]||0)+jovensCount;
         }
 
+        // Override final de unidade/sala — tem prioridade absoluta sobre tudo
+        const SALA_OVERRIDE={'Turma AM7':'Sala 1'};
+        if(UNIDADE_OVERRIDE[nomeCompleto]) unidade=UNIDADE_OVERRIDE[nomeCompleto];
+        if(SALA_OVERRIDE[nomeCompleto]) sala=SALA_OVERRIDE[nomeCompleto];
+
         const _semSala=TURMAS_SEM_SALA.includes(nomeCompleto);
         TURMAS_FIXAS.push({
           nome:nomeCompleto,
@@ -1445,8 +1449,6 @@ const empresas=Object.entries(empresasAgrup).map(([nome,jovens])=>({nome,jovens}
     // Aplicar overrides de sala/PL/split salvos pelo usuário
     const paraRemover=[];
     const paraAdicionar=[];
-    console.log('[Aleapyo] AM7 no TURMAS_FIXAS:',TURMAS_FIXAS.filter(t=>t.nome==='Turma AM7').map(t=>({...t})));
-    console.log('[Aleapyo] Todas segunda:',TURMAS_FIXAS.filter(t=>t.dia==='segunda').map(t=>t.nome+'|'+t.unidade+'|'+t.sala+'|'+t.pl));
     console.log('[Aleapyo] TURMAS_FIXAS após sync:',TURMAS_FIXAS.map(t=>t.nome+'|'+t.dia+'|'+t.jovens+'j'));
     console.log('[Aleapyo] salaOverrides keys:',Object.keys(salaOverrides));
     TURMAS_FIXAS.forEach((t,i)=>{
