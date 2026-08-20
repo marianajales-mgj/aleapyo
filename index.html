@@ -1390,10 +1390,6 @@ const empresas=Object.entries(empresasAgrup).map(([nome,jovens])=>({nome,jovens}
         let unidade='Freguesia do Ó';
         let sala='Sala 1';
 
-        // Override de unidade para turmas específicas
-        const UNIDADE_OVERRIDE={'Turma AM7':'Polo Liberdade'};
-        if(UNIDADE_OVERRIDE[nomeCompleto])unidade=UNIDADE_OVERRIDE[nomeCompleto];
-
         // Verificar se a turma tem mapeamento de unidade nas entradas existentes
         let encontrou=false;
         for(const entrada of entradas){
