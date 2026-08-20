@@ -59,6 +59,22 @@
       ]
     },
     {
+      "id": "e1787231240247",
+      "data": "2026-09-14",
+      "empresas": [
+        {
+          "id": "emp1787231240247nyqqjeuksz",
+          "nome": "Madeira Madeira",
+          "jovens": 1,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null
+        }
+      ]
+    },
+    {
       "id": "e1783442012279",
       "data": "2026-09-21",
       "empresas": [
