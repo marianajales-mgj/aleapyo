@@ -108,6 +108,7 @@ input[type=text],input[type=number],input[type=date]{height:30px;border:1px soli
 
 <!-- TAB GRADE -->
 <div id="tab-grade" class="sec" style="display:none">
+  <div id="grade-totais" style="margin-bottom:10px"></div>
   <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center;justify-content:space-between">
     <div id="grade-leg" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"></div>
     <button onclick="gerenciarUnidades()" style="height:28px;padding:0 10px;background:#f5f5f2;color:var(--mu);border:1px solid var(--br);border-radius:var(--rs);font-size:11px;cursor:pointer;font-family:'Montserrat',sans-serif">⚙ Unidades</button>
@@ -528,7 +529,34 @@ function buildGradeHTML(tblId,compact){
     aDiv.innerHTML=html;
   }
 }
-function renderGrade(){buildGradeHTML('grade-tbl',false);}
+function renderGrade(){
+  buildGradeHTML('grade-tbl',false);
+  renderTotaisJovens();
+}
+
+function renderTotaisJovens(){
+  const el=document.getElementById('grade-totais');
+  if(!el)return;
+  // Calcular totais por dia (só turmas fixas — dados do backoffice)
+  const DIAS_ORD=['segunda','terça','quarta','quinta','sexta'];
+  const DIAS_LABEL={segunda:'Seg',terça:'Ter',quarta:'Qua',quinta:'Qui',sexta:'Sex'};
+  const porDia={};
+  let total=0;
+  [...TURMAS_FIXAS].forEach(t=>{
+    if(!t.jovens)return;
+    if(!porDia[t.dia])porDia[t.dia]=0;
+    porDia[t.dia]+=t.jovens;
+    total+=t.jovens;
+  });
+  let h=`<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">`;
+  DIAS_ORD.forEach(dia=>{
+    if(!porDia[dia])return;
+    h+=`<span style="font-size:10px;background:var(--sf);border:1px solid var(--br);border-radius:99px;padding:2px 8px;color:var(--mu)"><b style="color:var(--tx)">${DIAS_LABEL[dia]}</b> ${porDia[dia]}j</span>`;
+  });
+  h+=`<span style="font-size:10px;background:#1a1a2e;border-radius:99px;padding:2px 10px;color:#fff;font-weight:700;margin-left:4px">Total ${total}j</span>`;
+  h+=`</div>`;
+  el.innerHTML=h;
+}
 function renderGradeMini(){buildGradeHTML('grade-mini-tbl',true);}
 
 // ── DETALHE TURMA ──
