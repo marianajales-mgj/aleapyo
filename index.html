@@ -1374,11 +1374,11 @@ const empresasAgrup={};
 empresasRaw.forEach(e=>{empresasAgrup[e.nome]=(empresasAgrup[e.nome]||0)+e.jovens;});
 const empresas=Object.entries(empresasAgrup).map(([nome,jovens])=>({nome,jovens})).sort((a,b)=>b.jovens-a.jovens);
 
-        // Só adiciona PL se for Manu ou Carol
-        if(pl&&['Manu','Carol'].includes(pl)&&!plsState.find(p=>p.nome===pl)){
+        // Adicionar PLs reconhecidos ao estado
+        const PL_CORES={'Manu':'#35dcb2','Carol':'#f2cf6b','Marialice':'#a78bfa','Guilherme':'#60a5fa'};
+        if(pl&&PL_CORES[pl]&&!plsState.find(p=>p.nome===pl)){
           plsState.push({nome:pl,alocados:[],livres:[],simDias:[]});
-          const cores={'Manu':'#35dcb2','Carol':'#f2cf6b'};
-          const cor=cores[pl]||'#aaa';
+          const cor=PL_CORES[pl];
           plCores[pl]={bg:cor,light:cor+'18',text:'#1d0328',border:cor};
         }
 
@@ -1386,6 +1386,10 @@ const empresas=Object.entries(empresasAgrup).map(([nome,jovens])=>({nome,jovens}
         // senão distribuir pela sala menos cheia da unidade padrão
         let unidade='Freguesia do Ó';
         let sala='Sala 1';
+
+        // Override de unidade para turmas específicas
+        const UNIDADE_OVERRIDE={'Turma AM7':'Polo Liberdade'};
+        if(UNIDADE_OVERRIDE[nomeCompleto])unidade=UNIDADE_OVERRIDE[nomeCompleto];
 
         // Verificar se a turma tem mapeamento de unidade nas entradas existentes
         let encontrou=false;
@@ -1403,6 +1407,7 @@ const empresas=Object.entries(empresasAgrup).map(([nome,jovens])=>({nome,jovens}
           // Regra fixa da Leapy — não distribuir por ocupação
           if(pl==='Manu') sala='Sala 1';
           else if(pl==='Carol') sala='Sala 2';
+          else if(pl==='Marialice') sala='Sala 1';
           else {
             // PL desconhecido: fallback para sala menos ocupada
             const u=unidades.find(x=>x.nome===unidade)||{salas:['Sala 1','Sala 2'],capacidade:32};
