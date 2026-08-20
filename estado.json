@@ -75,22 +75,6 @@
       ]
     },
     {
-      "id": "e1783442012279",
-      "data": "2026-09-21",
-      "empresas": [
-        {
-          "id": "emp1783442012279lyaji7jzzbc",
-          "nome": "Nova empresa",
-          "jovens": 0,
-          "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
-        }
-      ]
-    },
-    {
       "id": "e1783434927490",
       "data": "2026-10-05",
       "empresas": [
