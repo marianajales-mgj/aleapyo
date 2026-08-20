@@ -1269,24 +1269,23 @@ async function carregarDoDirectus(){
     });
     console.log('[Aleapyo] máximos históricos por letra:',window._maxHistoricoTurma);
     // 2. Buscar jovens em andamento com turma e empresa
-    const urlJovens=`${DIRECTUS_URL}/items/user_apprenticeship_data?filter[Status_formacao][_eq]=em_andamento&filter[ativo][_eq]=true&fields=turma_id,empresa_id&access_token=${DIRECTUS_TOKEN}`;
+    // Buscar jovens com empresa aninhada (account.name > Empresa como fallback)
+    const urlJovens=`${DIRECTUS_URL}/items/user_apprenticeship_data?filter[Status_formacao][_eq]=em_andamento&fields=turma_id,empresa_id,empresa_id.id,empresa_id.Empresa,empresa_id.account.name&limit=-1&access_token=${DIRECTUS_TOKEN}`;
     const rJ=await fetch(urlJovens);
     if(!rJ.ok)throw new Error('HTTP jovens '+rJ.status);
     const jovens=(await rJ.json()).data||[];
 
-    // 3. Buscar nomes das empresas
-    const urlEmpresas=`${DIRECTUS_URL}/items/Empresas?fields=id,Empresa,account.name&limit=-1&access_token=${DIRECTUS_TOKEN}`;
-    const rE=await fetch(urlEmpresas);
+    // Montar empresaNomes a partir dos dados aninhados já retornados
     const empresaNomes={};
-    if(rE.ok){
-      const eData=(await rE.json()).data||[];
-      eData.forEach(e=>{
-        if(!e.id)return;
-        // Preferir account.name (nome padronizado da conta); fallback para Empresa
-        const nome=e.account?.name||e.Empresa;
-        if(nome)empresaNomes[e.id]=nome;
-      });
-    }
+    jovens.forEach(j=>{
+      const emp=j.empresa_id;
+      if(!emp||typeof emp!=='object')return;
+      const eid=emp.id;
+      if(!eid)return;
+      // SEMPRE preferir account.name; só usar Empresa se account for null/undefined
+      const nome=emp.account?.name||emp.Empresa;
+      if(nome)empresaNomes[eid]=nome;
+    });
 
     // 4. Agrupar jovens por turma e empresa
     const turmaCounts={};
@@ -1295,9 +1294,12 @@ async function carregarDoDirectus(){
       if(!j.turma_id||!turmaIdMap[j.turma_id])return;
       if(!turmaCounts[j.turma_id])turmaCounts[j.turma_id]=0;
       turmaCounts[j.turma_id]++;
-      if(j.empresa_id){
+      // empresa_id é objeto aninhado — extrair id
+      const emp=j.empresa_id;
+      const eid=emp&&typeof emp==='object'?emp.id:emp;
+      if(eid){
         if(!turmaEmpresas[j.turma_id])turmaEmpresas[j.turma_id]={};
-        turmaEmpresas[j.turma_id][j.empresa_id]=(turmaEmpresas[j.turma_id][j.empresa_id]||0)+1;
+        turmaEmpresas[j.turma_id][eid]=(turmaEmpresas[j.turma_id][eid]||0)+1;
       }
     });
 
