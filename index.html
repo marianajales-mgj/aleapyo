@@ -1366,6 +1366,9 @@ async function carregarDoDirectus(){
       turmasDia.forEach(t=>{
         const nomeCompleto=t.Name;
         const pl=normPL(t.program_lead?.first_name,t.program_lead?.last_name);
+        // Override de PL por turma (ex: AM7 → Marialice mesmo com PL errado no backoffice)
+        const PL_OVERRIDE={'Turma AM7':'Marialice'};
+        const plFinal=PL_OVERRIDE[nomeCompleto]||pl||'—';
         const jovensCount=turmaCounts[t.id]||0;
         const empMap=turmaEmpresas[t.id]||{};
         // Agrupar por nome (mesma empresa pode ter IDs distintos se entrou em datas diferentes)
@@ -1387,11 +1390,9 @@ const empresas=Object.entries(empresasAgrup).map(([nome,jovens])=>({nome,jovens}
         let unidade='Freguesia do Ó';
         let sala='Sala 1';
 
-        // Overrides fixos por turma (unidade e PL)
+        // Override de unidade para turmas específicas
         const UNIDADE_OVERRIDE={'Turma AM7':'Polo Liberdade'};
-        const PL_OVERRIDE={'Turma AM7':'Marialice'};
         if(UNIDADE_OVERRIDE[nomeCompleto])unidade=UNIDADE_OVERRIDE[nomeCompleto];
-        const plFinal=PL_OVERRIDE[nomeCompleto]||pl||'—';
 
         // Verificar se a turma tem mapeamento de unidade nas entradas existentes
         let encontrou=false;
