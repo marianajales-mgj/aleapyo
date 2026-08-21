@@ -20,10 +20,11 @@
           "nome": "Rappi",
           "jovens": 7,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "AM9",
+          "dia": "segunda",
+          "sala": "Sala 1",
+          "unidade": "Polo Liberdade",
+          "pl": "Marialice"
         },
         {
           "id": "emp1787314407261",
