@@ -5,17 +5,6 @@
       "data": "2026-08-31",
       "empresas": [
         {
-          "id": "emp1786113271817",
-          "nome": "Shopee",
-          "jovens": 22,
-          "status": "Em aberto",
-          "turma": "AM8",
-          "dia": "segunda",
-          "sala": "Sala 2",
-          "unidade": "Freguesia do Ó",
-          "pl": "Carol"
-        },
-        {
           "id": "emp1786113469785",
           "nome": "Shopee",
           "jovens": 32,
