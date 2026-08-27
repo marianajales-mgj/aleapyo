@@ -141,6 +141,22 @@
           "pl": "Marialice"
         }
       ]
+    },
+    {
+      "id": "e1787849650718",
+      "data": "2026-11-03",
+      "empresas": [
+        {
+          "id": "emp1787849650718zg4g21wttd",
+          "nome": "Empresa",
+          "jovens": 1,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null
+        }
+      ]
     }
   ],
   "pls": [
