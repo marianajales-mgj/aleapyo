@@ -157,7 +157,7 @@ input[type=text],input[type=number],input[type=date]{height:30px;border:1px soli
     <div style="font-size:12px;color:var(--mu)">Busque um jovem pela matrícula (ID) ou nome para simular cenários de troca de turma — considerando cronograma já cursado e vaga na grade de salas. Nada é alterado no backoffice; é só simulação.</div>
   </div>
   <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
-    <input type="text" id="mt-busca" placeholder="ID da matrícula ou nome do jovem" style="flex:1;min-width:220px" onkeydown="if(event.key==='Enter')buscarJovemMT()"/>
+    <input type="text" id="mt-busca" placeholder="ID da matrícula ou nome do jovem" style="flex:1;min-width:220px" onkeydown="if(event.key==='Enter')buscarJovemMT()"/><select id="mt-dia-pref" onchange="if(_mtJovemAtual)analisarCenariosMT()" style="height:30px;padding:0 8px;border-radius:var(--rs);border:1px solid var(--br);font-size:11px;font-family:'Montserrat',sans-serif"><option value="">Sem preferência de dia</option><option value="segunda-feira">Segunda-feira</option><option value="terça-feira">Terça-feira</option><option value="quarta-feira">Quarta-feira</option><option value="quinta-feira">Quinta-feira</option><option value="sexta-feira">Sexta-feira</option></select>
     <button onclick="buscarJovemMT()" style="height:30px;padding:0 16px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:11px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif">Buscar</button>
   </div>
   <div id="mt-resultado"></div>
@@ -1663,21 +1663,38 @@ async function analisarCenariosMT(){
       cenarios.push({nome,dia:t.dia_de_curso,cap,gap,adiantado,temVaga,jovensNaTurma:cob.jovens});
     }
 
-    cenarios.sort((a,b)=>{
-      const va=a.temVaga===true?0:a.temVaga===null?1:2;
-      const vb=b.temVaga===true?0:b.temVaga===null?1:2;
-      if(va!==vb)return va-vb;
-      return a.gap.length-b.gap.length;
-    });
+    const diaPref=document.getElementById('mt-dia-pref')?document.getElementById('mt-dia-pref').value:'';
+cenarios.sort((a,b)=>{
+  const va=a.temVaga===true?0:a.temVaga===null?1:2;
+  const vb=b.temVaga===true?0:b.temVaga===null?1:2;
+  if(va!==vb)return va-vb;
+  if(diaPref){
+    const pa=a.dia===diaPref?0:1;
+    const pb=b.dia===diaPref?0:1;
+    if(pa!==pb)return pa-pb;
+  }
+  if(a.gap.length!==b.gap.length)return a.gap.length-b.gap.length;
+  const la=a.cap.semSalaFisica?Infinity:(a.cap.livre==null?-1:a.cap.livre);
+  const lb=b.cap.semSalaFisica?Infinity:(b.cap.livre==null?-1:b.cap.livre);
+  return lb-la;
+});
 
-    const comVaga=cenarios.filter(c=>c.temVaga===true);
-    if(!comVaga.length){
-      h+='<div class="alerta-err">⚠ Nenhuma turma em outro dia tem vaga disponível agora. Mudança de turma não é possível no momento.</div>';
-    } else {
-      h+=`<div class="alerta-ok">✓ ${comVaga.length} turma(s) em outro dia com vaga disponível. Cenários abaixo, do mais compatível pro menos:</div>`;
-    }
+const comVaga=cenarios.filter(c=>c.temVaga===true);
+if(!comVaga.length){
+  h+='<div class="alerta-err" style="font-size:14px;padding:14px 16px;margin-bottom:14px"><b>❌ Mudança de turma não é possível no momento.</b><br>Nenhuma turma em outro dia de curso tem vaga disponível agora.</div>';
+} else {
+  const rec=comVaga[0];
+  const gapTxt=rec.gap.length?(rec.gap.length+' módulo(s) que o jovem ainda não viu'):'nenhum módulo perdido';
+  const vagaTxt=rec.cap.semSalaFisica?'Ecossistema Plus (sem sala física, sem limite conhecido)':(rec.cap.livre+' vaga(s) livre(s) em '+rec.cap.sala+' · '+rec.cap.unidade);
+  let diaNote='';
+  if(diaPref&&rec.dia!==diaPref){
+    diaNote='<div style="margin-top:6px;font-size:11px">Nenhuma turma com vaga no dia preferido ('+diaPref+'); a melhor opção disponível caiu em outro dia.</div>';
+  }
+  h+='<div class="alerta-ok" style="font-size:14px;padding:14px 16px;margin-bottom:14px"><b>✅ Mudança de turma é possível.</b><br>Recomendação: <b>'+rec.nome+'</b> ('+rec.dia+') — '+vagaTxt+', '+gapTxt+'.'+diaNote+'</div>';
+  h+='<div style="font-size:11px;color:var(--mu);margin-bottom:10px">Outros cenários com vaga, do mais pro menos compatível:</div>';
+}
 
-    cenarios.forEach(c=>{
+cenarios.forEach(c=>{
       const corBorda=c.temVaga===true?(c.gap.length===0?'#35dcb2':'#f2cf6b'):'#fca5a5';
       const bgTop=c.temVaga===true?(c.gap.length===0?'#e8fff9':'#fffbeb'):'#fef2f2';
       let vagaLabel;
