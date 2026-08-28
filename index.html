@@ -373,7 +373,6 @@ function ocupacaoSala(dia,sala,unidade){
   return {jovens:j,turmas:ts,livre:cap-j,capacidade:cap};
 }
 
-function normTurma(s){return (s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();}
 function turmasSimAtivas(){
   const mapa={};
   const fixasNomes=new Set(TURMAS_FIXAS.map(t=>t.nome));
@@ -382,7 +381,7 @@ function turmasSimAtivas(){
       if(!emp.turma||!emp.dia||emp.status==='Adiado'||!emp.jovens)return;
       const nomeT='Turma '+emp.turma;
       // Ignorar só se a turma fixa real existe E não é injetada temporariamente
-      const fixaReal=TURMAS_FIXAS.find(t=>normTurma(t.nome)===normTurma(nomeT)&&!t._injetada);
+      const fixaReal=TURMAS_FIXAS.find(t=>t.nome===nomeT&&!t._injetada);
       if(fixaReal)return;
       const unidade=emp.unidade||'Freguesia do Ó';
       const sala=emp.sala||melhorSala(emp.dia,unidade);
@@ -540,7 +539,7 @@ function buildGradeHTML(tblId,compact){
     entradas.forEach(en=>en.empresas.forEach(e=>{if(e.status==='Em aberto'&&!e.turma)semTurma+=e.jovens;}));
     let html=alertas.map(a=>`<div class="alerta-err">⚠ ${a}</div>`).join('');
     if(semTurma>0)html+=`<div class="alerta-warn">💡 ${semTurma}j em aberto sem turma. Use Alocar para distribuir.</div>`;
-    let simPendentes=[];entradas.forEach(function(en){en.empresas.forEach(function(e){if(!e.turma||!e.dia||e.status==='Adiado'||!e.jovens||e.status==='Conciliado')return;var nomeT='Turma '+e.turma;var fixaReal=TURMAS_FIXAS.find(function(t){return normTurma(t.nome)===normTurma(nomeT)&&!t._injetada;});if(fixaReal)return;var lim=new Date();lim.setDate(lim.getDate()+7);var dataEntrada=en.data?new Date(en.data+'T12:00:00'):null;if(dataEntrada&&dataEntrada<=lim){simPendentes.push(e.nome+' ('+nomeT+')');}});});if(simPendentes.length)html+='<div class="alerta warn">⚠️ '+simPendentes.length+' empresa(s) simulada(s) com entrada próxima ainda sem turma real correspondente no backoffice: '+simPendentes.join(', ')+'. Confira o nome da turma.</div>';aDiv.innerHTML=html;
+    aDiv.innerHTML=html;
   }
 }
 function renderGrade(){
@@ -724,7 +723,7 @@ function renderEmpresas(){
   const el=document.getElementById('empresas-list');if(!el)return;
   let h='';
   entradas.forEach((entrada,ei)=>{
-    const baseEmpresas=entrada.empresas.filter(function(e){return e.status!=='Conciliado';});const empsRaw=filtroAtivo==='todos'?baseEmpresas:baseEmpresas.filter(function(e){return e.status===filtroAtivo;});
+    const empsRaw=filtroAtivo==='todos'?entrada.empresas:entrada.empresas.filter(e=>e.status===filtroAtivo);
     // Ordenar: Freguesia primeiro, depois Liberdade; dentro de cada polo por turma
     const emps=[...empsRaw].sort((a,b)=>{
       // Sem alocação vai para o final
@@ -1500,7 +1499,7 @@ const empresas=Object.entries(empresasAgrup).map(([nome,jovens])=>({nome,jovens}
       statusEl.textContent=msg;statusEl.style.color='#0a7a60';
       setTimeout(()=>{if(statusEl)statusEl.textContent='';},5000);
     }
-    entradas.forEach(function(en){en.empresas.forEach(function(e){if(!e.turma||!e.dia||e.status==='Adiado'||!e.jovens)return;if(e.status==='Conciliado')return;var nomeT='Turma '+e.turma;var fixaReal=TURMAS_FIXAS.find(function(t){return normTurma(t.nome)===normTurma(nomeT)&&!t._injetada;});if(fixaReal){e.status='Conciliado';e._conciliadoEm=new Date().toISOString();}});});renderGrade();renderGradeMini();renderEmpresas();
+    renderGrade();renderGradeMini();renderEmpresas();
   }catch(e){
     console.warn('Directus indisponível:',e.message,e);
     if(statusEl){statusEl.textContent='⚠ Backoffice indisponível: '+e.message;statusEl.style.color='#856404';}
