@@ -5,17 +5,6 @@
       "data": "2026-08-31",
       "empresas": [
         {
-          "id": "emp1787230952133",
-          "nome": "Gimma",
-          "jovens": 3,
-          "status": "Em aberto",
-          "turma": "DM13",
-          "dia": "quinta",
-          "sala": "Sala 1",
-          "unidade": "Freguesia do Ó",
-          "pl": "Manu"
-        },
-        {
           "id": "emp1787314398110",
           "nome": "Rappi",
           "jovens": 6,
