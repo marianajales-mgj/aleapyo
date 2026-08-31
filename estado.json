@@ -111,14 +111,26 @@
           "unidade": null
         },
         {
-          "id": "emp1788216750440",
+          "id": "emp17882173484180",
           "nome": "Gimma",
-          "jovens": 7,
+          "jovens": 3,
           "status": "Confirmado",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "AM12",
+          "dia": "segunda",
+          "sala": "Sala 1",
+          "unidade": "Freguesia do Ó",
+          "pl": "Manu"
+        },
+        {
+          "id": "emp17882173484181",
+          "nome": "Gimma",
+          "jovens": 4,
+          "status": "Confirmado",
+          "turma": "AM11",
+          "dia": "segunda",
+          "sala": "Sala 2",
+          "unidade": "Freguesia do Ó",
+          "pl": "Carol"
         },
         {
           "id": "emp1788216785282",
