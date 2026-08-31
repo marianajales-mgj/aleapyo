@@ -84,7 +84,7 @@
           "id": "emp1788216509416",
           "nome": "Keeggo",
           "jovens": 2,
-          "status": "Em aberto",
+          "status": "Confirmado",
           "turma": null,
           "dia": null,
           "sala": null,
@@ -102,7 +102,7 @@
         },
         {
           "id": "emp1788216727584",
-          "nome": "Nova empresa",
+          "nome": "UOL",
           "jovens": 1,
           "status": "Em aberto",
           "turma": null,
