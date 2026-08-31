@@ -40,11 +40,11 @@
           "nome": "Corpay",
           "jovens": 17,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null,
-          "pl": null
+          "turma": "DM14",
+          "dia": "quinta",
+          "sala": "Sala 1",
+          "unidade": "Polo Liberdade",
+          "pl": "Marialice"
         },
         {
           "id": "emp17882121760680.586697940047444",
