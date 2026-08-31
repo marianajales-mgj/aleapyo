@@ -19,10 +19,11 @@
           "nome": "Eletromidia",
           "jovens": 10,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "AM12",
+          "dia": "segunda",
+          "sala": "Sala 1",
+          "unidade": "Freguesia do Ó",
+          "pl": "Manu"
         },
         {
           "id": "emp1787231387931",
@@ -81,7 +82,7 @@
         },
         {
           "id": "emp1788216509416",
-          "nome": "Nova empresa",
+          "nome": "Keeggo",
           "jovens": 1,
           "status": "Em aberto",
           "turma": null,
