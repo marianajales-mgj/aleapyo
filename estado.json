@@ -1,34 +1,6 @@
 {
   "entradas": [
     {
-      "id": "e1784806956126",
-      "data": "2026-08-31",
-      "empresas": [
-        {
-          "id": "emp1787314398110",
-          "nome": "Rappi",
-          "jovens": 6,
-          "status": "Em aberto",
-          "turma": "AM9",
-          "dia": "segunda",
-          "sala": "Sala 2",
-          "unidade": "Freguesia do Ó",
-          "pl": "Carol"
-        },
-        {
-          "id": "emp1787314407261",
-          "nome": "Shopee",
-          "jovens": 9,
-          "status": "Em aberto",
-          "turma": "AM8",
-          "dia": "segunda",
-          "sala": "Sala 2",
-          "unidade": "Polo Liberdade",
-          "pl": "Marialice"
-        }
-      ]
-    },
-    {
       "id": "e1787231240247",
       "data": "2026-09-14",
       "empresas": [
@@ -66,6 +38,28 @@
           "id": "emp1787314386778",
           "nome": "Corpay",
           "jovens": 24,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null,
+          "pl": null
+        },
+        {
+          "id": "emp17882121760680.586697940047444",
+          "nome": "Rappi",
+          "jovens": 6,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null,
+          "pl": null
+        },
+        {
+          "id": "emp17882121760680.9327256571802656",
+          "nome": "Shopee",
+          "jovens": 9,
           "status": "Em aberto",
           "turma": null,
           "dia": null,
