@@ -157,10 +157,19 @@ input[type=text],input[type=number],input[type=date]{height:30px;border:1px soli
     <div style="font-size:12px;color:var(--mu)">Busque um jovem pela matrícula (ID) ou nome para simular cenários de troca de turma — considerando cronograma já cursado e vaga na grade de salas. Nada é alterado no backoffice; é só simulação.</div>
   </div>
   <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
-    <input type="text" id="mt-busca" placeholder="ID da matrícula ou nome do jovem" style="flex:1;min-width:220px" onkeydown="if(event.key==='Enter')buscarJovemMT()"/><select id="mt-dia-pref" onchange="if(_mtJovemAtual)analisarCenariosMT()" style="height:30px;padding:0 8px;border-radius:var(--rs);border:1px solid var(--br);font-size:11px;font-family:'Montserrat',sans-serif"><option value="">Sem preferência de dia</option><option value="segunda-feira">Segunda-feira</option><option value="terça-feira">Terça-feira</option><option value="quarta-feira">Quarta-feira</option><option value="quinta-feira">Quinta-feira</option><option value="sexta-feira">Sexta-feira</option></select>
+    <input type="text" id="mt-busca" placeholder="ID da matrícula ou nome do jovem" style="flex:1;min-width:220px" onkeydown="if(event.key==='Enter')buscarJovemMT()"/><div id="mt-dia-pref-wrap" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-height:30px;padding:4px 8px;border-radius:var(--rs);border:1px solid var(--br);font-size:11px;font-family:'Montserrat',sans-serif;color:var(--mu)">Dia pref.:<label style="display:flex;align-items:center;gap:2px;cursor:pointer;margin:0"><input type="checkbox" class="mt-dia-cb" value="segunda_feira" onchange="if(_mtJovemAtual)analisarCenariosMT()">Seg</label><label style="display:flex;align-items:center;gap:2px;cursor:pointer;margin:0"><input type="checkbox" class="mt-dia-cb" value="terca_feira" onchange="if(_mtJovemAtual)analisarCenariosMT()">Ter</label><label style="display:flex;align-items:center;gap:2px;cursor:pointer;margin:0"><input type="checkbox" class="mt-dia-cb" value="quarta_feira" onchange="if(_mtJovemAtual)analisarCenariosMT()">Qua</label><label style="display:flex;align-items:center;gap:2px;cursor:pointer;margin:0"><input type="checkbox" class="mt-dia-cb" value="quinta_feira" onchange="if(_mtJovemAtual)analisarCenariosMT()">Qui</label><label style="display:flex;align-items:center;gap:2px;cursor:pointer;margin:0"><input type="checkbox" class="mt-dia-cb" value="sexta_feira" onchange="if(_mtJovemAtual)analisarCenariosMT()">Sex</label></div>
     <button onclick="buscarJovemMT()" style="height:30px;padding:0 16px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:11px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif">Buscar</button>
   </div>
   <div id="mt-resultado"></div>
+  <div id="modal-mt-bg" class="modal-bg" style="display:none" onclick="if(event.target===this)fecharModalMT()">
+    <div class="modal" style="max-width:900px">
+      <h3 id="modal-mt-titulo">De-para de cronogramas</h3>
+      <div id="modal-mt-body"></div>
+      <button onclick="fecharModalMT()" style="width:100%;height:36px;background:#f5f5f2;color:var(--mu);border:1px solid var(--br);border-radius:var(--rs);font-size:12px;font-weight:700;cursor:pointer;margin-top:12px">Fechar</button>
+    </div>
+  </div>
+
+
 </div>
 <!-- MODAL ALOCAR -->
 <div id="modal-bg" class="modal-bg" style="display:none" onclick="if(event.target===this)fecharModal()">
@@ -1550,6 +1559,9 @@ let _mtCandidatosBusca = [];
 let _mtJovemAtual = null;
 let _mtTurmasAtivasCache = null;
 
+let _mtCronoOrigemAtual = {}; let _mtCronoDestinoPorTurma = {}; let _mtCurriculoJovemAtual = null;
+
+
 const MT_GRUPO_FERRAMENTAS_MS = [326,330,332,335,336];
 const MT_GRUPO_FERRAMENTAS_GOOGLE = [327,329,331,333,334];
 const MT_GRUPO_ESTATISTICA = [50,34,312,314,316,317,313,315,318,325,8];
@@ -1693,6 +1705,30 @@ function capacidadeTurmaMT(nomeTurma){
   return Object.assign({semSalaFisica:false},melhor);
 }
 
+
+function _mtDiasPref(){ return Array.from(document.querySelectorAll('.mt-dia-cb:checked')).map(c=>c.value); }
+function fecharModalMT(){ const b=document.getElementById('modal-mt-bg'); if(b) b.style.display='none'; }
+function abrirModalMT(nomeTurma){
+  const origem = _mtCronoOrigemAtual||{};
+  const destino = (_mtCronoDestinoPorTurma||{})[nomeTurma]||{};
+  const curr = _mtCurriculoJovemAtual || new Set();
+  const mods = Array.from(curr).sort((a,b)=>a-b);
+  const tEl = document.getElementById('modal-mt-titulo');
+  if(tEl) tEl.textContent = `De-para de cronogramas — turma atual vs. ${nomeTurma}`;
+  let b = '<table style="width:100%;border-collapse:collapse;font-size:12px"><tr style="text-align:left;color:var(--mu)"><th style="padding:4px">Módulo</th><th style="padding:4px">Turma atual</th><th style="padding:4px">'+nomeTurma+'</th></tr>';
+  mods.forEach(m=>{
+    const o = origem[m]; const d = destino[m];
+    const oTxt = (o && o.inicio) ? _mtFmtData(o.inicio)+' – '+(o.fim?_mtFmtData(o.fim):'?') : '—';
+    const dTxt = (d && d.inicio) ? _mtFmtData(d.inicio)+' – '+(d.fim?_mtFmtData(d.fim):'?') : '—';
+    b += `<tr style="border-top:1px solid var(--br)"><td style="padding:4px">${nomeModuloMT(m)}</td><td style="padding:4px">${oTxt}</td><td style="padding:4px">${dTxt}</td></tr>`;
+  });
+  b += '</table>';
+  const bodyEl = document.getElementById('modal-mt-body');
+  if(bodyEl) bodyEl.innerHTML = b;
+  const bg = document.getElementById('modal-mt-bg');
+  if(bg) bg.style.display='flex';
+}
+
 async function analisarCenariosMT(){
   const el = document.getElementById('mt-resultado');
   const j = _mtJovemAtual;
@@ -1707,7 +1743,6 @@ async function analisarCenariosMT(){
     const diaAtual = turmaAtualInfo.dia_de_curso;
     const capAtual = capacidadeTurmaMT(nomeAtual);
     const nomeCompleto = (j.user && j.user[0]) ? `${j.user[0].first_name||''} ${j.user[0].last_name||''}`.trim() : (j.Name || null);
-
     if(capAtual.semSalaFisica){
       el.innerHTML = `<div style="margin-bottom:12px"><b>${nomeCompleto||'(sem nome)'}</b><div style="font-size:12px;color:var(--mu)">matrícula ${j.id}</div></div><div class="alerta">Essa jovem está no Ecossistema Plus — mudança de turma não se aplica a turmas do Ecossistema Plus.</div>`;
       return;
@@ -1732,6 +1767,10 @@ async function analisarCenariosMT(){
     gruposTecnicos.forEach((g,gi)=>g.forEach(m=>grupoDoModulo[m]=gi));
 
     const cronoOrigem = await cronogramaTurmaMT(turmaAtualInfo.id);
+    _mtCronoOrigemAtual = cronoOrigem;
+    _mtCronoDestinoPorTurma = {};
+    _mtCurriculoJovemAtual = curriculoJovem;
+
     const catchUpPorGrupo = gruposTecnicos.map(grupo=>{
       const emAndamento = grupo.filter(m=>curriculoJovem.has(m) && !jaVistoMT(m) && (statusPorModulo[m]==='ativo' || (cronoOrigem[m] && _mtSoData(cronoOrigem[m].inicio) && _mtSoData(cronoOrigem[m].inicio)<=hoje)));
       if(!emAndamento.length) return {aplicavel:false, pendentes:[]};
@@ -1740,21 +1779,24 @@ async function analisarCenariosMT(){
       return {aplicavel:true, pendentes:emAndamento, dataCatchUp:maxFim};
     });
     function saberaMT(m){ if(jaVistoMT(m)) return true; const gi=grupoDoModulo[m]; if(gi===undefined) return false; const cu=catchUpPorGrupo[gi]; return !!(cu && cu.aplicavel && cu.pendentes.includes(m)); }
-    let pisoUniversal = hoje;
+
+    let pisoUniversal = _mtSoData(addDU(new Date(hoje.getTime()+12*3600*1000), 3));
     catchUpPorGrupo.forEach(cu=>{ if(cu.aplicavel && cu.dataCatchUp){ const p=new Date(cu.dataCatchUp.getTime()+86400000); if(p>pisoUniversal) pisoUniversal=p; } });
 
     const status319 = statusPorModulo[MT_MODULO_PROJETO_FINAL];
     const jovemJaComecou319 = !!(status319 && status319!=='nao_iniciado');
 
-    const candidatas = todasTurmas.filter(t=>{
-      if(String(t.id)===String(turmaAtualInfo.id)) return false;
-      if(t.dia_de_curso===diaAtual) return false;
+    const excluidas = [];
+    const candidatas = [];
+    for(const t of todasTurmas){
+      if(String(t.id)===String(turmaAtualInfo.id)) continue;
       const nome = normNomeTurma(t.Name);
       const cap = capacidadeTurmaMT(nome);
-      if(cap.semSalaFisica) return false;
-      if(!cap.unidade || cap.unidade!==unidadeAtual) return false;
-      return true;
-    });
+      if(cap.semSalaFisica){ excluidas.push({nome, dia:t.dia_de_curso, motivo:'Ecossistema Plus não participa de Mudança de Turma'}); continue; }
+      if(!cap.unidade || cap.unidade!==unidadeAtual){ excluidas.push({nome, dia:t.dia_de_curso, motivo:`Unidade diferente (${cap.unidade||'sem dados'}) — a troca só pode acontecer dentro da mesma unidade`}); continue; }
+      if(t.dia_de_curso===diaAtual){ excluidas.push({nome, dia:t.dia_de_curso, motivo:'Mesmo dia de curso da turma atual'}); continue; }
+      candidatas.push(t);
+    }
 
     const cenarios = [];
     for(const t of candidatas){
@@ -1762,10 +1804,14 @@ async function analisarCenariosMT(){
       const cap = capacidadeTurmaMT(nome);
       const temVaga = cap.semDados ? null : (cap.livre>0);
       const cronoMap = await cronogramaTurmaMT(t.id);
+      _mtCronoDestinoPorTurma[nome] = cronoMap;
 
       const info319 = cronoMap[MT_MODULO_PROJETO_FINAL];
       const inicio319 = info319 ? _mtSoData(info319.inicio) : null;
-      if(jovemJaComecou319 || (inicio319 && inicio319<=hoje)) continue;
+      if(jovemJaComecou319 || (inicio319 && inicio319<=hoje)){
+        excluidas.push({nome, dia:t.dia_de_curso, motivo:'Módulo de Projeto Empreendedor - Entrega 1 - Parte 1 (319) já foi iniciado pela jovem ou pela turma destino'});
+        continue;
+      }
 
       let naoVistoCount=0, jaVistoCount=0, ultimoConflito=null, bloqueadoTecnico=null;
       const naoVistoDetalhe=[], jaVistoDetalhe=[];
@@ -1794,7 +1840,10 @@ async function analisarCenariosMT(){
           if(!ultimoConflito || (fim && fim>ultimoConflito)) ultimoConflito=fim;
         }
       }
-      if(bloqueadoTecnico) continue;
+      if(bloqueadoTecnico){
+        excluidas.push({nome, dia:t.dia_de_curso, motivo:`Turma já cobriu o módulo técnico "${nomeModuloMT(bloqueadoTecnico.modulo)}" antes da jovem, fora de uma janela de catch-up em andamento`});
+        continue;
+      }
 
       let melhorDia = pisoUniversal;
       if(ultimoConflito){ const p=new Date(ultimoConflito.getTime()+86400000); if(p>melhorDia) melhorDia=p; }
@@ -1806,24 +1855,51 @@ async function analisarCenariosMT(){
         .filter(a=>curriculoJovem.has(a.modulo) && a.fim && a.fim>=agora)
         .sort((a,b)=>a.fim-b.fim).slice(0,6);
 
-      cenarios.push({nome, dia:t.dia_de_curso, cap, temVaga, jovensNaTurma, diferenca, naoVistoCount, jaVistoCount, naoVistoDetalhe, jaVistoDetalhe, melhorDia, proximasAulas});
+      cenarios.push({nome, dia:t.dia_de_curso, cap, temVaga, jovensNaTurma, diferenca, naoVistoCount, jaVistoCount, naoVistoDetalhe, jaVistoDetalhe, melhorDia, proximasAulas, dataInicio:t.data_de_inicio, dataFim:t.data_de_termino});
     }
 
     cenarios.sort((a,b)=> (a.diferenca-b.diferenca) || (a.melhorDia-b.melhorDia));
 
+    const diasPref = _mtDiasPref();
+    let hDiasPref = '';
+    if(diasPref.length){
+      const semOpcaoNoDia = diasPref.filter(d=>!cenarios.some(c=>c.dia===d));
+      if(semOpcaoNoDia.length){
+        hDiasPref = semOpcaoNoDia.map(d=>{
+          const turmasNoDia = todasTurmas.filter(t=>t.dia_de_curso===d && String(t.id)!==String(turmaAtualInfo.id));
+          if(!turmasNoDia.length){
+            return `<div class="alerta-warn">Não há nenhuma turma cadastrada às <b>${d}</b>.</div>`;
+          }
+          const motivosNoDia = excluidas.filter(e=>e.dia===d);
+          if(!motivosNoDia.length){
+            return `<div class="alerta-warn">Não encontrei um motivo específico de exclusão para turmas de <b>${d}</b>, mas nenhuma passou nos filtros de unidade/regras.</div>`;
+          }
+          const lista = motivosNoDia.map(e=>`<div style="margin:2px 0"><b>${e.nome}</b>: ${e.motivo}</div>`).join('');
+          return `<div class="alerta-warn"><b>${d}</b> não tem opção viável hoje:${lista}</div>`;
+        }).join('');
+      }
+    }
+
     let h = '';
-    h += `<div style="margin-bottom:14px"><b style="font-size:16px">${nomeCompleto||'(sem nome)'}</b><div style="font-size:12px;color:var(--mu);margin-top:2px">matrícula ${j.id} · turma atual <b>${nomeAtual}</b> (${diaAtual}) · ${modulosConcluidosCount} módulo(s) concluído(s)</div></div>`;
+    h += `<div style="margin-bottom:14px"><b style="font-size:16px">${nomeCompleto||'(sem nome)'}</b><div style="font-size:12px;color:var(--mu);margin-top:2px">matrícula ${j.id} · turma atual <b>${nomeAtual}</b> (${diaAtual}) · início ${_mtFmtData(turmaAtualInfo.data_de_inicio)} · término ${_mtFmtData(turmaAtualInfo.data_de_termino)} · ${modulosConcluidosCount} módulo(s) concluído(s)</div></div>`;
+
+    h += hDiasPref;
 
     if(!cenarios.length){
-      h += '<div class="alerta err">Nenhuma turma compatível encontrada — todas as opções na mesma unidade, em outro dia, esbarraram em bloqueio de módulo técnico, no módulo de projeto final, ou não há turma disponível.</div>';
+      h += `<div class="alerta err">Nenhuma turma compatível encontrada — todas as opções na mesma unidade, em outro dia, esbarraram em bloqueio de módulo técnico, no módulo de projeto final, ou não há turma disponível.</div>`;
     } else {
-      const top = cenarios[0];
+      const ordenados = diasPref.length ? [...cenarios].sort((a,b)=>{
+        const ap = diasPref.includes(a.dia) ? 0 : 1;
+        const bp = diasPref.includes(b.dia) ? 0 : 1;
+        return ap-bp || (a.diferenca-b.diferenca) || (a.melhorDia-b.melhorDia);
+      }) : cenarios;
+      const top = ordenados[0];
       const podeJa = top.melhorDia<=hoje;
       h += `<div style="background:#e8fff9;border:1px solid #10b98155;border-radius:var(--r);padding:12px 14px;margin-bottom:14px"><b>✅ Mudança de turma é possível.</b><br>Recomendação: <b>${top.nome}</b> (${top.dia}) — ${top.diferenca===0?'nenhum módulo perdido ou repetido':`${top.naoVistoCount} módulo(s) não visto(s) pela jovem, ${top.jaVistoCount} módulo(s) já visto(s) pela jovem`}. ${podeJa?'Pode mudar a partir de hoje.':`Melhor data para a troca: ${_mtFmtData(top.melhorDia)}.`}</div>`;
 
       h += '<div style="font-size:12px;color:var(--mu);margin-bottom:8px">Outros cenários, do mais pro menos compatível:</div>';
 
-      cenarios.forEach(c=>{
+      ordenados.forEach(c=>{
         const corBorda = c.diferenca===0 ? '#10b98155' : '#fcd34d55';
         const bgTop = c.diferenca===0 ? '#e8fff9' : '#fffbeb';
         let vagaLabel;
@@ -1831,16 +1907,18 @@ async function analisarCenariosMT(){
         else if(c.temVaga===null){ vagaLabel = 'Sem dados de sala sincronizados para esta turma — sincronize a Grade de Salas'; }
         else { vagaLabel = `Sem vaga (${c.cap.jovens}/${c.cap.capacidade} j) em ${c.cap.sala} · ${c.cap.unidade}`; }
         const melhorDiaTxt = c.melhorDia<=hoje ? 'hoje' : _mtFmtData(c.melhorDia);
+        const nomeEscapado = String(c.nome).replace(/'/g,"\\'");
 
         h += `<div style="background:${bgTop};border:1px solid ${corBorda};border-radius:var(--r);padding:12px 14px;margin-bottom:10px">`;
         h += `<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><div><b style="font-size:14px">${c.nome}</b><span style="font-size:12px;color:var(--mu);text-transform:capitalize;margin-left:8px">${c.dia}</span></div><span style="font-size:12px;font-weight:600">${vagaLabel}</span></div>`;
-        h += `<div style="margin-top:4px;font-size:12px;color:var(--mu)">${c.jovensNaTurma==null?'—':c.jovensNaTurma} jovem(ns) atualmente na turma · melhor data para a troca: <b>${melhorDiaTxt}</b></div>`;
-
+        h += `<div style="margin-top:4px;font-size:12px;color:var(--mu)">Turma: início ${_mtFmtData(c.dataInicio)} · término ${_mtFmtData(c.dataFim)} · ${c.jovensNaTurma===null?'—':c.jovensNaTurma} jovem(ns) atualmente na turma · melhor data para a troca: <b>${melhorDiaTxt}</b></div>`;
         h += c.naoVistoCount ? `<div style="margin-top:10px"><div style="font-size:12px;font-weight:600;color:#92400e;margin-bottom:4px">Módulo(s) não visto(s) pela jovem que vai mudar de turma (${c.naoVistoCount}) — a turma já deu, ela precisa repor:</div><div>${c.naoVistoDetalhe.map(x=>`<span style="font-size:11px;background:#fffbeb;color:#92400e;border:1px solid #fcd34d55;border-radius:6px;padding:2px 6px;margin:0 4px 4px 0;display:inline-block">${nomeModuloMT(x.modulo)}</span>`).join('')}</div></div>` : '<div style="margin-top:10px;font-size:12px;color:#0a7a60">Nenhum módulo não visto — cronogramas totalmente compatíveis nesse quesito.</div>';
 
         h += c.jaVistoCount ? `<div style="margin-top:10px"><div style="font-size:12px;font-weight:600;color:#92400e;margin-bottom:4px">Módulo(s) já visto(s) pela jovem que vai mudar de turma (${c.jaVistoCount}) — a turma ainda vai dar, enquanto o contrato estaria ativo:</div><div>${c.jaVistoDetalhe.map(x=>`<span style="font-size:11px;background:#fef2f2;color:#991b1b;border:1px solid #fca5a555;border-radius:6px;padding:2px 6px;margin:0 4px 4px 0;display:inline-block">${nomeModuloMT(x.modulo)} (${_mtFmtData(x.data)})</span>`).join('')}</div></div>` : '';
 
         h += (c.proximasAulas && c.proximasAulas.length) ? `<div style="margin-top:10px"><div style="font-size:12px;font-weight:600;color:var(--mu);margin-bottom:4px">📅 Linha do tempo — próximas aulas na turma destino:</div><div style="border-left:2px solid var(--br);padding-left:10px">${c.proximasAulas.map(a=>`<div style="font-size:12px;margin-bottom:4px"><b>${a.fim?_mtFmtData(a.fim):'sem data'}</b> — ${nomeModuloMT(a.modulo)}</div>`).join('')}</div></div>` : '';
+
+        h += `<div style="margin-top:10px"><button onclick="abrirModalMT('${nomeEscapado}')" style="background:none;border:1px solid var(--br);border-radius:var(--rs);padding:4px 10px;font-size:11px;cursor:pointer;color:var(--blue)">🔍 Ver de-para de cronogramas</button></div>`;
 
         h += '</div>';
       });
