@@ -1677,6 +1677,22 @@ async function _mtJovensNaTurma(turmaId){
   }catch(e){ return null; }
 }
 
+function capacidadeTurmaMT(nomeTurma){
+  // Usa TURMAS_FIXAS (populado no sync) para achar sala/unidade/capacidade real, igual à Grade de Salas.
+  const grupo=TURMAS_FIXAS.filter(t=>t.nome==='Turma '+nomeTurma);
+  if(TURMAS_SEM_SALA.includes('Turma '+nomeTurma)){
+    return {semSalaFisica:true,jovens:grupo.reduce((s,t)=>s+(t.jovens||0),0),capacidade:null,livre:null,sala:null,unidade:null};
+  }
+  if(!grupo.length)return {semSalaFisica:false,jovens:null,capacidade:null,livre:null,sala:null,unidade:null,semDados:true};
+  let melhor=null;
+  grupo.forEach(t=>{
+    const cap=(unidades.find(u=>u.nome===(t.unidade||'Freguesia do Ó'))||{capacidade:32}).capacidade;
+    const livre=cap-(t.jovens||0);
+    if(!melhor||livre>melhor.livre)melhor={sala:t.sala,unidade:t.unidade||'Freguesia do Ó',capacidade:cap,jovens:t.jovens||0,livre};
+  });
+  return Object.assign({semSalaFisica:false},melhor);
+}
+
 async function analisarCenariosMT(){
   const el = document.getElementById('mt-resultado');
   const j = _mtJovemAtual;
