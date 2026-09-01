@@ -1733,13 +1733,13 @@ async function analisarCenariosMT(){
 
     const cronoOrigem = await cronogramaTurmaMT(turmaAtualInfo.id);
     const catchUpPorGrupo = gruposTecnicos.map(grupo=>{
-      const pendentes = grupo.filter(m=>curriculoJovem.has(m) && !jaVistoMT(m));
-      const comecouAlgo = grupo.some(m=>curriculoJovem.has(m) && (jaVistoMT(m) || statusPorModulo[m]==='ativo'));
-      if(!pendentes.length || !comecouAlgo) return {aplicavel:false, pendentes};
+      const emAndamento = grupo.filter(m=>curriculoJovem.has(m) && !jaVistoMT(m) && (statusPorModulo[m]==='ativo' || (cronoOrigem[m] && _mtSoData(cronoOrigem[m].inicio) && _mtSoData(cronoOrigem[m].inicio)<=hoje)));
+      if(!emAndamento.length) return {aplicavel:false, pendentes:[]};
       let maxFim=null;
-      pendentes.forEach(m=>{ const info=cronoOrigem[m]; const fim=_mtSoData(info&&info.fim); if(fim && (!maxFim||fim>maxFim)) maxFim=fim; });
-      return {aplicavel:true, pendentes, dataCatchUp:maxFim};
+      emAndamento.forEach(m=>{ const info=cronoOrigem[m]; const fim=_mtSoData(info&&info.fim); if(fim && (!maxFim||fim>maxFim)) maxFim=fim; });
+      return {aplicavel:true, pendentes:emAndamento, dataCatchUp:maxFim};
     });
+    function saberaMT(m){ if(jaVistoMT(m)) return true; const gi=grupoDoModulo[m]; if(gi===undefined) return false; const cu=catchUpPorGrupo[gi]; return !!(cu && cu.aplicavel && cu.pendentes.includes(m)); }
     let pisoUniversal = hoje;
     catchUpPorGrupo.forEach(cu=>{ if(cu.aplicavel && cu.dataCatchUp){ const p=new Date(cu.dataCatchUp.getTime()+86400000); if(p>pisoUniversal) pisoUniversal=p; } });
 
@@ -1775,7 +1775,7 @@ async function analisarCenariosMT(){
         const inicio = _mtSoData(info.inicio);
         const fim = _mtSoData(info.fim);
         if(!inicio) continue;
-        const visto = jaVistoMT(m);
+        const visto = saberaMT(m);
         if(inicio<=hoje){
           if(visto) continue;
           const gi = grupoDoModulo[m];
