@@ -1560,11 +1560,11 @@ async function buscarJovemMT(){
   try{
     let lista=[];
     if(/^\d+$/.test(q)){
-      const r=await fetch(`${DIRECTUS_URL}/items/user_apprenticeship_data/${q}?fields=id,Name,turma_id,empresa_id.account.name,empresa_id.Empresa,cohort_entrada,Modulos,Status_formacao&access_token=${TOKEN}`);
+      const r=await fetch(`${DIRECTUS_URL}/items/user_apprenticeship_data/${q}?fields=id,Name,turma_id,empresa_id.account.name,empresa_id.Empresa,cohort_entrada,Modulos,arco_id,Status_formacao&access_token=${TOKEN}`);
       if(r.ok){const d=(await r.json()).data;if(d)lista=[d];}
     }
     if(!lista.length){
-      const r=await fetch(`${DIRECTUS_URL}/items/user_apprenticeship_data?filter[Name][_contains]=${encodeURIComponent(q)}&filter[Status_formacao][_eq]=em_andamento&fields=id,Name,turma_id,empresa_id.account.name,empresa_id.Empresa,cohort_entrada,Modulos&limit=10&access_token=${TOKEN}`);
+      const r=await fetch(`${DIRECTUS_URL}/items/user_apprenticeship_data?filter[Name][_contains]=${encodeURIComponent(q)}&filter[Status_formacao][_eq]=em_andamento&fields=id,Name,turma_id,empresa_id.account.name,empresa_id.Empresa,cohort_entrada,Modulos,arco_id&limit=10&access_token=${TOKEN}`);
       if(r.ok)lista=(await r.json()).data||[];
     }
     _mtCandidatosBusca=lista;
@@ -1596,15 +1596,9 @@ async function turmasAtivasMT(){
   return data;
 }
 
-async function coberturaTurmaMT(turmaId){
-  const TOKEN=await obterTokenDirectus();
-  const r=await fetch(`${DIRECTUS_URL}/items/user_apprenticeship_data?filter[turma_id][_eq]=${turmaId}&filter[Status_formacao][_eq]=em_andamento&fields=id,Modulos&limit=50&access_token=${TOKEN}`);
-  if(!r.ok)return {modulos:[],jovens:0};
-  const lista=(await r.json()).data||[];
-  let melhor=[];
-  lista.forEach(j=>{const m=j.Modulos||[];if(m.length>melhor.length)melhor=m;});
-  return {modulos:melhor,jovens:lista.length};
-}
+async function modulosConcluidosMT(matriculaIds){if(!matriculaIds||!matriculaIds.length)return new Set();const TOKEN=await obterTokenDirectus();const r=await fetch(`${DIRECTUS_URL}/items/Matriculas?filter[id][_in]=${matriculaIds.join(',')}&filter[status][_eq]=concluido&fields=id,Modulos_id&limit=-1&access_token=${TOKEN}`);if(!r.ok)return new Set();const data=(await r.json()).data||[];return new Set(data.map(m=>m.Modulos_id).filter(Boolean));}
+async function matriculasConcluidasMapMT(matriculaIds){if(!matriculaIds||!matriculaIds.length)return{};const TOKEN=await obterTokenDirectus();const r=await fetch(`${DIRECTUS_URL}/items/Matriculas?filter[id][_in]=${matriculaIds.join(',')}&filter[status][_eq]=concluido&fields=id,Modulos_id&limit=-1&access_token=${TOKEN}`);if(!r.ok)return{};const data=(await r.json()).data||[];const mapa={};data.forEach(m=>{mapa[m.id]=m.Modulos_id;});return mapa;}
+async function coberturaTurmaMT(turmaId,arcoId){const TOKEN=await obterTokenDirectus();const filtroArco=arcoId?(`&filter[arco_id][_eq]=${arcoId}`):'';const r=await fetch(`${DIRECTUS_URL}/items/user_apprenticeship_data?filter[turma_id][_eq]=${turmaId}&filter[Status_formacao][_eq]=em_andamento${filtroArco}&fields=id,Modulos&limit=-1&access_token=${TOKEN}`);if(!r.ok)return{modulos:[],jovens:0};const lista=(await r.json()).data||[];const todosIds=[...new Set(lista.flatMap(j=>j.Modulos||[]))];if(!todosIds.length)return{modulos:[],jovens:lista.length};const mapa=await matriculasConcluidasMapMT(todosIds);let melhor=new Set();lista.forEach(j=>{const set=new Set((j.Modulos||[]).map(id=>mapa[id]).filter(Boolean));if(set.size>melhor.size)melhor=set;});return{modulos:[...melhor],jovens:lista.length};}
 
 function capacidadeTurmaMT(nomeTurma){
   // Usa TURMAS_FIXAS (populado no sync) para achar sala/unidade/capacidade real, igual à Grade de Salas.
@@ -1637,7 +1631,7 @@ async function analisarCenariosMT(){
     }
     const nomeAtual=normNomeTurma(turmaAtualInfo.Name);
     const diaAtual=turmaAtualInfo.dia_de_curso;
-    const jovemMods=new Set((j.Modulos||[]).map(Number));
+    const arcoIdAtual=j.arco_id||null;const jovemMods=await modulosConcluidosMT(j.Modulos||[]);const unidadeAtual=(function(){try{return capacidadeTurmaMT(nomeAtual).unidade;}catch(e){return null;}})();
 
     let h=`<div style="background:#eeefff;border:1px solid #b4b6fd;border-radius:var(--r);padding:12px 16px;margin-bottom:16px">
       <div style="font-size:16px;font-weight:800">${j.Name||'(sem nome)'}</div>
@@ -1655,7 +1649,7 @@ async function analisarCenariosMT(){
     for(const t of candidatas){
       const nome=normNomeTurma(t.Name);
       const cap=capacidadeTurmaMT(nome);
-      const cob=await coberturaTurmaMT(t.id);
+      if(unidadeAtual&&cap&&cap.unidade&&cap.unidade!==unidadeAtual)continue;const cob=await coberturaTurmaMT(t.id,arcoIdAtual);
       const turmaMods=new Set((cob.modulos||[]).map(Number));
       const gap=[...turmaMods].filter(m=>!jovemMods.has(m));
       const adiantado=[...jovemMods].filter(m=>!turmaMods.has(m));
@@ -1705,7 +1699,7 @@ cenarios.forEach(c=>{
       } else {
         vagaLabel=`✕ Sem vaga (${c.cap.jovens}/${c.cap.capacidade}j em ${c.cap.sala} · ${c.cap.unidade})`;
       }
-      h+=`<div style="background:${bgTop};border:1px solid ${corBorda}66;border-radius:var(--r);padding:12px 16px;margin-bottom:10px">
+      h+=`${(function(){try{var gap=c.gap||[];var adi=c.adiantado||[];var txt;if(gap.length===0){txt='✅ Consegue acompanhar sem perder conteúdo.';}else{txt='⚠️ Vai precisar repor '+gap.length+' aula(s) ('+gap.map(nomeModuloMT).join(', ')+'), estimativa de cerca de '+gap.length+' semana(s) no ritmo de ~1 módulo/semana.';}if(adi.length){txt+=' A turma ainda não chegou em '+adi.length+' conteúdo(s) que o jovem já viu — sem problema, só espera.';}return '<div style="margin-bottom:8px;font-size:13px;font-weight:600;padding:6px 8px;border-radius:6px;background:'+(gap.length===0?'#e8fff9':'#fffbeb')+'">'+txt+'</div>';}catch(e){return '';}})()}<div style="background:${bgTop};border:1px solid ${corBorda}66;border-radius:var(--r);padding:12px 16px;margin-bottom:10px">
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
           <div><b style="font-size:14px">${c.nome}</b> <span style="font-size:11px;color:var(--mu);text-transform:capitalize;margin-left:6px">${c.dia}</span></div>
           <span style="font-size:11px;font-weight:600">${vagaLabel}</span>
