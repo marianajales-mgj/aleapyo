@@ -1544,180 +1544,297 @@ function limparEntradasPassadas(){
 
 // ── MUDANÇA DE TURMA ──
 const MODULO_TEMA_MT={5:"Marketing",6:"Empreendedor 1 a 1",7:"Projeto de vida",8:"Lógica de programação",10:"Privacidade de Dados",11:"Planejamento de carreira",15:"IA e o impacto no mercado do trabalho",17:"Direito trabalhistas + Lei do Jovem aprendiz",21:"Relacionamentos interpessoais",24:"Finanças corporativas",25:"Ética",31:"Inovação no dia a dia do trabalho",32:"Planejamento de um negócio",33:"Saúde no trabalho",34:"Raciocínio analítico",36:"Gestão de tempo e produtividade",38:"Introdução a estatística",40:"Planejamento financeiro",50:"Fundamentos e base de estatísticas",58:"Feedback assertivo",94:"Métodos Ágeis",97:"Construção de hábitos",98:"Aprendendo a aprender",101:"Pensamento sistêmico",251:"Negociação e comunicação empresarial",310:"Gestão emocional",311:"Protagonismo e autoliderança",312:"Análise de Dados com SQL - Parte 1/4",313:"Visualização de dados - Parte 1/4",314:"Análise de Dados com SQL - Parte 2/4",315:"Visualização de dados - Parte 2/4",316:"Análise de Dados com SQL - Parte 3/4",317:"Análise de Dados com SQL - Parte 4/4",318:"Visualização de dados - Parte 3/4",319:"Projeto Empreendedor - Entrega 1",320:"Projeto Empreendedor - Entrega 2",321:"Projeto Empreendedor - Entrega 3 - Parte 1",322:"Projeto Empreendedor - Entrega 4 - Parte 1",323:"Projeto Empreendedor - Entrega 5",325:"Visualização de dados - Parte 4/4",328:"Recursos Humanos",329:"Google Sheets - Parte 1",330:"Excel - Parte 1",331:"Google Sheets - Parte 2",332:"Excel - Parte 2",333:"Google Sheets - Parte 3",334:"Google Sheets - Parte 4",335:"Excel - Parte 3",336:"Excel - Parte 4",337:"Diversidade, equidade e inclusão",341:"Gestão de Projetos"};
-function nomeModuloMT(id){return MODULO_TEMA_MT[id]||('Módulo #'+id);}
+function nomeModuloMT(id){ return (NOMES_MODULO_MT_LIVE[id]) || MODULO_TEMA_MT[id] || ('Módulo '+id); }
+let NOMES_MODULO_MT_LIVE = {};
+let _mtCandidatosBusca = [];
+let _mtJovemAtual = null;
+let _mtTurmasAtivasCache = null;
 
-let _mtCandidatosBusca=[];
-let _mtJovemAtual=null;
-let _mtTurmasAtivasCache=null;
+const MT_GRUPO_FERRAMENTAS_MS = [326,330,332,335,336];
+const MT_GRUPO_FERRAMENTAS_GOOGLE = [327,329,331,333,334];
+const MT_GRUPO_ESTATISTICA = [50,34,312,314,316,317,313,315,318,325,8];
+const MT_MODULO_PROJETO_FINAL = 319;
+
+function _mtSoData(d){ if(!d) return null; const s=(d instanceof Date)?d.toISOString():d; return new Date(s.slice(0,10)+'T00:00:00.000Z'); }
+function _mtFmtData(d){ if(!d) return ''; const dt=(d instanceof Date)?d:new Date(d); return String(dt.getUTCDate()).padStart(2,'0')+'/'+String(dt.getUTCMonth()+1).padStart(2,'0')+'/'+dt.getUTCFullYear(); }
+
+async function _mtCarregarNomesModulos(ids){
+  try{
+    const TOKEN = await obterTokenDirectus();
+    const params = new URLSearchParams();
+    params.set('filter[id][_in]', ids.join(','));
+    params.set('fields','id,Nome');
+    params.set('limit','-1');
+    const r = await fetch(`${DIRECTUS_URL}/items/Modulos?${params.toString()}`, {headers:{Authorization:`Bearer ${TOKEN}`}});
+    if(!r.ok) return;
+    const j = await r.json();
+    (j.data||[]).forEach(m=>{ NOMES_MODULO_MT_LIVE[m.id]=m.Nome; });
+  }catch(e){}
+}
 
 async function buscarJovemMT(){
-  const el=document.getElementById('mt-resultado');
-  const q=(document.getElementById('mt-busca').value||'').trim();
-  if(!q){alert('Informe o ID da matrícula ou o nome do jovem.');return;}
-  el.innerHTML='<div style="color:var(--mu);font-size:12px;padding:8px 0">Buscando…</div>';
-  const TOKEN=await obterTokenDirectus();
-  if(!TOKEN){el.innerHTML='<div class="alerta-err">⚠ Sem token do backoffice.</div>';return;}
+  const el = document.getElementById('mt-resultado');
+  const q = (document.getElementById('mt-busca').value||'').trim();
+  if(!q){ alert('Informe o ID da matrícula ou o nome do jovem.'); return; }
+  el.innerHTML = '<div style="color:var(--mu);font-size:13px;padding:8px 0">Buscando...</div>';
+  const TOKEN = await obterTokenDirectus();
+  if(!TOKEN){ el.innerHTML = '<div class="alerta err">Sem token do backoffice.</div>'; return; }
   try{
-    let lista=[];
+    let lista = [];
+    const camposComuns = 'id,Name,turma_id,empresa_id.account.name,empresa_id.Empresa,cohort_entrada,Modulos,arco_id,Status_formacao,user.first_name,user.last_name,Início de contrato,Fim de contrato';
     if(/^\d+$/.test(q)){
-      const r=await fetch(`${DIRECTUS_URL}/items/user_apprenticeship_data/${q}?fields=id,Name,turma_id,empresa_id.account.name,empresa_id.Empresa,cohort_entrada,Modulos,arco_id,Status_formacao&access_token=${TOKEN}`);
-      if(r.ok){const d=(await r.json()).data;if(d)lista=[d];}
+      const params = new URLSearchParams();
+      params.set('filter[id][_eq]', q);
+      params.set('fields', camposComuns);
+      const r = await fetch(`${DIRECTUS_URL}/items/user_apprenticeship_data?${params.toString()}`, {headers:{Authorization:`Bearer ${TOKEN}`}});
+      if(r.ok){ const d=(await r.json()).data; if(d) lista=d; }
     }
     if(!lista.length){
-      const r=await fetch(`${DIRECTUS_URL}/items/user_apprenticeship_data?filter[Name][_contains]=${encodeURIComponent(q)}&filter[Status_formacao][_eq]=em_andamento&fields=id,Name,turma_id,empresa_id.account.name,empresa_id.Empresa,cohort_entrada,Modulos,arco_id&limit=10&access_token=${TOKEN}`);
-      if(r.ok)lista=(await r.json()).data||[];
+      const params = new URLSearchParams();
+      params.set('filter[Name][_contains]', q);
+      params.set('filter[Status_formacao][_eq]', 'em_andamento');
+      params.set('fields', camposComuns);
+      const r = await fetch(`${DIRECTUS_URL}/items/user_apprenticeship_data?${params.toString()}`, {headers:{Authorization:`Bearer ${TOKEN}`}});
+      if(r.ok) lista = (await r.json()).data || [];
     }
-    _mtCandidatosBusca=lista;
-    if(!lista.length){el.innerHTML='<div class="alerta-err">⚠ Nenhum jovem em andamento encontrado com esse ID ou nome.</div>';return;}
+    _mtCandidatosBusca = lista;
+    if(!lista.length){ el.innerHTML = '<div class="alerta err">Nenhum jovem em andamento encontrado com esse ID ou nome.</div>'; return; }
     if(lista.length>1){
-      el.innerHTML='<div style="font-size:11px;font-weight:700;color:var(--mu);margin-bottom:8px">Mais de um resultado — selecione:</div>'+
-        lista.map((j,i)=>`<div class="entrada-card" style="cursor:pointer;padding:10px 14px" onclick="selecionarJovemMT(${i})"><b>${j.Name||'(sem nome)'}</b><span style="color:var(--mu);font-size:11px;margin-left:8px">matrícula ${j.id} · ${j.empresa_id&&j.empresa_id.account?j.empresa_id.account.name:(j.empresa_id?j.empresa_id.Empresa:'—')}</span></div>`).join('');
+      el.innerHTML = '<div style="font-size:13px;font-weight:600;color:var(--mu);margin-bottom:8px">Mais de um resultado, selecione:</div>' + lista.map((c,i)=>{
+        const nomeC = (c.user && c.user[0]) ? `${c.user[0].first_name||''} ${c.user[0].last_name||''}`.trim() : (c.Name||'(sem nome)');
+        return `<div style="padding:8px;border:1px solid var(--br);border-radius:8px;margin-bottom:6px;cursor:pointer" onclick="selecionarJovemMT(${i})"><b>${nomeC}</b> — matrícula ${c.id}</div>`;
+      }).join('');
       return;
     }
     await selecionarJovemMT(0);
   }catch(e){
-    el.innerHTML=`<div class="alerta-err">⚠ Erro ao buscar no backoffice: ${e.message}</div>`;
+    el.innerHTML = `<div class="alerta err">Erro ao buscar no backoffice: ${e.message}</div>`;
   }
 }
 
-async function selecionarJovemMT(i){
-  _mtJovemAtual=_mtCandidatosBusca[i];
-  await analisarCenariosMT();
-}
+async function selecionarJovemMT(i){ _mtJovemAtual = _mtCandidatosBusca[i]; await analisarCenariosMT(); }
 
 async function turmasAtivasMT(){
-  if(_mtTurmasAtivasCache)return _mtTurmasAtivasCache;
-  const TOKEN=await obterTokenDirectus();
-  const r=await fetch(`${DIRECTUS_URL}/items/Turmas?filter[Status_new][_eq]=ativa&filter[Name][_starts_with]=Turma&filter[dia_de_curso][_nnull]=true&fields=id,Name,dia_de_curso,data_de_inicio,data_de_termino,program_lead.first_name,program_lead.last_name&limit=-1&access_token=${TOKEN}`);
-  if(!r.ok)throw new Error('HTTP '+r.status+' ao buscar turmas');
-  const data=(await r.json()).data||[];
-  data.forEach(t=>{if(t.dia_de_curso)t.dia_de_curso=DIAS_MAP[t.dia_de_curso]||t.dia_de_curso;});
-  _mtTurmasAtivasCache=data;
-  return data;
+  if(_mtTurmasAtivasCache) return _mtTurmasAtivasCache;
+  const TOKEN = await obterTokenDirectus();
+  const params = new URLSearchParams();
+  params.set('filter[Status_new][_eq]','ativa');
+  params.set('filter[Name][_starts_with]','Turma');
+  params.set('filter[dia_de_curso][_nnull]','true');
+  params.set('fields','id,Name,dia_de_curso,data_de_inicio,data_de_termino');
+  params.set('limit','-1');
+  const r = await fetch(`${DIRECTUS_URL}/items/Turmas?${params.toString()}`, {headers:{Authorization:`Bearer ${TOKEN}`}});
+  if(!r.ok) throw new Error('HTTP '+r.status+' ao buscar turmas');
+  const d = (await r.json()).data || [];
+  _mtTurmasAtivasCache = d;
+  return d;
 }
 
-async function modulosConcluidosMT(matriculaIds){if(!matriculaIds||!matriculaIds.length)return new Set();const TOKEN=await obterTokenDirectus();const r=await fetch(`${DIRECTUS_URL}/items/Matriculas?filter[id][_in]=${matriculaIds.join(',')}&filter[status][_eq]=concluido&fields=id,Modulos_id&limit=-1&access_token=${TOKEN}`);if(!r.ok)return new Set();const data=(await r.json()).data||[];return new Set(data.map(m=>m.Modulos_id).filter(Boolean));}
-async function matriculasConcluidasMapMT(matriculaIds){if(!matriculaIds||!matriculaIds.length)return{};const TOKEN=await obterTokenDirectus();const r=await fetch(`${DIRECTUS_URL}/items/Matriculas?filter[id][_in]=${matriculaIds.join(',')}&filter[status][_eq]=concluido&fields=id,Modulos_id&limit=-1&access_token=${TOKEN}`);if(!r.ok)return{};const data=(await r.json()).data||[];const mapa={};data.forEach(m=>{mapa[m.id]=m.Modulos_id;});return mapa;}
-async function cronogramaTurmaMT(turmaId){try{const TOKEN=await obterTokenDirectus();const params=new URLSearchParams();params.set('filter[cronograma_id][turma_id][_eq]',turmaId);params.set('fields','cronograma_id.modulo_id,cronograma_id.Data de início,cronograma_id.Data de encerramento,cronograma_id.tipo');params.set('limit','-1');const r=await fetch(`${DIRECTUS_URL}/items/Matriculas?${params.toString()}`,{headers:{Authorization:`Bearer ${TOKEN}`}});const j=await r.json();const map={};(j.data||[]).forEach(m=>{const c=m.cronograma_id;if(!c||c.tipo!=='modulo'||!c.modulo_id)return;const fim=c['Data de encerramento']?new Date(c['Data de encerramento']):null;const inicio=c['Data de início']?new Date(c['Data de início']):null;if(!map[c.modulo_id]||(fim&&(!map[c.modulo_id].fim||fim>map[c.modulo_id].fim))){map[c.modulo_id]={inicio,fim};}});return map;}catch(e){return {};}}
-async function coberturaTurmaMT(turmaId,arcoId){const TOKEN=await obterTokenDirectus();const filtroArco=arcoId?(`&filter[arco_id][_eq]=${arcoId}`):'';const r=await fetch(`${DIRECTUS_URL}/items/user_apprenticeship_data?filter[turma_id][_eq]=${turmaId}&filter[Status_formacao][_eq]=em_andamento${filtroArco}&fields=id,Modulos&limit=-1&access_token=${TOKEN}`);if(!r.ok)return{modulos:[],jovens:0};const lista=(await r.json()).data||[];const todosIds=[...new Set(lista.flatMap(j=>j.Modulos||[]))];if(!todosIds.length)return{modulos:[],jovens:lista.length};const mapa=await matriculasConcluidasMapMT(todosIds);let melhor=new Set();lista.forEach(j=>{const set=new Set((j.Modulos||[]).map(id=>mapa[id]).filter(Boolean));if(set.size>melhor.size)melhor=set;});return{modulos:[...melhor],jovens:lista.length};}
+async function _mtMatriculasDaJovem(matriculaIds){
+  if(!matriculaIds || !matriculaIds.length) return [];
+  const TOKEN = await obterTokenDirectus();
+  const params = new URLSearchParams();
+  params.set('filter[id][_in]', matriculaIds.join(','));
+  params.set('fields','id,Modulos_id,status');
+  params.set('limit','-1');
+  const r = await fetch(`${DIRECTUS_URL}/items/Matriculas?${params.toString()}`, {headers:{Authorization:`Bearer ${TOKEN}`}});
+  if(!r.ok) return [];
+  return (await r.json()).data || [];
+}
 
-function capacidadeTurmaMT(nomeTurma){
-  // Usa TURMAS_FIXAS (populado no sync) para achar sala/unidade/capacidade real, igual à Grade de Salas.
-  const grupo=TURMAS_FIXAS.filter(t=>t.nome==='Turma '+nomeTurma);
-  if(TURMAS_SEM_SALA.includes('Turma '+nomeTurma)){
-    return {semSalaFisica:true,jovens:grupo.reduce((s,t)=>s+(t.jovens||0),0),capacidade:null,livre:null,sala:null,unidade:null};
-  }
-  if(!grupo.length)return {semSalaFisica:false,jovens:null,capacidade:null,livre:null,sala:null,unidade:null,semDados:true};
-  let melhor=null;
-  grupo.forEach(t=>{
-    const cap=(unidades.find(u=>u.nome===(t.unidade||'Freguesia do Ó'))||{capacidade:32}).capacidade;
-    const livre=cap-(t.jovens||0);
-    if(!melhor||livre>melhor.livre)melhor={sala:t.sala,unidade:t.unidade||'Freguesia do Ó',capacidade:cap,jovens:t.jovens||0,livre};
-  });
-  return Object.assign({semSalaFisica:false},melhor);
+async function cronogramaTurmaMT(turmaId){
+  try{
+    const TOKEN = await obterTokenDirectus();
+    const params = new URLSearchParams();
+    params.set('filter[cronograma_id][turma_id][_eq]', turmaId);
+    params.set('fields','cronograma_id.modulo_id,cronograma_id.Data de início,cronograma_id.Data de encerramento,cronograma_id.tipo');
+    params.set('limit','-1');
+    const r = await fetch(`${DIRECTUS_URL}/items/Matriculas?${params.toString()}`, {headers:{Authorization:`Bearer ${TOKEN}`}});
+    const j = await r.json();
+    const map = {};
+    (j.data||[]).forEach(m=>{
+      const c = m.cronograma_id;
+      if(!c || c.tipo!=='modulo' || !c.modulo_id) return;
+      const fim = c['Data de encerramento'] ? new Date(c['Data de encerramento']) : null;
+      const inicio = c['Data de início'] ? new Date(c['Data de início']) : null;
+      if(!map[c.modulo_id] || (fim && (!map[c.modulo_id].fim || fim>map[c.modulo_id].fim))){ map[c.modulo_id]={inicio,fim}; }
+    });
+    return map;
+  }catch(e){ return {}; }
+}
+
+async function _mtJovensNaTurma(turmaId){
+  try{
+    const TOKEN = await obterTokenDirectus();
+    const params = new URLSearchParams();
+    params.set('filter[turma_id][_eq]', turmaId);
+    params.set('filter[Status_formacao][_eq]','em_andamento');
+    params.set('fields','id');
+    params.set('limit','-1');
+    const r = await fetch(`${DIRECTUS_URL}/items/user_apprenticeship_data?${params.toString()}`, {headers:{Authorization:`Bearer ${TOKEN}`}});
+    if(!r.ok) return null;
+    return ((await r.json()).data||[]).length;
+  }catch(e){ return null; }
 }
 
 async function analisarCenariosMT(){
-  const el=document.getElementById('mt-resultado');
-  const j=_mtJovemAtual;
-  if(!j)return;
-  el.innerHTML='<div style="color:var(--mu);font-size:12px;padding:8px 0">Carregando cronograma atual e sincronizando com a grade de salas…</div>';
+  const el = document.getElementById('mt-resultado');
+  const j = _mtJovemAtual;
+  if(!j) return;
+  el.innerHTML = '<div style="color:var(--mu);font-size:13px;padding:8px 0">Carregando cronograma atual e sincronizando com a grade de salas...</div>';
   try{
-    if(!TURMAS_FIXAS.length)await carregarDoDirectus();
-    const todasTurmas=await turmasAtivasMT();
-    const turmaAtualInfo=todasTurmas.find(t=>String(t.id)===String(j.turma_id));
-    if(!turmaAtualInfo){
-      el.innerHTML='<div class="alerta-err">⚠ Não encontrei a turma atual desse jovem no backoffice (turma_id '+j.turma_id+'). Verifique se a turma ainda está ativa.</div>';
+    if(!TURMAS_FIXAS.length) await carregarDoDirectus();
+    const todasTurmas = await turmasAtivasMT();
+    const turmaAtualInfo = todasTurmas.find(t=>String(t.id)===String(j.turma_id));
+    if(!turmaAtualInfo){ el.innerHTML = `<div class="alerta err">Não encontrei a turma atual desse jovem no backoffice (turma_id ${j.turma_id}). Verifique se a turma ainda está ativa.</div>`; return; }
+    const nomeAtual = normNomeTurma(turmaAtualInfo.Name);
+    const diaAtual = turmaAtualInfo.dia_de_curso;
+    const capAtual = capacidadeTurmaMT(nomeAtual);
+    const nomeCompleto = (j.user && j.user[0]) ? `${j.user[0].first_name||''} ${j.user[0].last_name||''}`.trim() : (j.Name || null);
+
+    if(capAtual.semSalaFisica){
+      el.innerHTML = `<div style="margin-bottom:12px"><b>${nomeCompleto||'(sem nome)'}</b><div style="font-size:12px;color:var(--mu)">matrícula ${j.id}</div></div><div class="alerta">Essa jovem está no Ecossistema Plus — mudança de turma não se aplica a turmas do Ecossistema Plus.</div>`;
       return;
     }
-    const nomeAtual=normNomeTurma(turmaAtualInfo.Name);
-    const diaAtual=turmaAtualInfo.dia_de_curso;
-    const arcoIdAtual=j.arco_id||null;const jovemMods=await modulosConcluidosMT(j.Modulos||[]);const unidadeAtual=(function(){try{return capacidadeTurmaMT(nomeAtual).unidade;}catch(e){return null;}})();
+    const unidadeAtual = capAtual.unidade;
+    const arcoIdAtual = j.arco_id || null;
 
-    let h=`<div style="background:#eeefff;border:1px solid #b4b6fd;border-radius:var(--r);padding:12px 16px;margin-bottom:16px">
-      <div style="font-size:16px;font-weight:800">${j.Name||'(sem nome)'}</div>
-      <div style="font-size:11px;color:var(--mu);margin-top:2px">matrícula ${j.id} · ${j.empresa_id&&j.empresa_id.account?j.empresa_id.account.name:(j.empresa_id?j.empresa_id.Empresa:'—')} · turma atual <b>${nomeAtual}</b> (${diaAtual}) · ${jovemMods.size} módulo(s) concluído(s)</div>
-    </div>`;
+    const matriculas = await _mtMatriculasDaJovem(j.Modulos||[]);
+    const statusPorModulo = {};
+    matriculas.forEach(m=>{ statusPorModulo[m.Modulos_id] = m.status; });
+    const jaVistoMT = (m) => statusPorModulo[m]==='concluido' || statusPorModulo[m]==='concluido_com_atraso';
+    const curriculoJovem = new Set(matriculas.map(m=>m.Modulos_id));
+    await _mtCarregarNomesModulos(Array.from(curriculoJovem));
 
-    const candidatas=todasTurmas.filter(t=>t.dia_de_curso&&t.dia_de_curso!==diaAtual);
-    if(!candidatas.length){
-      h+='<div class="alerta-err">⚠ Não há turmas ativas em outro dia de curso no momento. Mudança de turma não é possível agora.</div>';
-      el.innerHTML=h;
-      return;
-    }
+    const hoje = _mtSoData(new Date());
+    const fimContrato = _mtSoData(j['Fim de contrato']);
+    const modulosConcluidosCount = matriculas.filter(m=>jaVistoMT(m.Modulos_id)).length;
 
-    const cenarios=[];
-    for(const t of candidatas){
-      const nome=normNomeTurma(t.Name);
-      const cap=capacidadeTurmaMT(nome);
-      if(unidadeAtual&&cap&&cap.unidade&&cap.unidade!==unidadeAtual)continue;const cob=await coberturaTurmaMT(t.id,arcoIdAtual);
-      const turmaMods=new Set((cob.modulos||[]).map(Number));
-      const gap=[...turmaMods].filter(m=>!jovemMods.has(m));
-      const adiantado=[...jovemMods].filter(m=>!turmaMods.has(m));
-      const cronoMap=await cronogramaTurmaMT(t.id);const agora=new Date();const gapClassificado=gap.map(m=>{const info=cronoMap[m];const fim=info&&info.fim?info.fim:null;return {modulo:m,fim,passado:!!(fim&&fim<agora)};});const gapPassado=gapClassificado.filter(g=>g.passado);const gapFuturo=gapClassificado.filter(g=>!g.passado);const proximasAulas=Object.keys(cronoMap).map(k=>({modulo:Number(k),inicio:cronoMap[k].inicio,fim:cronoMap[k].fim})).filter(a=>a.fim&&a.fim>=agora).sort((a,b)=>a.fim-b.fim).slice(0,6);const temVaga=cap.semSalaFisica?true:(cap.semDados?null:(cap.livre>0));
-      cenarios.push({nome,dia:t.dia_de_curso,cap,gap,adiantado,temVaga,jovensNaTurma:cob.jovens,gapPassado,gapFuturo,proximasAulas});
-    }
+    const grupoFerramentas = curriculoJovem.has(329) && !curriculoJovem.has(330) ? MT_GRUPO_FERRAMENTAS_GOOGLE : MT_GRUPO_FERRAMENTAS_MS;
+    const gruposTecnicos = [grupoFerramentas, MT_GRUPO_ESTATISTICA];
+    const grupoDoModulo = {};
+    gruposTecnicos.forEach((g,gi)=>g.forEach(m=>grupoDoModulo[m]=gi));
 
-    const diaPref=document.getElementById('mt-dia-pref')?document.getElementById('mt-dia-pref').value:'';
-cenarios.sort((a,b)=>{
-  const va=a.temVaga===true?0:a.temVaga===null?1:2;
-  const vb=b.temVaga===true?0:b.temVaga===null?1:2;
-  if(va!==vb)return va-vb;
-  if(diaPref){
-    const pa=a.dia===diaPref?0:1;
-    const pb=b.dia===diaPref?0:1;
-    if(pa!==pb)return pa-pb;
-  }
-  if(a.gap.length!==b.gap.length)return a.gap.length-b.gap.length;
-  const la=a.cap.semSalaFisica?Infinity:(a.cap.livre==null?-1:a.cap.livre);
-  const lb=b.cap.semSalaFisica?Infinity:(b.cap.livre==null?-1:b.cap.livre);
-  return lb-la;
-});
+    const cronoOrigem = await cronogramaTurmaMT(turmaAtualInfo.id);
+    const catchUpPorGrupo = gruposTecnicos.map(grupo=>{
+      const pendentes = grupo.filter(m=>curriculoJovem.has(m) && !jaVistoMT(m));
+      const comecouAlgo = grupo.some(m=>curriculoJovem.has(m) && (jaVistoMT(m) || statusPorModulo[m]==='ativo'));
+      if(!pendentes.length || !comecouAlgo) return {aplicavel:false, pendentes};
+      let maxFim=null;
+      pendentes.forEach(m=>{ const info=cronoOrigem[m]; const fim=_mtSoData(info&&info.fim); if(fim && (!maxFim||fim>maxFim)) maxFim=fim; });
+      return {aplicavel:true, pendentes, dataCatchUp:maxFim};
+    });
+    let pisoUniversal = hoje;
+    catchUpPorGrupo.forEach(cu=>{ if(cu.aplicavel && cu.dataCatchUp){ const p=new Date(cu.dataCatchUp.getTime()+86400000); if(p>pisoUniversal) pisoUniversal=p; } });
 
-const comVaga=cenarios.filter(c=>c.temVaga===true);
-if(!comVaga.length){
-  h+='<div class="alerta-err" style="font-size:14px;padding:14px 16px;margin-bottom:14px"><b>❌ Mudança de turma não é possível no momento.</b><br>Nenhuma turma em outro dia de curso tem vaga disponível agora.</div>';
-} else {
-  const rec=comVaga[0];
-  const gapTxt=rec.gap.length?(rec.gap.length+' módulo(s) que o jovem ainda não viu'):'nenhum módulo perdido';
-  const vagaTxt=rec.cap.semSalaFisica?'Ecossistema Plus (sem sala física, sem limite conhecido)':(rec.cap.livre+' vaga(s) livre(s) em '+rec.cap.sala+' · '+rec.cap.unidade);
-  let diaNote='';
-  if(diaPref&&rec.dia!==diaPref){
-    diaNote='<div style="margin-top:6px;font-size:11px">Nenhuma turma com vaga no dia preferido ('+diaPref+'); a melhor opção disponível caiu em outro dia.</div>';
-  }
-  h+='<div class="alerta-ok" style="font-size:14px;padding:14px 16px;margin-bottom:14px"><b>✅ Mudança de turma é possível.</b><br>Recomendação: <b>'+rec.nome+'</b> ('+rec.dia+') — '+vagaTxt+', '+gapTxt+'.'+diaNote+'</div>';
-  h+='<div style="font-size:11px;color:var(--mu);margin-bottom:10px">Outros cenários com vaga, do mais pro menos compatível:</div>';
-}
+    const status319 = statusPorModulo[MT_MODULO_PROJETO_FINAL];
+    const jovemJaComecou319 = !!(status319 && status319!=='nao_iniciado');
 
-cenarios.forEach(c=>{
-      const corBorda=c.temVaga===true?(c.gap.length===0?'#35dcb2':'#f2cf6b'):'#fca5a5';
-      const bgTop=c.temVaga===true?(c.gap.length===0?'#e8fff9':'#fffbeb'):'#fef2f2';
-      let vagaLabel;
-      if(c.temVaga===true){
-        vagaLabel=c.cap.semSalaFisica?'✓ Ecossistema Plus (sem sala física, sem limite conhecido)':`✓ ${c.cap.livre}j livre(s) em ${c.cap.sala} · ${c.cap.unidade}`;
-      } else if(c.temVaga===null){
-        vagaLabel='? Sem dados de sala sincronizados para esta turma — sincronize a Grade de Salas';
-      } else {
-        vagaLabel=`✕ Sem vaga (${c.cap.jovens}/${c.cap.capacidade}j em ${c.cap.sala} · ${c.cap.unidade})`;
-      }
-      h+=`${(function(){try{var temDatas=Array.isArray(c.gapPassado)&&Array.isArray(c.gapFuturo);var gap=c.gap||[];var adi=c.adiantado||[];var txt;if(!temDatas){if(gap.length===0){txt='✅ Consegue acompanhar sem perder conteúdo.';}else{txt='⚠️ Vai precisar repor '+gap.length+' aula(s) ('+gap.map(nomeModuloMT).join(', ')+'), estimativa de cerca de '+gap.length+' semana(s) no ritmo de ~1 módulo/semana.';}}else if(c.gapPassado.length===0){txt='✅ Consegue acompanhar sem perder conteúdo.';if(c.gapFuturo.length>0){txt+=' '+c.gapFuturo.length+' módulo(s) ainda vai(ão) acontecer normalmente na nova turma.';}}else{var datasTxt=c.gapPassado.map(function(g){return nomeModuloMT(g.modulo)+(g.fim?' (encerrou '+g.fim.toLocaleDateString('pt-BR')+')':'');}).join(', ');txt='⚠️ Vai precisar repor '+c.gapPassado.length+' aula(s) já encerrada(s): '+datasTxt+'.';if(c.gapFuturo.length>0){txt+=' Outro(s) '+c.gapFuturo.length+' módulo(s) ainda vai(ão) acontecer normalmente, sem necessidade de reposição.';}}if(adi.length){txt+=' A turma ainda não chegou em '+adi.length+' conteúdo(s) que o jovem já viu — sem problema, só espera.';}var corQtd=temDatas?c.gapPassado.length:gap.length;return '<div style="margin-bottom:8px;font-size:13px;font-weight:600;padding:6px 8px;border-radius:6px;background:'+(corQtd===0?'#e8fff9':'#fffbeb')+'">'+txt+'</div>';}catch(e){return '';}})()}<div style="background:${bgTop};border:1px solid ${corBorda}66;border-radius:var(--r);padding:12px 16px;margin-bottom:10px">
-        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
-          <div><b style="font-size:14px">${c.nome}</b> <span style="font-size:11px;color:var(--mu);text-transform:capitalize;margin-left:6px">${c.dia}</span></div>
-          <span style="font-size:11px;font-weight:600">${vagaLabel}</span>
-        </div>
-        <div style="margin-top:8px;font-size:11px;color:var(--mu)">${c.jovensNaTurma} jovem(ns) atualmente na turma (referência de cronograma)</div>
-        ${c.gap.length?`<div style="margin-top:8px"><div style="font-size:10px;font-weight:700;color:#856404;margin-bottom:4px">⚠ Conteúdo que o jovem perderia (${c.gap.length}) — a turma já viu e ele não:</div>${c.gap.map(m=>`<span style="font-size:10px;background:#fffbeb;color:#856404;border:1px solid #fcd34d55;border-radius:99px;padding:2px 8px;margin:0 3px 3px 0;display:inline-block">${nomeModuloMT(m)}</span>`).join('')}</div>`:`<div style="margin-top:8px;font-size:11px;color:#0a7a60">✓ Nenhum conteúdo perdido — cronogramas totalmente compatíveis.</div>`}
-        ${c.adiantado.length?`<div style="margin-top:8px"><div style="font-size:10px;font-weight:700;color:var(--mu);margin-bottom:4px">Conteúdo que o jovem já viu e a turma ainda não chegou lá (${c.adiantado.length}) — sem problema, só aguarda:</div>${c.adiantado.map(m=>`<span style="font-size:10px;background:#f5f5f2;color:var(--mu);border:1px solid var(--br);border-radius:99px;padding:2px 8px;margin:0 3px 3px 0;display:inline-block">${nomeModuloMT(m)}</span>`).join('')}</div>`:''}
-      </div>${(c.proximasAulas&&c.proximasAulas.length)?`<div style="margin-top:10px"><div style="font-size:12px;font-weight:600;color:var(--mu);margin-bottom:4px">📅 Linha do tempo — próximas aulas na turma destino:</div><div style="border-left:2px solid var(--br);padding-left:10px">${c.proximasAulas.map(a=>{const passadoMk=(c.gapPassado||[]).some(g=>g.modulo===a.modulo);return `<div style="font-size:12px;margin-bottom:4px"><b>${a.fim?a.fim.toLocaleDateString('pt-BR'):'sem data'}</b> — ${nomeModuloMT(a.modulo)}${passadoMk?' <span style="color:#b45309">(reposição)</span>':''}</div>`;}).join('')}</div></div>`:''}`;
+    const candidatas = todasTurmas.filter(t=>{
+      if(String(t.id)===String(turmaAtualInfo.id)) return false;
+      if(t.dia_de_curso===diaAtual) return false;
+      const nome = normNomeTurma(t.Name);
+      const cap = capacidadeTurmaMT(nome);
+      if(cap.semSalaFisica) return false;
+      if(!cap.unidade || cap.unidade!==unidadeAtual) return false;
+      return true;
     });
 
-    el.innerHTML=h;
+    const cenarios = [];
+    for(const t of candidatas){
+      const nome = normNomeTurma(t.Name);
+      const cap = capacidadeTurmaMT(nome);
+      const temVaga = cap.semDados ? null : (cap.livre>0);
+      const cronoMap = await cronogramaTurmaMT(t.id);
+
+      const info319 = cronoMap[MT_MODULO_PROJETO_FINAL];
+      const inicio319 = info319 ? _mtSoData(info319.inicio) : null;
+      if(jovemJaComecou319 || (inicio319 && inicio319<=hoje)) continue;
+
+      let naoVistoCount=0, jaVistoCount=0, ultimoConflito=null, bloqueadoTecnico=null;
+      const naoVistoDetalhe=[], jaVistoDetalhe=[];
+      for(const [modId, info] of Object.entries(cronoMap)){
+        const m = Number(modId);
+        if(!curriculoJovem.has(m)) continue;
+        const inicio = _mtSoData(info.inicio);
+        const fim = _mtSoData(info.fim);
+        if(!inicio) continue;
+        const visto = jaVistoMT(m);
+        if(inicio<=hoje){
+          if(visto) continue;
+          const gi = grupoDoModulo[m];
+          if(gi!==undefined){
+            const cu = catchUpPorGrupo[gi];
+            if(cu && cu.aplicavel && cu.pendentes.includes(m)) continue;
+            bloqueadoTecnico = {modulo:m};
+            break;
+          } else {
+            naoVistoCount++;
+            naoVistoDetalhe.push({modulo:m, data:info.fim});
+          }
+        } else if(visto && inicio<=fimContrato){
+          jaVistoCount++;
+          jaVistoDetalhe.push({modulo:m, data:info.inicio});
+          if(!ultimoConflito || (fim && fim>ultimoConflito)) ultimoConflito=fim;
+        }
+      }
+      if(bloqueadoTecnico) continue;
+
+      let melhorDia = pisoUniversal;
+      if(ultimoConflito){ const p=new Date(ultimoConflito.getTime()+86400000); if(p>melhorDia) melhorDia=p; }
+
+      const diferenca = naoVistoCount + jaVistoCount;
+      const jovensNaTurma = await _mtJovensNaTurma(t.id);
+      const agora = new Date();
+      const proximasAulas = Object.keys(cronoMap).map(k=>({modulo:Number(k), inicio:cronoMap[k].inicio, fim:cronoMap[k].fim}))
+        .filter(a=>curriculoJovem.has(a.modulo) && a.fim && a.fim>=agora)
+        .sort((a,b)=>a.fim-b.fim).slice(0,6);
+
+      cenarios.push({nome, dia:t.dia_de_curso, cap, temVaga, jovensNaTurma, diferenca, naoVistoCount, jaVistoCount, naoVistoDetalhe, jaVistoDetalhe, melhorDia, proximasAulas});
+    }
+
+    cenarios.sort((a,b)=> (a.diferenca-b.diferenca) || (a.melhorDia-b.melhorDia));
+
+    let h = '';
+    h += `<div style="margin-bottom:14px"><b style="font-size:16px">${nomeCompleto||'(sem nome)'}</b><div style="font-size:12px;color:var(--mu);margin-top:2px">matrícula ${j.id} · turma atual <b>${nomeAtual}</b> (${diaAtual}) · ${modulosConcluidosCount} módulo(s) concluído(s)</div></div>`;
+
+    if(!cenarios.length){
+      h += '<div class="alerta err">Nenhuma turma compatível encontrada — todas as opções na mesma unidade, em outro dia, esbarraram em bloqueio de módulo técnico, no módulo de projeto final, ou não há turma disponível.</div>';
+    } else {
+      const top = cenarios[0];
+      const podeJa = top.melhorDia<=hoje;
+      h += `<div style="background:#e8fff9;border:1px solid #10b98155;border-radius:var(--r);padding:12px 14px;margin-bottom:14px"><b>✅ Mudança de turma é possível.</b><br>Recomendação: <b>${top.nome}</b> (${top.dia}) — ${top.diferenca===0?'nenhum módulo perdido ou repetido':`${top.naoVistoCount} módulo(s) não visto(s) pela jovem, ${top.jaVistoCount} módulo(s) já visto(s) pela jovem`}. ${podeJa?'Pode mudar a partir de hoje.':`Melhor data para a troca: ${_mtFmtData(top.melhorDia)}.`}</div>`;
+
+      h += '<div style="font-size:12px;color:var(--mu);margin-bottom:8px">Outros cenários, do mais pro menos compatível:</div>';
+
+      cenarios.forEach(c=>{
+        const corBorda = c.diferenca===0 ? '#10b98155' : '#fcd34d55';
+        const bgTop = c.diferenca===0 ? '#e8fff9' : '#fffbeb';
+        let vagaLabel;
+        if(c.temVaga===true){ vagaLabel = `${c.cap.livre} livre(s) em ${c.cap.sala} · ${c.cap.unidade}`; }
+        else if(c.temVaga===null){ vagaLabel = 'Sem dados de sala sincronizados para esta turma — sincronize a Grade de Salas'; }
+        else { vagaLabel = `Sem vaga (${c.cap.jovens}/${c.cap.capacidade} j) em ${c.cap.sala} · ${c.cap.unidade}`; }
+        const melhorDiaTxt = c.melhorDia<=hoje ? 'hoje' : _mtFmtData(c.melhorDia);
+
+        h += `<div style="background:${bgTop};border:1px solid ${corBorda};border-radius:var(--r);padding:12px 14px;margin-bottom:10px">`;
+        h += `<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><div><b style="font-size:14px">${c.nome}</b><span style="font-size:12px;color:var(--mu);text-transform:capitalize;margin-left:8px">${c.dia}</span></div><span style="font-size:12px;font-weight:600">${vagaLabel}</span></div>`;
+        h += `<div style="margin-top:4px;font-size:12px;color:var(--mu)">${c.jovensNaTurma==null?'—':c.jovensNaTurma} jovem(ns) atualmente na turma · melhor data para a troca: <b>${melhorDiaTxt}</b></div>`;
+
+        h += c.naoVistoCount ? `<div style="margin-top:10px"><div style="font-size:12px;font-weight:600;color:#92400e;margin-bottom:4px">Módulo(s) não visto(s) pela jovem que vai mudar de turma (${c.naoVistoCount}) — a turma já deu, ela precisa repor:</div><div>${c.naoVistoDetalhe.map(x=>`<span style="font-size:11px;background:#fffbeb;color:#92400e;border:1px solid #fcd34d55;border-radius:6px;padding:2px 6px;margin:0 4px 4px 0;display:inline-block">${nomeModuloMT(x.modulo)}</span>`).join('')}</div></div>` : '<div style="margin-top:10px;font-size:12px;color:#0a7a60">Nenhum módulo não visto — cronogramas totalmente compatíveis nesse quesito.</div>';
+
+        h += c.jaVistoCount ? `<div style="margin-top:10px"><div style="font-size:12px;font-weight:600;color:#92400e;margin-bottom:4px">Módulo(s) já visto(s) pela jovem que vai mudar de turma (${c.jaVistoCount}) — a turma ainda vai dar, enquanto o contrato estaria ativo:</div><div>${c.jaVistoDetalhe.map(x=>`<span style="font-size:11px;background:#fef2f2;color:#991b1b;border:1px solid #fca5a555;border-radius:6px;padding:2px 6px;margin:0 4px 4px 0;display:inline-block">${nomeModuloMT(x.modulo)} (${_mtFmtData(x.data)})</span>`).join('')}</div></div>` : '';
+
+        h += (c.proximasAulas && c.proximasAulas.length) ? `<div style="margin-top:10px"><div style="font-size:12px;font-weight:600;color:var(--mu);margin-bottom:4px">📅 Linha do tempo — próximas aulas na turma destino:</div><div style="border-left:2px solid var(--br);padding-left:10px">${c.proximasAulas.map(a=>`<div style="font-size:12px;margin-bottom:4px"><b>${a.fim?_mtFmtData(a.fim):'sem data'}</b> — ${nomeModuloMT(a.modulo)}</div>`).join('')}</div></div>` : '';
+
+        h += '</div>';
+      });
+    }
+
+    el.innerHTML = h;
   }catch(e){
-    el.innerHTML=`<div class="alerta-err">⚠ Erro ao analisar cenários: ${e.message}</div>`;
+    el.innerHTML = `<div class="alerta err">Erro ao analisar cenários: ${e.message}</div>`;
   }
 }
-
-
 </script>
 </body>
 </html>
