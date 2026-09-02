@@ -146,13 +146,14 @@
         },
         {
           "id": "emp1788377988900",
-          "nome": "Nova empresa",
+          "nome": "Falconi",
           "jovens": 1,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "AM10",
+          "dia": "segunda",
+          "sala": "Sala 1",
+          "unidade": "Polo Liberdade",
+          "pl": "Marialice"
         }
       ]
     },
