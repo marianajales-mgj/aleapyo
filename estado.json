@@ -169,13 +169,14 @@
         },
         {
           "id": "emp1788380570471",
-          "nome": "Nova empresa",
+          "nome": "Pipo",
           "jovens": 1,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "AM10",
+          "dia": "segunda",
+          "sala": "Sala 1",
+          "unidade": "Polo Liberdade",
+          "pl": "Marialice"
         }
       ]
     },
