@@ -150,7 +150,7 @@
           "id": "emp1788377988900",
           "nome": "Falconi",
           "jovens": 1,
-          "status": "Em aberto",
+          "status": "Confirmado",
           "turma": "AM10",
           "dia": "segunda",
           "sala": "Sala 1",
@@ -181,7 +181,7 @@
         },
         {
           "id": "emp1788439272051",
-          "nome": "Nova empresa",
+          "nome": "Flash",
           "jovens": 1,
           "status": "Em aberto",
           "turma": null,
