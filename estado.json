@@ -42,11 +42,11 @@
           "nome": "Rappi",
           "jovens": 2,
           "status": "Confirmado",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null,
-          "pl": null
+          "turma": "AM10",
+          "dia": "segunda",
+          "sala": "Sala 1",
+          "unidade": "Polo Liberdade",
+          "pl": "Marialice"
         },
         {
           "id": "emp17882121760680.9327256571802656",
