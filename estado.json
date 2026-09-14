@@ -25,17 +25,6 @@
           "sala": "Sala 1",
           "unidade": "Polo Liberdade",
           "pl": "Marialice"
-        },
-        {
-          "id": "emp1783521715982",
-          "nome": "Nubank",
-          "jovens": 50,
-          "status": "Em aberto",
-          "turma": "BM8",
-          "dia": "terça",
-          "sala": "Sala 1",
-          "unidade": "Polo Liberdade",
-          "pl": "Marialice"
         }
       ]
     },
@@ -53,6 +42,17 @@
           "sala": "Sala 1",
           "unidade": "Polo Liberdade",
           "pl": "Marialice"
+        },
+        {
+          "id": "emp1789409421402",
+          "nome": "Nubank",
+          "jovens": 50,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null,
+          "pl": null
         }
       ]
     },
