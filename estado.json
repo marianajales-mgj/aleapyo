@@ -129,10 +129,10 @@
           "nome": "Sallve",
           "jovens": 1,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "DM15",
+          "dia": "quinta",
+          "sala": "Sala 2",
+          "unidade": "Polo Liberdade"
         },
         {
           "id": "emp1789409819838",
