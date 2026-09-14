@@ -136,10 +136,11 @@
           "nome": "Shopee",
           "jovens": 15,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "AM13",
+          "dia": "segunda",
+          "sala": "Sala 1",
+          "unidade": "Freguesia do Ó",
+          "pl": "Manu"
         },
         {
           "id": "emp1789410330950",
