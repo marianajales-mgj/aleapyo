@@ -58,7 +58,7 @@
         {
           "id": "emp1789409673102",
           "nome": "Flash",
-          "jovens": 4,
+          "jovens": 2,
           "status": "Em aberto",
           "turma": null,
           "dia": null,
@@ -78,7 +78,7 @@
         {
           "id": "emp1789409765184",
           "nome": "KFC",
-          "jovens": 1,
+          "jovens": 5,
           "status": "Em aberto",
           "turma": null,
           "dia": null,
