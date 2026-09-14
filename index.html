@@ -674,9 +674,6 @@ function abrirDetalhe(nomeTurma,dia,sala,unidade){
   }
   // Botão de editar sala/PL para turmas do Directus
   if(true){// Ajuste manual disponível para todas as turmas fixas
-    const hibridoInfo=(t.modalidade==='hibrida'&&t.entrada)?janelasHibrido(t.entrada):null;
-    const hibridoFase=hibridoInfo?faseHibrido(t):null;
-    const hibridoFaseLabel=({'presencial-inicio':'Presencial (início)','online':'Online','presencial-fim':'Presencial (fim)'})[hibridoFase]||'—';
     // Calcular instância pelo índice no grupo de mesma turma+dia
     const grupoTotal=TURMAS_FIXAS.filter(x=>x.nome===t.nome&&x.dia===t.dia);
     let instancia=grupoTotal.findIndex(x=>x===t);
@@ -698,11 +695,7 @@ function abrirDetalhe(nomeTurma,dia,sala,unidade){
           ${unidades.map(u=>`<option value="${u.nome}" ${u.nome===(t.unidade||'Freguesia do Ó')?'selected':''}>${u.nome}</option>`).join('')}
         </select>
       </div>
-            <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--tx);margin-bottom:8px;cursor:pointer">
-        <input type="checkbox" id="ov-hibrido" ${t.modalidade==='hibrida'?'checked':''}/> Curso híbrido (10 du no início e no fim; online no meio)
-      </label>
-      ${hibridoInfo?`<div style="font-size:10px;color:var(--mu);background:#fafafa;border:1px solid var(--br);border-radius:6px;padding:6px 8px;margin-bottom:8px">Fase atual: <b>${hibridoFaseLabel}</b><br>Presencial: ${fmtDataCurta(hibridoInfo.inicio1)}–${fmtDataCurta(hibridoInfo.fim1)} e ${fmtDataCurta(hibridoInfo.inicio2)}–${fmtDataCurta(hibridoInfo.fim2)}</div>`:''}
-<button onclick="salvarOverrideTurma('${nomeTurma}','${dia}',${instancia});fecharModalTurma();" style="width:100%;height:32px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:11px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif;margin-bottom:4px">💾 Salvar ajuste</button>
+      <button onclick="salvarOverrideTurma('${nomeTurma}','${dia}',${instancia});fecharModalTurma();" style="width:100%;height:32px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:11px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif;margin-bottom:4px">💾 Salvar ajuste</button>
       ${t.jovens>16&&!t._split?'<button onclick="splitTurma(\''+nomeTurma+'\',\''+dia+'\','+instancia+');fecharModalTurma();" style="width:100%;height:32px;background:#fff;color:var(--blue);border:1px solid var(--blue);border-radius:var(--rs);font-size:11px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">✂ Dividir em 2 salas</button>':''}
     </div>`;
   }
@@ -717,14 +710,12 @@ async function salvarOverrideTurma(nome,dia,instancia){
   const sala=document.getElementById('ov-sala')?.value;
   const pl=document.getElementById('ov-pl')?.value;
   const unidade=document.getElementById('ov-unidade')?.value;
-  const hibrido=document.getElementById('ov-hibrido')?.checked;
-  const modalidade=hibrido?'hibrida':'presencial';
   const chave=nome+'|'+dia+'|'+instancia;
-  salaOverrides[chave]={sala,pl,unidade,modalidade};
+  salaOverrides[chave]={sala,pl,unidade};
   // Aplicar em turmas fixas
   const sameGroup=TURMAS_FIXAS.filter(x=>x.nome===nome&&x.dia===dia);
   const t=sameGroup[instancia];
-  if(t){t.sala=sala;t.pl=pl;t.unidade=unidade;t.modalidade=modalidade;}
+  if(t){t.sala=sala;t.pl=pl;t.unidade=unidade;}
   // Aplicar em turmas simuladas (empresa da entrada)
   const sufixo=nome.replace('Turma ','');
   entradas.forEach(en=>en.empresas.forEach(emp=>{
@@ -732,7 +723,6 @@ async function salvarOverrideTurma(nome,dia,instancia){
       emp.pl=pl;
       if(sala)emp.sala=sala;
       if(unidade)emp.unidade=unidade;
-      emp.modalidade=modalidade;
     }
   }));
   renderGrade();renderGradeMini();renderHibrido();
@@ -950,6 +940,9 @@ function abrirMover(eid,empid){if(bloquearSeNaoAutenticado(()=>abrirMover(eid,em
     <div style="text-align:right"><div style="font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase">A alocar</div>
     <div id="restante-ctr" style="font-size:22px;font-weight:800;color:var(--blue)">${emp.jovens}j</div></div>
   </div>`;
+  h+=`<label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--tx);margin-bottom:14px;cursor:pointer;background:#fff7ed;border:1px solid #fdba7455;border-radius:var(--rs);padding:8px 10px">
+    <input type="checkbox" id="aloc-hibrido"/> Esta alocação cria uma turma nova de <b>Curso Híbrido</b> (10 dias úteis presenciais no início e no fim; online no meio)
+  </label>`;
   DIAS.forEach(dia=>{
     let salas='';
     unidades.forEach(u=>{u.salas.forEach(sala=>{
@@ -1018,6 +1011,7 @@ function confirmarAlocacao(){if(bloquearSeNaoAutenticado(confirmarAlocacao))retu
   const entrada=entradas.find(e=>e.id===_moverEid);
   const emp=entrada?.empresas.find(x=>x.id===_moverEmpid);
   if(!emp)return;
+  const hibrido=document.getElementById('aloc-hibrido')?.checked||false;
   const alocs=[];
   DIAS.forEach(dia=>{unidades.forEach(u=>{u.salas.forEach(sala=>{
     const id=`qtd-${dia}-${sala.replace(/ /g,'-')}-${u.nome.replace(/ /g,'-')}`;
@@ -1035,29 +1029,29 @@ function confirmarAlocacao(){if(bloquearSeNaoAutenticado(confirmarAlocacao))retu
     a.pl=document.getElementById(plId)?.value||null;
   });
   if(alocs.length===1){
-    _alocar(emp,entrada,alocs[0].dia,alocs[0].sala,alocs[0].unidade,emp.jovens,alocs[0].pl);
+    _alocar(emp,entrada,alocs[0].dia,alocs[0].sala,alocs[0].unidade,emp.jovens,alocs[0].pl,hibrido);
   } else {
     const idx=entrada.empresas.findIndex(x=>x.id===emp.id);
     const novas=alocs.map((a,i)=>({id:'emp'+Date.now()+i,nome:emp.nome,jovens:a.jovens,status:emp.status,turma:null,dia:null,sala:null,unidade:null}));
     entrada.empresas.splice(idx,1,...novas);
-    novas.forEach((nova,i)=>_alocar(nova,entrada,alocs[i].dia,alocs[i].sala,alocs[i].unidade,alocs[i].jovens,alocs[i].pl));
+    novas.forEach((nova,i)=>_alocar(nova,entrada,alocs[i].dia,alocs[i].sala,alocs[i].unidade,alocs[i].jovens,alocs[i].pl,hibrido));
   }
-  fecharModal();renderGrade();renderGradeMini();renderEmpresas();saveEstado();
+  fecharModal();renderGrade();renderGradeMini();renderEmpresas();renderHibrido();saveEstado();saveSalaOverrides();
 }
 
-function _alocar(emp,entrada,dia,sala,unidade,jovens,pl){
+function _alocar(emp,entrada,dia,sala,unidade,jovens,pl,hibrido){
   emp.unidade=unidade;emp.sala=sala;emp.dia=dia;
   if(pl)emp.pl=pl;
   const letra=LETRA[dia]||'A';
   // Turma existente no mesmo dia/sala/unidade desta entrada
   const companheira=entrada.empresas.find(e=>e.id!==emp.id&&e.dia===dia&&e.sala===sala&&(e.unidade||'Freguesia do Ó')===unidade&&e.turma);
-  if(companheira){emp.turma=companheira.turma;return;}
+  if(companheira){emp.turma=companheira.turma;if(hibrido)emp.modalidade='hibrida';return;}
   // Agrupar com empresa da MESMA entrada no mesmo dia/sala
   const companheiraMesmaSala=entrada.empresas.find(e=>
     e.id!==emp.id&&e.dia===dia&&e.sala===sala&&
     (e.unidade||'Freguesia do Ó')===unidade&&e.turma
   );
-  if(companheiraMesmaSala){emp.turma=companheiraMesmaSala.turma;return;}
+  if(companheiraMesmaSala){emp.turma=companheiraMesmaSala.turma;if(hibrido)emp.modalidade='hibrida';return;}
   // Criar novo nome — sempre incrementa o max global da letra (nunca herda de outra entrada)
   let max=0;
   // Base: máximo histórico de todas as turmas do Directus
@@ -1082,6 +1076,10 @@ function _alocar(emp,entrada,dia,sala,unidade,jovens,pl){
   // Não contar entradas salvas — evita inflacionar sequência após simulações apagadas
   console.log('[Aleapyo] próxima turma de',dia,'→ letra='+letra+' max='+max+' próxima='+letra+'M'+(max+1));
   emp.turma=letra+TURNO+(max+1);
+  if(hibrido){
+    emp.modalidade='hibrida';
+    salaOverrides['Turma '+emp.turma+'|'+dia+'|0']={modalidade:'hibrida'};
+  }
 }
 
 function fecharModal(){document.getElementById('modal-bg').style.display='none';}
@@ -1129,7 +1127,8 @@ function renderEcossistema(){
 function renderHibrido(){
   const el=document.getElementById('hibrido-wrap');
   if(!el)return;
-  const turmasHibridas=TURMAS_FIXAS.filter(t=>t.modalidade==='hibrida');
+  turmasSim=turmasSimAtivas();
+  const turmasHibridas=[...TURMAS_FIXAS,...turmasSim].filter(t=>t.modalidade==='hibrida');
   if(!turmasHibridas.length){
     el.innerHTML='<div style="color:var(--mu);font-size:13px;padding:20px 0">Nenhuma turma marcada como híbrida ainda. Para marcar, abra os detalhes de uma turma na Grade de Salas e ative \'Curso híbrido\' no Ajuste manual.</div>';
     return;
