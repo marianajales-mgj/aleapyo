@@ -20,10 +20,11 @@
           "nome": "Elo",
           "jovens": 13,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "DM13",
+          "dia": "quinta",
+          "sala": "Sala 1",
+          "unidade": "Polo Liberdade",
+          "pl": "Marialice"
         },
         {
           "id": "emp1789409648056",
