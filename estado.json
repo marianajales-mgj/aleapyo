@@ -37,10 +37,10 @@
           "nome": "Nubank",
           "jovens": 50,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null,
+          "turma": "BM8",
+          "dia": "terça",
+          "sala": "Sala 2",
+          "unidade": "Polo Liberdade",
           "pl": null
         },
         {
