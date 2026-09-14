@@ -84,6 +84,16 @@
           "dia": null,
           "sala": null,
           "unidade": null
+        },
+        {
+          "id": "emp1789409782493",
+          "nome": "Rappi",
+          "jovens": 4,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null
         }
       ]
     },
