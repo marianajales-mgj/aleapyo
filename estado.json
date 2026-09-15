@@ -160,6 +160,17 @@
           "nome": "Nova empresa",
           "jovens": 1,
           "status": "Em aberto",
+          "turma": "H1",
+          "dia": null,
+          "sala": "Sala Híbrido",
+          "unidade": "Polo Liberdade",
+          "modalidade": "hibrida"
+        },
+        {
+          "id": "emp1789508660803",
+          "nome": "Nova empresa",
+          "jovens": 1,
+          "status": "Em aberto",
           "turma": null,
           "dia": null,
           "sala": null,
