@@ -417,6 +417,30 @@ function faseHibrido(t){
 function estaOnlineHibrido(t){return faseHibrido(t)==='online';}
 function fmtDataCurta(d){if(!d)return '—';return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;}
 
+// ── SALA DEDICADA AO HÍBRIDO ──
+// Uma única sala, só no Polo Liberdade, capacidade fixa 50, ocupada por janelas de 10 dias úteis (não por dia da semana)
+const SALA_HIBRIDO={unidade:'Polo Liberdade',nome:'Sala Híbrido',capacidade:50};
+function turmasHibridasAtivas(){
+  turmasSim=turmasSimAtivas();
+  return [...TURMAS_FIXAS,...turmasSim].filter(t=>t.modalidade==='hibrida'&&t.entrada);
+}
+function _janelasOverlap(aIni,aFim,bIni,bFim){return aIni<=bFim&&bIni<=aFim;}
+// Ocupação da Sala Híbrido considerando a janela presencial de início de uma entrada candidata
+function ocupacaoSalaHibrido(entradaCandidataStr,excluirTurmaNome){
+  const cap=SALA_HIBRIDO.capacidade;
+  const jCand=janelasHibrido(entradaCandidataStr);
+  if(!jCand)return{jovens:0,turmas:[],livre:cap,capacidade:cap};
+  let jovens=0;const turmasConflito=[];
+  turmasHibridasAtivas().forEach(t=>{
+    if(excluirTurmaNome&&t.nome===excluirTurmaNome)return;
+    const j=janelasHibrido(t.entrada);
+    if(!j)return;
+    const conflita=_janelasOverlap(jCand.inicio1,jCand.fim1,j.inicio1,j.fim1)||_janelasOverlap(jCand.inicio1,jCand.fim1,j.inicio2,j.fim2);
+    if(conflita){jovens+=t.jovens;turmasConflito.push(t);}
+  });
+  return{jovens,turmas:turmasConflito,livre:cap-jovens,capacidade:cap};
+}
+
 function ocupacaoSala(dia,sala,unidade){
   unidade=unidade||'Freguesia do Ó';
   let j=0,ts=[];
@@ -431,15 +455,17 @@ function turmasSimAtivas(){
   const fixasNomes=new Set(TURMAS_FIXAS.map(t=>t.nome));
   entradas.forEach(entrada=>{
     entrada.empresas.forEach(emp=>{
-      if(!emp.turma||!emp.dia||emp.status==='Adiado'||!emp.jovens)return;
+      if(!emp.turma||emp.status==='Adiado'||!emp.jovens)return;
+      const ehHibrida=emp.modalidade==='hibrida';
+      if(!emp.dia&&!ehHibrida)return; // dia da semana só é obrigatório pra turma presencial normal
       const nomeT='Turma '+emp.turma;
       // Ignorar só se a turma fixa real existe E não é injetada temporariamente
       const fixaReal=TURMAS_FIXAS.find(t=>t.nome===nomeT&&!t._injetada);
       if(fixaReal)return;
-      const unidade=emp.unidade||'Freguesia do Ó';
-      const sala=emp.sala||melhorSala(emp.dia,unidade);
-      const chave=nomeT+'|'+emp.dia+'|'+sala+'|'+unidade;
-      if(!mapa[chave]){mapa[chave]={nome:nomeT,dia:emp.dia,sala,unidade,entrada:entrada.data,jovens:0,empresas:[],pl:emp.pl||null,modalidade:emp.modalidade||null,status:'simulada'};}
+      const unidade=emp.unidade||(ehHibrida?SALA_HIBRIDO.unidade:'Freguesia do Ó');
+      const sala=emp.sala||(ehHibrida?SALA_HIBRIDO.nome:melhorSala(emp.dia,unidade));
+      const chave=nomeT+'|'+(emp.dia||'hibrido')+'|'+sala+'|'+unidade;
+      if(!mapa[chave]){mapa[chave]={nome:nomeT,dia:emp.dia||null,sala,unidade,entrada:entrada.data,jovens:0,empresas:[],pl:emp.pl||null,modalidade:emp.modalidade||null,status:'simulada'};}
       // Se empresa tem PL definido, usar (primeira que tiver vence)
       if(emp.pl&&!mapa[chave].pl)mapa[chave].pl=emp.pl;
       if(emp.modalidade&&!mapa[chave].modalidade)mapa[chave].modalidade=emp.modalidade;
@@ -674,9 +700,6 @@ function abrirDetalhe(nomeTurma,dia,sala,unidade){
   }
   // Botão de editar sala/PL para turmas do Directus
   if(true){// Ajuste manual disponível para todas as turmas fixas
-    const hibridoInfo=(t.modalidade==='hibrida'&&t.entrada)?janelasHibrido(t.entrada):null;
-    const hibridoFase=hibridoInfo?faseHibrido(t):null;
-    const hibridoFaseLabel=({'presencial-inicio':'Presencial (início)','online':'Online','presencial-fim':'Presencial (fim)'})[hibridoFase]||'—';
     // Calcular instância pelo índice no grupo de mesma turma+dia
     const grupoTotal=TURMAS_FIXAS.filter(x=>x.nome===t.nome&&x.dia===t.dia);
     let instancia=grupoTotal.findIndex(x=>x===t);
@@ -698,12 +721,7 @@ function abrirDetalhe(nomeTurma,dia,sala,unidade){
           ${unidades.map(u=>`<option value="${u.nome}" ${u.nome===(t.unidade||'Freguesia do Ó')?'selected':''}>${u.nome}</option>`).join('')}
         </select>
       </div>
-            <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--tx);margin-bottom:8px;cursor:pointer">
-        <input type="checkbox" id="ov-hibrido" ${t.modalidade==='hibrida'?'checked':''}/> Curso híbrido (10 du no início e no fim; online no meio)
-      </label>
-      ${hibridoInfo?`<div style="font-size:10px;color:var(--mu);background:#fafafa;border:1px solid var(--br);border-radius:6px;padding:6px 8px;margin-bottom:8px">Fase atual: <b>${hibridoFaseLabel}</b><br>Presencial: ${fmtDataCurta(hibridoInfo.inicio1)}–${fmtDataCurta(hibridoInfo.fim1)} e ${fmtDataCurta(hibridoInfo.inicio2)}–${fmtDataCurta(hibridoInfo.fim2)}</div>`:''}
 <button onclick="salvarOverrideTurma('${nomeTurma}','${dia}',${instancia});fecharModalTurma();" style="width:100%;height:32px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:11px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif;margin-bottom:4px">💾 Salvar ajuste</button>
-      <button onclick="salvarOverrideTurma('${nomeTurma}','${dia}',${instancia});fecharModalTurma();" style="width:100%;height:32px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:11px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif;margin-bottom:4px">💾 Salvar ajuste</button>
       ${t.jovens>16&&!t._split?'<button onclick="splitTurma(\''+nomeTurma+'\',\''+dia+'\','+instancia+');fecharModalTurma();" style="width:100%;height:32px;background:#fff;color:var(--blue);border:1px solid var(--blue);border-radius:var(--rs);font-size:11px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">✂ Dividir em 2 salas</button>':''}
     </div>`;
   }
@@ -718,14 +736,12 @@ async function salvarOverrideTurma(nome,dia,instancia){
   const sala=document.getElementById('ov-sala')?.value;
   const pl=document.getElementById('ov-pl')?.value;
   const unidade=document.getElementById('ov-unidade')?.value;
-  const hibrido=document.getElementById('ov-hibrido')?.checked;
-  const modalidade=hibrido?'hibrida':'presencial';
   const chave=nome+'|'+dia+'|'+instancia;
-  salaOverrides[chave]={sala,pl,unidade,modalidade};
+  salaOverrides[chave]={sala,pl,unidade};
   // Aplicar em turmas fixas
   const sameGroup=TURMAS_FIXAS.filter(x=>x.nome===nome&&x.dia===dia);
   const t=sameGroup[instancia];
-  if(t){t.sala=sala;t.pl=pl;t.unidade=unidade;t.modalidade=modalidade;}
+  if(t){t.sala=sala;t.pl=pl;t.unidade=unidade;}
   // Aplicar em turmas simuladas (empresa da entrada)
   const sufixo=nome.replace('Turma ','');
   entradas.forEach(en=>en.empresas.forEach(emp=>{
@@ -733,7 +749,6 @@ async function salvarOverrideTurma(nome,dia,instancia){
       emp.pl=pl;
       if(sala)emp.sala=sala;
       if(unidade)emp.unidade=unidade;
-      emp.modalidade=modalidade;
     }
   }));
   renderGrade();renderGradeMini();renderHibrido();
@@ -952,8 +967,19 @@ function abrirMover(eid,empid){if(bloquearSeNaoAutenticado(()=>abrirMover(eid,em
     <div id="restante-ctr" style="font-size:22px;font-weight:800;color:var(--blue)">${emp.jovens}j</div></div>
   </div>`;
   h+=`<label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--tx);margin-bottom:14px;cursor:pointer;background:#fff7ed;border:1px solid #fdba7455;border-radius:var(--rs);padding:8px 10px">
-    <input type="checkbox" id="aloc-hibrido"/> Esta alocação cria uma turma nova de <b>Curso Híbrido</b> (10 dias úteis presenciais no início e no fim; online no meio)
+    <input type="checkbox" id="aloc-hibrido" onchange="toggleAlocHibrido()"/> Esta alocação cria uma turma nova de <b>Curso Híbrido</b> (10 dias úteis presenciais no início e no fim; online no meio)
   </label>`;
+  const ocpH=ocupacaoSalaHibrido(entrada?.data);
+  const jCand=janelasHibrido(entrada?.data);
+  const excedeH=emp.jovens>ocpH.livre;
+  h+=`<div id="aloc-hibrido-painel" style="display:none;background:#f0fffe;border:1px solid #35dcb255;border-radius:var(--rs);padding:10px 14px;margin-bottom:14px">
+    <div style="font-size:12px;font-weight:700;margin-bottom:4px">Sala Híbrido — Polo Liberdade (capacidade fixa: ${ocpH.capacidade}j)</div>
+    ${jCand?`<div style="font-size:11px;color:var(--mu);margin-bottom:6px">Janela presencial desta entrada: ${fmtDataCurta(jCand.inicio1)} – ${fmtDataCurta(jCand.fim1)} (10 dias úteis)</div>`:''}
+    <div style="font-size:11px;margin-bottom:6px">${ocpH.jovens}/${ocpH.capacidade}j já reservados nessa janela${ocpH.turmas.length?' — '+ocpH.turmas.map(t=>t.nome+' ('+t.jovens+'j)').join(', '):''} · <b style="color:${excedeH?'#dc2626':'#0a7a60'}">${Math.max(0,ocpH.livre)}j livres</b></div>
+    ${excedeH?`<div class="alerta-err">⚠ ${emp.jovens}j de ${emp.nome} excede a capacidade livre da Sala Híbrido nessa janela. Revise as datas de entrada antes de confirmar.</div>`:''}
+    <div style="font-size:11px;color:var(--mu)">Todos os ${emp.jovens}j de ${emp.nome} serão alocados nessa turma híbrida nova, sem escolha de dia/sala presencial.</div>
+  </div>`;
+  h+=`<div id="aloc-normal-painel">`;
   DIAS.forEach(dia=>{
     let salas='';
     unidades.forEach(u=>{u.salas.forEach(sala=>{
@@ -995,9 +1021,18 @@ function abrirMover(eid,empid){if(bloquearSeNaoAutenticado(()=>abrirMover(eid,em
       <div style="margin-top:4px">${salas}</div>
     </details>`;
   });
+  h+=`</div>`;
   h+=`<button onclick="confirmarAlocacao()" style="width:100%;height:38px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:12px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif;margin-top:12px">✓ Confirmar alocação</button>`;
   document.getElementById('modal-body').innerHTML=h;
   document.getElementById('modal-bg').style.display='flex';
+}
+
+function toggleAlocHibrido(){
+  const chk=document.getElementById('aloc-hibrido')?.checked;
+  const painelH=document.getElementById('aloc-hibrido-painel');
+  const painelN=document.getElementById('aloc-normal-painel');
+  if(painelH)painelH.style.display=chk?'block':'none';
+  if(painelN)painelN.style.display=chk?'none':'block';
 }
 
 function atualizarCtr(total,maxSala,inputId,plId){
@@ -1023,6 +1058,15 @@ function confirmarAlocacao(){if(bloquearSeNaoAutenticado(confirmarAlocacao))retu
   const emp=entrada?.empresas.find(x=>x.id===_moverEmpid);
   if(!emp)return;
   const hibrido=document.getElementById('aloc-hibrido')?.checked||false;
+  if(hibrido){
+    const ocpH=ocupacaoSalaHibrido(entrada.data);
+    if(emp.jovens>ocpH.livre){
+      if(!confirm(`A Sala Híbrido já tem ${ocpH.jovens}/${ocpH.capacidade}j reservados nessa janela. Alocar mais ${emp.jovens}j de ${emp.nome} vai passar da capacidade de 50. Quer continuar mesmo assim?`))return;
+    }
+    _alocarHibrido(emp,entrada);
+    fecharModal();renderGrade();renderGradeMini();renderEmpresas();renderHibrido();saveEstado();saveSalaOverrides();
+    return;
+  }
   const alocs=[];
   DIAS.forEach(dia=>{unidades.forEach(u=>{u.salas.forEach(sala=>{
     const id=`qtd-${dia}-${sala.replace(/ /g,'-')}-${u.nome.replace(/ /g,'-')}`;
@@ -1040,29 +1084,42 @@ function confirmarAlocacao(){if(bloquearSeNaoAutenticado(confirmarAlocacao))retu
     a.pl=document.getElementById(plId)?.value||null;
   });
   if(alocs.length===1){
-    _alocar(emp,entrada,alocs[0].dia,alocs[0].sala,alocs[0].unidade,emp.jovens,alocs[0].pl,hibrido);
+    _alocar(emp,entrada,alocs[0].dia,alocs[0].sala,alocs[0].unidade,emp.jovens,alocs[0].pl);
   } else {
     const idx=entrada.empresas.findIndex(x=>x.id===emp.id);
     const novas=alocs.map((a,i)=>({id:'emp'+Date.now()+i,nome:emp.nome,jovens:a.jovens,status:emp.status,turma:null,dia:null,sala:null,unidade:null}));
     entrada.empresas.splice(idx,1,...novas);
-    novas.forEach((nova,i)=>_alocar(nova,entrada,alocs[i].dia,alocs[i].sala,alocs[i].unidade,alocs[i].jovens,alocs[i].pl,hibrido));
+    novas.forEach((nova,i)=>_alocar(nova,entrada,alocs[i].dia,alocs[i].sala,alocs[i].unidade,alocs[i].jovens,alocs[i].pl));
   }
   fecharModal();renderGrade();renderGradeMini();renderEmpresas();renderHibrido();saveEstado();saveSalaOverrides();
 }
 
-function _alocar(emp,entrada,dia,sala,unidade,jovens,pl,hibrido){
+// Aloca uma empresa na Sala Híbrido dedicada (Polo Liberdade, cap. 50), sem escolha de dia/sala
+function _alocarHibrido(emp,entrada){
+  emp.unidade=SALA_HIBRIDO.unidade;emp.sala=SALA_HIBRIDO.nome;emp.dia=null;emp.modalidade='hibrida';
+  // Agrupar com outra empresa da MESMA entrada já marcada como híbrida (mesma turma nova)
+  const companheira=entrada.empresas.find(e=>e.id!==emp.id&&e.modalidade==='hibrida'&&e.turma);
+  if(companheira){emp.turma=companheira.turma;return;}
+  // Nova turma híbrida: sequência própria "H", nunca reaproveita numeração das turmas presenciais
+  let max=0;
+  turmasHibridasAtivas().forEach(t=>{const m=t.nome.match(/Turma H(\d+)/);if(m)max=Math.max(max,parseInt(m[1]));});
+  entradas.forEach(en=>en.empresas.forEach(e=>{if(e.turma){const m=String(e.turma).match(/^H(\d+)$/);if(m)max=Math.max(max,parseInt(m[1]));}}));
+  emp.turma='H'+(max+1);
+}
+
+function _alocar(emp,entrada,dia,sala,unidade,jovens,pl){
   emp.unidade=unidade;emp.sala=sala;emp.dia=dia;
   if(pl)emp.pl=pl;
   const letra=LETRA[dia]||'A';
   // Turma existente no mesmo dia/sala/unidade desta entrada
   const companheira=entrada.empresas.find(e=>e.id!==emp.id&&e.dia===dia&&e.sala===sala&&(e.unidade||'Freguesia do Ó')===unidade&&e.turma);
-  if(companheira){emp.turma=companheira.turma;if(hibrido)emp.modalidade='hibrida';return;}
+  if(companheira){emp.turma=companheira.turma;return;}
   // Agrupar com empresa da MESMA entrada no mesmo dia/sala
   const companheiraMesmaSala=entrada.empresas.find(e=>
     e.id!==emp.id&&e.dia===dia&&e.sala===sala&&
     (e.unidade||'Freguesia do Ó')===unidade&&e.turma
   );
-  if(companheiraMesmaSala){emp.turma=companheiraMesmaSala.turma;if(hibrido)emp.modalidade='hibrida';return;}
+  if(companheiraMesmaSala){emp.turma=companheiraMesmaSala.turma;return;}
   // Criar novo nome — sempre incrementa o max global da letra (nunca herda de outra entrada)
   let max=0;
   // Base: máximo histórico de todas as turmas do Directus
@@ -1087,10 +1144,6 @@ function _alocar(emp,entrada,dia,sala,unidade,jovens,pl,hibrido){
   // Não contar entradas salvas — evita inflacionar sequência após simulações apagadas
   console.log('[Aleapyo] próxima turma de',dia,'→ letra='+letra+' max='+max+' próxima='+letra+'M'+(max+1));
   emp.turma=letra+TURNO+(max+1);
-  if(hibrido){
-    emp.modalidade='hibrida';
-    salaOverrides['Turma '+emp.turma+'|'+dia+'|0']={modalidade:'hibrida'};
-  }
 }
 
 function fecharModal(){document.getElementById('modal-bg').style.display='none';}
@@ -1138,10 +1191,12 @@ function renderEcossistema(){
 function renderHibrido(){
   const el=document.getElementById('hibrido-wrap');
   if(!el)return;
-  turmasSim=turmasSimAtivas();
-  const turmasHibridas=[...TURMAS_FIXAS,...turmasSim].filter(t=>t.modalidade==='hibrida');
+  const turmasHibridas=turmasHibridasAtivas();
+  const resumo=`<div style="background:#f0fffe;border:1px solid #35dcb255;border-radius:var(--rs);padding:10px 14px;margin-bottom:16px;font-size:12px">
+    <b>Sala Híbrido</b> — Polo Liberdade · capacidade fixa de ${SALA_HIBRIDO.capacidade} jovens por janela de 10 dias úteis. Toda turma híbrida é nova (não mexe em turmas já existentes) e é criada pela tela de Alocar, marcando o checkbox "Curso Híbrido".
+  </div>`;
   if(!turmasHibridas.length){
-    el.innerHTML='<div style="color:var(--mu);font-size:13px;padding:20px 0">Nenhuma turma marcada como híbrida ainda. Para marcar, abra os detalhes de uma turma na Grade de Salas e ative \'Curso híbrido\' no Ajuste manual.</div>';
+    el.innerHTML=resumo+'<div style="color:var(--mu);font-size:13px;padding:20px 0">Nenhuma turma híbrida alocada ainda. Para criar uma, vá em Empresas & Entradas → Alocar em uma empresa e marque "Curso Híbrido".</div>';
     return;
   }
   const grupos={'presencial-inicio':[],'online':[],'presencial-fim':[],'sem-data':[]};
@@ -1150,7 +1205,7 @@ function renderHibrido(){
     grupos[fase].push(t);
   });
   const labelFase={'presencial-inicio':'Presencial — início de turma','online':'100% online','presencial-fim':'Presencial — fim de turma','sem-data':'Sem data de entrada definida'};
-  let h='';
+  let h=resumo;
   ['presencial-inicio','online','presencial-fim','sem-data'].forEach(fase=>{
     if(!grupos[fase].length)return;
     h+=`<div style="margin-bottom:20px">
