@@ -209,6 +209,16 @@
           "dia": null,
           "sala": null,
           "unidade": null
+        },
+        {
+          "id": "emp1789476904284",
+          "nome": "Nova empresa",
+          "jovens": 1,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null
         }
       ]
     }
@@ -233,6 +243,24 @@
         "Qui",
         "Sex"
       ]
+    }
+  ],
+  "unidades": [
+    {
+      "nome": "Freguesia do Ó",
+      "salas": [
+        "Sala 1",
+        "Sala 2"
+      ],
+      "capacidade": 32
+    },
+    {
+      "nome": "Polo Liberdade",
+      "salas": [
+        "Sala 1",
+        "Sala 2"
+      ],
+      "capacidade": 50
     }
   ]
 }
