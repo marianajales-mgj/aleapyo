@@ -1741,13 +1741,14 @@ function buildGanttHibrido(){
     const leftFim=pos(j.inicio2),widthFim=Math.max(PX_DIA,pos(j.fim2)-leftFim+PX_DIA);
     const excedeIni=(_ocupacaoJanela(j.inicio1,j.fim1,t.nome,salaT)+t.jovens)>SALA_HIBRIDO.capacidade;
     const excedeFim=(_ocupacaoJanela(j.inicio2,j.fim2,t.nome,salaT)+t.jovens)>SALA_HIBRIDO.capacidade;
-    // Mesma linguagem visual do chip-turma do Presencial: tracejado enquanto é só simulação,
-    // contorno sólido assim que a turma é real (sincronizada com o backoffice via Directus).
-    const barraStyle=(excede)=>`position:absolute;top:8px;height:20px;background:${isSim?cor.light:cor.bg};border:${excede?'2px solid #dc2626':isSim?`1.5px dashed ${cor.border}`:`1px solid ${cor.border}`};border-radius:5px;cursor:pointer`;
+    // Mesma linguagem visual do chip-turma do Presencial: fundo clarinho (cor.light) sempre,
+    // tracejado enquanto é só simulação, contorno sólido (com transparência, igual ao chip) assim
+    // que a turma é real — e o mesmo texto (jovens) dentro, pra não parecer uma caixa vazia.
+    const barraStyle=(excede)=>`position:absolute;top:8px;height:20px;display:flex;align-items:center;justify-content:center;overflow:hidden;white-space:nowrap;background:${cor.light};color:${cor.text};font-size:9px;font-weight:700;border:${excede?'2px solid #dc2626':isSim?`1.5px dashed ${cor.border}`:`1px solid ${cor.border}55`};border-radius:5px;cursor:pointer`;
     linhas+=`<div style="position:relative;height:${ALTURA_LINHA}px;border-bottom:1px solid var(--br)">
       <div style="position:absolute;left:${leftIni+widthIni}px;top:17px;width:${Math.max(0,leftFim-(leftIni+widthIni))}px;height:2px;background:${cor.border};opacity:.4"></div>
-      <div onclick="abrirDetalhe('${t.nome}','${t.dia}','${t.sala}','${t.unidade}')" title="Imersão inicial: ${fmtDataCurta(j.inicio1)}–${fmtDataCurta(j.fim1)}" style="${barraStyle(excedeIni)};left:${leftIni}px;width:${widthIni}px"></div>
-      <div onclick="abrirDetalhe('${t.nome}','${t.dia}','${t.sala}','${t.unidade}')" title="Imersão final: ${fmtDataCurta(j.inicio2)}–${fmtDataCurta(j.fim2)}" style="${barraStyle(excedeFim)};left:${leftFim}px;width:${widthFim}px"></div>
+      <div onclick="abrirDetalhe('${t.nome}','${t.dia}','${t.sala}','${t.unidade}')" title="Imersão inicial: ${fmtDataCurta(j.inicio1)}–${fmtDataCurta(j.fim1)}" style="${barraStyle(excedeIni)};left:${leftIni}px;width:${widthIni}px">${t.jovens}j</div>
+      <div onclick="abrirDetalhe('${t.nome}','${t.dia}','${t.sala}','${t.unidade}')" title="Imersão final: ${fmtDataCurta(j.inicio2)}–${fmtDataCurta(j.fim2)}" style="${barraStyle(excedeFim)};left:${leftFim}px;width:${widthFim}px">${t.jovens}j</div>
     </div>`;
   });
   const hojeLinha=`<div style="position:absolute;left:${pos(hoje)}px;top:${alturaEixo}px;bottom:0;width:1px;background:#fc5959;z-index:2"></div>`;
