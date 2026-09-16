@@ -184,7 +184,12 @@ input[type=text],input[type=number],input[type=date]{height:30px;border:1px soli
     <div style="font-size:12px;color:var(--mu)">Sala Híbrido — Polo Liberdade, capacidade fixa de 50 jovens por janela de 10 dias de semana fixos, seg-sex (início e fim de turma; feriado no meio não estende a janela). No meio, 100% online.</div>
   </div>
   <div style="margin-bottom:18px">
-    <div style="font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Cenário atual</div>
+    <div style="font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Linha do tempo das imersões</div>
+    <div style="font-size:11px;color:var(--mu);margin-bottom:8px">Cada turma tem 2 barras (imersão inicial e final) ligadas por um traço fino (100% online). Clique numa barra pra ver detalhes. Barra com borda vermelha = capacidade da Sala Híbrido excedida naquela janela.</div>
+    <div id="gantt-hibrido"></div>
+  </div>
+  <div style="margin-bottom:18px">
+    <div style="font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Cenário atual — esta semana</div>
     <div id="grade-mini-hib-leg" style="display:flex;gap:10px;margin-bottom:8px;flex-wrap:wrap;align-items:center"></div>
     <div class="grade-wrap"><table class="grade" id="grade-mini-hib-tbl"></table></div>
     <div id="grade-mini-hib-alertas"></div>
@@ -1616,7 +1621,80 @@ function renderEcossistema(){
   el.innerHTML=h;
 }
 
+// ── LINHA DO TEMPO (GANTT) DAS IMERSÕES HÍBRIDAS ──
+// Timeline por data (não por dia da semana) — mostra a sobreposição REAL entre janelas de
+// imersão de turmas diferentes, o que a Grade de Salas semanal não consegue representar direito.
+function buildGanttHibrido(){
+  const el=document.getElementById('gantt-hibrido');
+  if(!el)return;
+  const turmas=turmasHibridasAtivas();
+  const itens=turmas.map(t=>({t,j:janelasHibrido(t.entrada)})).filter(x=>x.j);
+  if(!itens.length){
+    el.innerHTML='<div style="color:var(--mu);font-size:13px;padding:12px 0">Nenhuma turma híbrida com data de entrada definida ainda.</div>';
+    return;
+  }
+  const hoje=new Date();
+  let minD=itens[0].j.inicio1,maxD=itens[0].j.fim2;
+  itens.forEach(({j})=>{if(j.inicio1<minD)minD=j.inicio1;if(j.fim2>maxD)maxD=j.fim2;});
+  if(hoje<minD)minD=hoje;
+  if(hoje>maxD)maxD=hoje;
+  minD=new Date(minD);minD.setDate(minD.getDate()-7);
+  maxD=new Date(maxD);maxD.setDate(maxD.getDate()+7);
+  const PX_DIA=9;
+  const totalDias=Math.max(1,Math.round((maxD-minD)/86400000));
+  const larguraTotal=totalDias*PX_DIA;
+  const pos=d=>Math.round((d-minD)/86400000)*PX_DIA;
+
+  // Eixo de meses
+  let eixo='';
+  const cursor=new Date(minD.getFullYear(),minD.getMonth(),1);
+  if(cursor<minD)cursor.setMonth(cursor.getMonth()+1);
+  const MESES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  while(cursor<=maxD){
+    eixo+=`<div style="position:absolute;left:${pos(cursor)}px;top:0;bottom:0;border-left:1px solid var(--br);font-size:9px;color:var(--mu);padding-left:3px;white-space:nowrap">${MESES[cursor.getMonth()]}/${String(cursor.getFullYear()).slice(2)}</div>`;
+    cursor.setMonth(cursor.getMonth()+1);
+  }
+  const ALTURA_LINHA=36;
+  const alturaEixo=22;
+
+  // Ocupação real (por sobreposição de DATA) de uma janela qualquer, excluindo a própria turma —
+  // diferente de ocupacaoSalaHibrido(), que só checa contra a janela INICIAL de uma entrada.
+  function _ocupacaoJanela(ini,fim,excluirNome){
+    let jovens=0;
+    itens.forEach(({t:t2,j:j2})=>{
+      if(t2.nome===excluirNome)return;
+      if(_janelasOverlap(ini,fim,j2.inicio1,j2.fim1)||_janelasOverlap(ini,fim,j2.inicio2,j2.fim2))jovens+=t2.jovens;
+    });
+    return jovens;
+  }
+  let labels=`<div style="height:${alturaEixo}px"></div>`;
+  let linhas='';
+  itens.forEach(({t,j})=>{
+    const cor=corPL(t.pl);
+    labels+=`<div style="height:${ALTURA_LINHA}px;display:flex;align-items:center;font-size:11px;font-weight:600;border-bottom:1px solid var(--br);padding-right:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.nome} <span style="color:var(--mu);font-weight:400;margin-left:4px">${t.jovens}j</span></div>`;
+    const leftIni=pos(j.inicio1),widthIni=Math.max(PX_DIA,pos(j.fim1)-leftIni+PX_DIA);
+    const leftFim=pos(j.inicio2),widthFim=Math.max(PX_DIA,pos(j.fim2)-leftFim+PX_DIA);
+    const excedeIni=(_ocupacaoJanela(j.inicio1,j.fim1,t.nome)+t.jovens)>SALA_HIBRIDO.capacidade;
+    const excedeFim=(_ocupacaoJanela(j.inicio2,j.fim2,t.nome)+t.jovens)>SALA_HIBRIDO.capacidade;
+    const barraStyle=(excede)=>`position:absolute;top:8px;height:20px;background:${cor.bg};border:${excede?'2px solid #dc2626':'1px solid '+cor.border};border-radius:5px;cursor:pointer`;
+    linhas+=`<div style="position:relative;height:${ALTURA_LINHA}px;border-bottom:1px solid var(--br)">
+      <div style="position:absolute;left:${leftIni+widthIni}px;top:17px;width:${Math.max(0,leftFim-(leftIni+widthIni))}px;height:2px;background:${cor.border};opacity:.4"></div>
+      <div onclick="abrirDetalhe('${t.nome}','${t.dia}','${t.sala}','${t.unidade}')" title="Imersão inicial: ${fmtDataCurta(j.inicio1)}–${fmtDataCurta(j.fim1)}" style="${barraStyle(excedeIni)};left:${leftIni}px;width:${widthIni}px"></div>
+      <div onclick="abrirDetalhe('${t.nome}','${t.dia}','${t.sala}','${t.unidade}')" title="Imersão final: ${fmtDataCurta(j.inicio2)}–${fmtDataCurta(j.fim2)}" style="${barraStyle(excedeFim)};left:${leftFim}px;width:${widthFim}px"></div>
+    </div>`;
+  });
+  const hojeLinha=`<div style="position:absolute;left:${pos(hoje)}px;top:${alturaEixo}px;bottom:0;width:1px;background:#fc5959;z-index:2"></div>`;
+
+  el.innerHTML=`<div style="display:flex;border:1px solid var(--br);border-radius:var(--r);background:var(--sf);overflow:hidden">
+    <div style="width:150px;flex-shrink:0;border-right:1px solid var(--br)">${labels}</div>
+    <div style="overflow-x:auto;flex:1">
+      <div style="position:relative;width:${larguraTotal}px;min-height:${alturaEixo+itens.length*ALTURA_LINHA}px">${eixo}${hojeLinha}<div style="position:relative;top:${alturaEixo}px">${linhas}</div></div>
+    </div>
+  </div>`;
+}
+
 function renderHibrido(){
+  buildGanttHibrido();
   const el=document.getElementById('hibrido-wrap');
   if(!el)return;
   const turmasHibridas=turmasHibridasAtivas();
