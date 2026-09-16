@@ -222,16 +222,23 @@
           "dia": null,
           "sala": null,
           "unidade": null
-        },
+        }
+      ]
+    },
+    {
+      "id": "e_20261116",
+      "data": "2026-11-16",
+      "empresas": [
         {
-          "id": "emp1789600214483",
-          "nome": "Nova empresa",
+          "id": "emp1789600242623",
+          "nome": "teste hibr",
           "jovens": 1,
           "status": "Em aberto",
           "turma": null,
           "dia": null,
           "sala": null,
-          "unidade": null
+          "unidade": null,
+          "pl": null
         }
       ]
     }
