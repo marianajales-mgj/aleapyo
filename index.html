@@ -5,7 +5,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Aleapyo â€” Simulador de AlocaÃ§Ã£o Leapy</title>
+<title>Aleapyo — Simulador de Alocação Leapy</title>
 <link href="https://fonts.googleapis.com/css2?family=Krona+One&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -58,32 +58,32 @@ input[type=text],input[type=number],input[type=date]{height:30px;border:1px soli
 <div class="header">
   <div style="display:flex;align-items:center;gap:12px">
     <svg width="30" height="30" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="15" stroke="#373afd" stroke-width="2"/><circle cx="16" cy="16" r="10" stroke="#35dcb2" stroke-width="2"/><circle cx="16" cy="16" r="6" stroke="#fc5959" stroke-width="1.5"/><circle cx="16" cy="16" r="3" fill="#373afd"/></svg>
-    <div><div class="logo">Aleapyo</div><div style="font-size:11px;color:#aaa">Simulador de AlocaÃ§Ã£o â€” Leapy</div></div>
+    <div><div class="logo">Aleapyo</div><div style="font-size:11px;color:#aaa">Simulador de Alocação — Leapy</div></div>
   </div>
   <div style="display:flex;gap:8px;align-items:center">
     <span id="sync-status" style="font-size:10px;color:var(--mu)"></span>
-    <button onclick="carregarDoDirectus()" style="height:32px;padding:0 12px;background:transparent;color:#aaa;border:1px solid #444;border-radius:var(--rs);font-size:11px;cursor:pointer;font-family:'Montserrat',sans-serif">â†» Sincronizar</button>
-    <button onclick="if(confirm('Resetar simulaÃ§Ãµes?'))resetarSim()" style="height:32px;padding:0 12px;background:transparent;color:#aaa;border:1px solid #444;border-radius:var(--rs);font-size:11px;cursor:pointer;font-family:'Montserrat',sans-serif">â†º Resetar</button>
+    <button onclick="carregarDoDirectus()" style="height:32px;padding:0 12px;background:transparent;color:#aaa;border:1px solid #444;border-radius:var(--rs);font-size:11px;cursor:pointer;font-family:'Montserrat',sans-serif">↻ Sincronizar</button>
+    <button onclick="if(confirm('Resetar simulações?'))resetarSim()" style="height:32px;padding:0 12px;background:transparent;color:#aaa;border:1px solid #444;border-radius:var(--rs);font-size:11px;cursor:pointer;font-family:'Montserrat',sans-serif">↺ Resetar</button>
   </div>
 </div>
 <div class="tabs">
   <button class="tab on" onclick="setTab('grade',this)">Grade de salas</button>
-  <button class="tab" onclick="setTab('empresas',this)">SimulaÃ§Ã£o Presencial</button>
-  <button class="tab" onclick="setTab('hibrido',this)">SimulaÃ§Ã£o HÃ­brido</button>
+  <button class="tab" onclick="setTab('empresas',this)">Simulação Presencial</button>
+  <button class="tab" onclick="setTab('hibrido',this)">Simulação Híbrido</button>
   <button class="tab" onclick="setTab('pls',this)">Program Leads</button>
   <button class="tab" onclick="setTab('cronogramas',this)">Cronogramas</button>
   <button class="tab" onclick="setTab('ecossistema',this)">Ecossistema Plus</button>
-<button class="tab" onclick="setTab('mudancaturma',this)">MudanÃ§a de Turma</button>
+<button class="tab" onclick="setTab('mudancaturma',this)">Mudança de Turma</button>
 </div>
 
-<!-- TAB EMPRESAS (SimulaÃ§Ã£o Presencial) -->
+<!-- TAB EMPRESAS (Simulação Presencial) -->
 <div id="tab-empresas" class="sec" style="display:none">
   <div style="margin-bottom:16px">
-    <div style="font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">SimulaÃ§Ã£o â€” Curso Presencial</div>
-    <div style="font-size:12px;color:var(--mu)">Freguesia do Ã“ e Polo Liberdade (salas normais). Turmas do Curso HÃ­brido nÃ£o aparecem aqui â€” veja na aba SimulaÃ§Ã£o HÃ­brido.</div>
+    <div style="font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Simulação — Curso Presencial</div>
+    <div style="font-size:12px;color:var(--mu)">Freguesia do Ó e Polo Liberdade (salas normais). Turmas do Curso Híbrido não aparecem aqui — veja na aba Simulação Híbrido.</div>
   </div>
   <div style="margin-bottom:18px">
-    <div style="font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">CenÃ¡rio atual</div>
+    <div style="font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Cenário atual</div>
     <div id="grade-mini-leg" style="display:flex;gap:10px;margin-bottom:8px;flex-wrap:wrap;align-items:center"></div>
     <div class="grade-wrap"><table class="grade" id="grade-mini-tbl"></table></div>
     <div id="grade-mini-alertas"></div>
@@ -106,7 +106,7 @@ input[type=text],input[type=number],input[type=date]{height:30px;border:1px soli
     <div id="ne-empresas"></div>
     <button onclick="addEmpNE()" style="width:100%;padding:6px;border:1.5px dashed var(--blue);border-radius:var(--rs);background:transparent;color:var(--blue);font-size:11px;font-weight:600;cursor:pointer;font-family:'Montserrat',sans-serif;margin-bottom:12px">+ Adicionar empresa</button>
     <div style="display:flex;gap:8px">
-      <button onclick="salvarNE()" style="flex:1;height:36px;background:var(--green);color:#054a36;border:none;border-radius:var(--rs);font-size:12px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif">âœ“ Salvar</button>
+      <button onclick="salvarNE()" style="flex:1;height:36px;background:var(--green);color:#054a36;border:none;border-radius:var(--rs);font-size:12px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif">✓ Salvar</button>
       <button onclick="toggleNovaEntrada()" style="height:36px;padding:0 14px;background:#f5f5f2;color:var(--mu);border:1px solid var(--br);border-radius:var(--rs);font-size:11px;cursor:pointer;font-family:'Montserrat',sans-serif">Cancelar</button>
     </div>
   </div>
@@ -117,7 +117,7 @@ input[type=text],input[type=number],input[type=date]{height:30px;border:1px soli
   <div id="grade-totais" style="margin-bottom:10px"></div>
   <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center;justify-content:space-between">
     <div id="grade-leg" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"></div>
-    <button onclick="gerenciarUnidades()" style="height:28px;padding:0 10px;background:#f5f5f2;color:var(--mu);border:1px solid var(--br);border-radius:var(--rs);font-size:11px;cursor:pointer;font-family:'Montserrat',sans-serif">âš™ Unidades</button>
+    <button onclick="gerenciarUnidades()" style="height:28px;padding:0 10px;background:#f5f5f2;color:var(--mu);border:1px solid var(--br);border-radius:var(--rs);font-size:11px;cursor:pointer;font-family:'Montserrat',sans-serif">⚙ Unidades</button>
   </div>
   <div class="grade-wrap"><table class="grade" id="grade-tbl"></table></div>
   <div id="grade-alertas"></div>
@@ -133,7 +133,7 @@ input[type=text],input[type=number],input[type=date]{height:30px;border:1px soli
 <div id="tab-ecossistema" class="sec" style="display:none">
   <div style="margin-bottom:16px">
     <div style="font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Ecossistema Plus</div>
-    <div style="font-size:12px;color:var(--mu)">Turmas sem sala fÃ­sica â€” contam na numeraÃ§Ã£o mas nÃ£o ocupam a grade presencial.</div>
+    <div style="font-size:12px;color:var(--mu)">Turmas sem sala física — contam na numeração mas não ocupam a grade presencial.</div>
   </div>
   <div id="eco-grade"></div>
 </div>
@@ -144,7 +144,7 @@ input[type=text],input[type=number],input[type=date]{height:30px;border:1px soli
     <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.5" style="opacity:.4"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
     <div style="font-size:16px;font-weight:700;color:var(--tx)">Cronogramas</div>
     <div style="font-size:13px;color:var(--mu);max-width:400px;line-height:1.6">
-      Em breve vocÃª poderÃ¡ visualizar o cronograma de cada turma, verificar qual mÃ³dulo cai no 1Âº presencial e comparar cronogramas entre turmas para decidir quando alocar novas entradas.
+      Em breve você poderá visualizar o cronograma de cada turma, verificar qual módulo cai no 1º presencial e comparar cronogramas entre turmas para decidir quando alocar novas entradas.
     </div>
     <div style="display:flex;align-items:center;gap:8px;background:#eeefff;border-radius:var(--rs);padding:10px 18px;font-size:12px;font-weight:600;color:var(--blue)">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1.2s linear infinite;flex-shrink:0"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
@@ -155,14 +155,14 @@ input[type=text],input[type=number],input[type=date]{height:30px;border:1px soli
 
 </div>
 
-<!-- TAB MUDANÃ‡A DE TURMA -->
+<!-- TAB MUDANÇA DE TURMA -->
 <div id="tab-mudancaturma" class="sec" style="display:none">
   <div style="margin-bottom:16px">
-    <div style="font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">MudanÃ§a de Turma</div>
-    <div style="font-size:12px;color:var(--mu)">Busque um jovem pela matrÃ­cula (ID) ou nome para simular cenÃ¡rios de troca de turma â€” considerando cronograma jÃ¡ cursado e vaga na grade de salas. Nada Ã© alterado no backoffice; Ã© sÃ³ simulaÃ§Ã£o.</div>
+    <div style="font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Mudança de Turma</div>
+    <div style="font-size:12px;color:var(--mu)">Busque um jovem pela matrícula (ID) ou nome para simular cenários de troca de turma — considerando cronograma já cursado e vaga na grade de salas. Nada é alterado no backoffice; é só simulação.</div>
   </div>
   <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
-    <input type="text" id="mt-busca" placeholder="ID da matrÃ­cula ou nome do jovem" style="flex:1;min-width:220px" onkeydown="if(event.key==='Enter')buscarJovemMT()"/><div id="mt-dia-pref-wrap" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-height:30px;padding:4px 8px;border-radius:var(--rs);border:1px solid var(--br);font-size:11px;font-family:'Montserrat',sans-serif;color:var(--mu)">Dia pref.:<label style="display:flex;align-items:center;gap:2px;cursor:pointer;margin:0"><input type="checkbox" class="mt-dia-cb" value="segunda_feira" onchange="if(_mtJovemAtual)analisarCenariosMT()">Seg</label><label style="display:flex;align-items:center;gap:2px;cursor:pointer;margin:0"><input type="checkbox" class="mt-dia-cb" value="terca_feira" onchange="if(_mtJovemAtual)analisarCenariosMT()">Ter</label><label style="display:flex;align-items:center;gap:2px;cursor:pointer;margin:0"><input type="checkbox" class="mt-dia-cb" value="quarta_feira" onchange="if(_mtJovemAtual)analisarCenariosMT()">Qua</label><label style="display:flex;align-items:center;gap:2px;cursor:pointer;margin:0"><input type="checkbox" class="mt-dia-cb" value="quinta_feira" onchange="if(_mtJovemAtual)analisarCenariosMT()">Qui</label><label style="display:flex;align-items:center;gap:2px;cursor:pointer;margin:0"><input type="checkbox" class="mt-dia-cb" value="sexta_feira" onchange="if(_mtJovemAtual)analisarCenariosMT()">Sex</label></div>
+    <input type="text" id="mt-busca" placeholder="ID da matrícula ou nome do jovem" style="flex:1;min-width:220px" onkeydown="if(event.key==='Enter')buscarJovemMT()"/><div id="mt-dia-pref-wrap" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-height:30px;padding:4px 8px;border-radius:var(--rs);border:1px solid var(--br);font-size:11px;font-family:'Montserrat',sans-serif;color:var(--mu)">Dia pref.:<label style="display:flex;align-items:center;gap:2px;cursor:pointer;margin:0"><input type="checkbox" class="mt-dia-cb" value="segunda_feira" onchange="if(_mtJovemAtual)analisarCenariosMT()">Seg</label><label style="display:flex;align-items:center;gap:2px;cursor:pointer;margin:0"><input type="checkbox" class="mt-dia-cb" value="terca_feira" onchange="if(_mtJovemAtual)analisarCenariosMT()">Ter</label><label style="display:flex;align-items:center;gap:2px;cursor:pointer;margin:0"><input type="checkbox" class="mt-dia-cb" value="quarta_feira" onchange="if(_mtJovemAtual)analisarCenariosMT()">Qua</label><label style="display:flex;align-items:center;gap:2px;cursor:pointer;margin:0"><input type="checkbox" class="mt-dia-cb" value="quinta_feira" onchange="if(_mtJovemAtual)analisarCenariosMT()">Qui</label><label style="display:flex;align-items:center;gap:2px;cursor:pointer;margin:0"><input type="checkbox" class="mt-dia-cb" value="sexta_feira" onchange="if(_mtJovemAtual)analisarCenariosMT()">Sex</label></div>
     <button onclick="buscarJovemMT()" style="height:30px;padding:0 16px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:11px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif">Buscar</button>
   </div>
   <div id="mt-resultado"></div>
@@ -177,14 +177,14 @@ input[type=text],input[type=number],input[type=date]{height:30px;border:1px soli
 
 </div>
 
-<!-- TAB SIMULAÃ‡ÃƒO HÃBRIDO -->
+<!-- TAB SIMULAÇÃO HÍBRIDO -->
 <div id="tab-hibrido" class="sec" style="display:none">
   <div style="margin-bottom:16px">
-    <div style="font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">SimulaÃ§Ã£o â€” Curso HÃ­brido</div>
-    <div style="font-size:12px;color:var(--mu)">Sala HÃ­brido â€” Polo Liberdade, capacidade fixa de 50 jovens por janela de 10 dias corridos (inÃ­cio e fim de turma). No meio, 100% online.</div>
+    <div style="font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Simulação — Curso Híbrido</div>
+    <div style="font-size:12px;color:var(--mu)">Sala Híbrido — Polo Liberdade, capacidade fixa de 50 jovens por janela de 10 dias corridos (início e fim de turma). No meio, 100% online.</div>
   </div>
   <div style="margin-bottom:18px">
-    <div style="font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">CenÃ¡rio atual</div>
+    <div style="font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Cenário atual</div>
     <div id="grade-mini-hib-leg" style="display:flex;gap:10px;margin-bottom:8px;flex-wrap:wrap;align-items:center"></div>
     <div class="grade-wrap"><table class="grade" id="grade-mini-hib-tbl"></table></div>
     <div id="grade-mini-hib-alertas"></div>
@@ -196,18 +196,18 @@ input[type=text],input[type=number],input[type=date]{height:30px;border:1px soli
       <button onclick="filtrarHib('Confirmado')" id="fh-conf" class="mover-btn">Confirmados</button>
       <button onclick="filtrarHib('Adiado')" id="fh-adiado" class="mover-btn">Adiados</button>
     </div>
-    <button onclick="toggleNovaEntradaHib()" style="height:32px;padding:0 14px;background:var(--green);color:#054a36;border:none;border-radius:var(--rs);font-size:11px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif">+ Nova entrada hÃ­brida</button>
+    <button onclick="toggleNovaEntradaHib()" style="height:32px;padding:0 14px;background:var(--green);color:#054a36;border:none;border-radius:var(--rs);font-size:11px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif">+ Nova entrada híbrida</button>
   </div>
   <div id="empresas-list-hibrido"></div>
   <div id="form-nova-entrada-hib" style="display:none;background:var(--sf);border:1.5px dashed var(--green);border-radius:var(--r);padding:16px;margin-top:4px">
-    <div style="font-size:13px;font-weight:700;margin-bottom:14px">Nova entrada hÃ­brida</div>
+    <div style="font-size:13px;font-weight:700;margin-bottom:14px">Nova entrada híbrida</div>
     <div style="margin-bottom:12px"><div style="font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase;margin-bottom:4px">Data de entrada</div>
       <input type="date" id="neh-data" style="width:180px"/></div>
     <div style="font-size:11px;font-weight:700;color:var(--mu);margin-bottom:8px">Empresas</div>
     <div id="neh-empresas"></div>
     <button onclick="addEmpNEHib()" style="width:100%;padding:6px;border:1.5px dashed var(--blue);border-radius:var(--rs);background:transparent;color:var(--blue);font-size:11px;font-weight:600;cursor:pointer;font-family:'Montserrat',sans-serif;margin-bottom:12px">+ Adicionar empresa</button>
     <div style="display:flex;gap:8px">
-      <button onclick="salvarNEHib()" style="flex:1;height:36px;background:var(--green);color:#054a36;border:none;border-radius:var(--rs);font-size:12px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif">âœ“ Salvar</button>
+      <button onclick="salvarNEHib()" style="flex:1;height:36px;background:var(--green);color:#054a36;border:none;border-radius:var(--rs);font-size:12px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif">✓ Salvar</button>
       <button onclick="toggleNovaEntradaHib()" style="height:36px;padding:0 14px;background:#f5f5f2;color:var(--mu);border:1px solid var(--br);border-radius:var(--rs);font-size:11px;cursor:pointer;font-family:'Montserrat',sans-serif">Cancelar</button>
     </div>
   </div>
@@ -234,7 +234,7 @@ input[type=text],input[type=number],input[type=date]{height:30px;border:1px soli
 </div>
 
 <script>
-// â”€â”€ CONFIGURAÃ‡ÃƒO â”€â”€
+// ── CONFIGURAÇÃO ──
 const GITHUB_TOKEN=['ghp_UhmDpfUfh7','aEJoiBd7DjFH','aeoYMYrB0KIjbV'].join('');
 const GITHUB_REPO='marianajales-mgj/aleapyo';
 const OVERRIDES_FILE='overrides.json';
@@ -245,16 +245,16 @@ let plCores={
 };
 const corPL=pl=>plCores[pl]||{bg:'#aaa',light:'#aaa18',text:'#333',border:'#aaa'};
 let unidades=[
-  {nome:'Freguesia do Ã“',salas:['Sala 1','Sala 2'],capacidade:32},
+  {nome:'Freguesia do Ó',salas:['Sala 1','Sala 2'],capacidade:32},
   {nome:'Polo Liberdade',salas:['Sala 1','Sala 2'],capacidade:50},
 ];
-const DIAS=['segunda','terÃ§a','quarta','quinta','sexta'];
-const DABR={segunda:'Seg',terÃ§a:'Ter',quarta:'Qua',quinta:'Qui',sexta:'Sex'};
-const LETRA={segunda:'A',terÃ§a:'B',quarta:'C',quinta:'D',sexta:'E'};
+const DIAS=['segunda','terça','quarta','quinta','sexta'];
+const DABR={segunda:'Seg',terça:'Ter',quarta:'Qua',quinta:'Qui',sexta:'Sex'};
+const LETRA={segunda:'A',terça:'B',quarta:'C',quinta:'D',sexta:'E'};
 const TURNO='M';
-const normDia=d=>({'terca':'terÃ§a','segunda-feira':'segunda','terca-feira':'terÃ§a','quinta-feira':'quinta','sexta-feira':'sexta'})[d?.toLowerCase()]||d?.toLowerCase()||d;
+const normDia=d=>({'terca':'terça','segunda-feira':'segunda','terca-feira':'terça','quinta-feira':'quinta','sexta-feira':'sexta'})[d?.toLowerCase()]||d?.toLowerCase()||d;
 
-// â”€â”€ FERIADOS + EMENDAS â”€â”€
+// ── FERIADOS + EMENDAS ──
 const FERIADOS_BASE={
   '2026-06-04':1,'2026-07-09':1,'2026-09-07':1,
   '2026-10-12':1,'2026-11-02':1,'2026-11-15':1,
@@ -265,10 +265,10 @@ function calcFeriados(){
   Object.keys(FERIADOS_BASE).forEach(dt=>{
     const d=new Date(dt+'T12:00:00');
     const dow=d.getDay();
-    if(dow===2){// terÃ§a â†’ segunda Ã© emenda
+    if(dow===2){// terça → segunda é emenda
       const seg=new Date(d);seg.setDate(seg.getDate()-1);
       todos[seg.toISOString().slice(0,10)]=1;
-    } else if(dow===4){// quinta â†’ sexta Ã© emenda
+    } else if(dow===4){// quinta → sexta é emenda
       const sex=new Date(d);sex.setDate(sex.getDate()+1);
       todos[sex.toISOString().slice(0,10)]=1;
     }
@@ -278,19 +278,19 @@ function calcFeriados(){
 const FERIADOS=calcFeriados();
 const isFer=d=>{const s=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;return!!FERIADOS[s];};
 function addDU(d,n){let r=new Date(d),c=0;while(c<n){r.setDate(r.getDate()+1);if(r.getDay()!==0&&r.getDay()!==6&&!isFer(r))c++;}return r;}
-const DIASDOW={segunda:1,terÃ§a:2,quarta:3,quinta:4,sexta:5};
+const DIASDOW={segunda:1,terça:2,quarta:3,quinta:4,sexta:5};
 
 function calcPP(entrada,dia){
-  const dow=DIASDOW[normDia(dia)];if(!dow||!entrada)return 'â€”';
+  const dow=DIASDOW[normDia(dia)];if(!dow||!entrada)return '—';
   try{
     const fim=addDU(new Date(entrada+'T12:00:00'),6);
     let d=new Date(fim);d.setDate(d.getDate()+1);
     for(let i=0;i<14;i++){if(d.getDay()===dow&&!isFer(d))return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;d.setDate(d.getDate()+1);}
-  }catch{}return 'â€”';
+  }catch{}return '—';
 }
 function fmtFim(dt){
   const fim=addDU(new Date(dt+'T12:00:00'),6);
-  const ds=['Dom','Seg','Ter','Qua','Qui','Sex','SÃ¡b'];
+  const ds=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
   return `${ds[fim.getDay()]} ${String(fim.getDate()).padStart(2,'0')}/${String(fim.getMonth()+1).padStart(2,'0')}`;
 }
 function ferNaImersao(dt){
@@ -300,20 +300,20 @@ function ferNaImersao(dt){
   while(d<=fim){
     d.setDate(d.getDate()+1);
     const k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    if(FERIADOS[k])res.push(`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')} â€” feriado/emenda`);
+    if(FERIADOS[k])res.push(`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')} — feriado/emenda`);
   }
   return res;
 }
-function fmtData(dt){if(!dt)return 'â€”';const p=dt.split('-');return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:dt;}
+function fmtData(dt){if(!dt)return '—';const p=dt.split('-');return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:dt;}
 
-// â”€â”€ TURMAS FIXAS â”€â”€
-// TURMAS_FIXAS Ã© populado 100% pelo Directus ao abrir â€” nÃ£o hÃ¡ dados hardcoded
+// ── TURMAS FIXAS ──
+// TURMAS_FIXAS é populado 100% pelo Directus ao abrir — não há dados hardcoded
 const TURMAS_FIXAS=[];
-const TURMAS_SEM_SALA=['Turma CM3','Turma EM8','Turma DM6','Turma DM9','Turma EM9','Turma AM5','Turma DM11','Turma EM10']; // contam na numeraÃ§Ã£o mas nÃ£o ocupam sala
+const TURMAS_SEM_SALA=['Turma CM3','Turma EM8','Turma DM6','Turma DM9','Turma EM9','Turma AM5','Turma DM11','Turma EM10']; // contam na numeração mas não ocupam sala
 
 // Overrides de sala e PL: persistem via GitHub (overrides.json no repo)
 let salaOverrides={};
-let _overridesSha=null; // SHA atual do arquivo no GitHub (necessÃ¡rio para PUT)
+let _overridesSha=null; // SHA atual do arquivo no GitHub (necessário para PUT)
 
 async function loadOverrides(){
   try{
@@ -328,7 +328,7 @@ async function loadOverrides(){
     }else{
       salaOverrides={};
     }
-  }catch(e){console.warn('Overrides nÃ£o carregados:',e.message);salaOverrides={};}
+  }catch(e){console.warn('Overrides não carregados:',e.message);salaOverrides={};}
 }
 
 async function saveSalaOverrides(){
@@ -345,7 +345,7 @@ async function saveSalaOverrides(){
   }catch(e){console.warn('Erro ao salvar overrides:',e.message);}
 }
 
-// â”€â”€ PERSISTÃŠNCIA DE ENTRADAS NO GITHUB â”€â”€
+// ── PERSISTÊNCIA DE ENTRADAS NO GITHUB ──
 const ESTADO_FILE='estado.json';
 let _estadoSha=null;
 
@@ -379,7 +379,7 @@ async function loadEstado(){
         });
       }
     }
-  }catch(e){console.warn('Estado nÃ£o carregado:',e.message);}
+  }catch(e){console.warn('Estado não carregado:',e.message);}
 }
 
 async function saveEstado(){
@@ -397,11 +397,11 @@ async function saveEstado(){
   }catch(e){console.warn('Erro ao salvar estado:',e.message);}
 }
 
-// â”€â”€ ENTRADAS â”€â”€
+// ── ENTRADAS ──
 let entradas=[
   {id:'e1',data:'2026-07-06',empresas:[
-    {id:'emp1',nome:'Shopee',jovens:30,status:'Em aberto',turma:'DM6',dia:'quinta',sala:'Sala 1',unidade:'Freguesia do Ã“'},
-    {id:'emp2',nome:'Shopee',jovens:30,status:'Em aberto',turma:'DM7',dia:'quinta',sala:'Sala 2',unidade:'Freguesia do Ã“'},
+    {id:'emp1',nome:'Shopee',jovens:30,status:'Em aberto',turma:'DM6',dia:'quinta',sala:'Sala 1',unidade:'Freguesia do Ó'},
+    {id:'emp2',nome:'Shopee',jovens:30,status:'Em aberto',turma:'DM7',dia:'quinta',sala:'Sala 2',unidade:'Freguesia do Ó'},
     {id:'emp3',nome:'Shopee',jovens:24,status:'Em aberto',turma:'EM8',dia:'sexta',sala:'Sala 1',unidade:'Polo Liberdade'},
     {id:'emp4',nome:'Arco',jovens:6,status:'Em aberto',turma:'EM8',dia:'sexta',sala:'Sala 1',unidade:'Polo Liberdade'},
   ]},
@@ -413,7 +413,7 @@ let entradas=[
   ]},
 ];
 
-// Entradas do Curso HÃ­brido â€” lista prÃ³pria, separada da presencial
+// Entradas do Curso Híbrido — lista própria, separada da presencial
 let entradasHibrido=[];
 
 let turmasSim=[];
@@ -427,7 +427,7 @@ let neEmpresas=[];
 let neEmpresasHib=[];
 let _moverEid=null,_moverEmpid=null;
 
-// â”€â”€ OCUPAÃ‡ÃƒO â”€â”€
+// ── OCUPAÇÃO ──
 const DURACAO_CONTRATO_MESES=15;
 const JANELA_HIBRIDO_DU=10;
 function subDU(d,n){let r=new Date(d),c=0;while(c<n){r.setDate(r.getDate()-1);if(r.getDay()!==0&&r.getDay()!==6&&!isFer(r))c++;}return r;}
@@ -439,8 +439,8 @@ function _dataFimContrato(entradaStr){
 }
 function janelasHibrido(entradaStr){
   if(!entradaStr)return null;
-  // Janela fixa de 10 dias CORRIDOS (nÃ£o Ãºteis) â€” feriado/emenda dentro dela nÃ£o estica a
-  // reserva da sala, senÃ£o a janela poderia encavalar com a prÃ³xima entrada (a cada ~15 dias).
+  // Janela fixa de 10 dias CORRIDOS (não úteis) — feriado/emenda dentro dela não estica a
+  // reserva da sala, senão a janela poderia encavalar com a próxima entrada (a cada ~15 dias).
   const inicio=new Date(entradaStr+'T12:00:00');
   const fim1=new Date(inicio);fim1.setDate(fim1.getDate()+JANELA_HIBRIDO_DU-1);
   const fimContrato=_dataFimContrato(entradaStr);
@@ -458,17 +458,17 @@ function faseHibrido(t){
   return 'online';
 }
 function estaOnlineHibrido(t){return faseHibrido(t)==='online';}
-function fmtDataCurta(d){if(!d)return 'â€”';return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;}
+function fmtDataCurta(d){if(!d)return '—';return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;}
 
-// â”€â”€ SALA DEDICADA AO HÃBRIDO â”€â”€
-// Uma Ãºnica sala, sÃ³ no Polo Liberdade, capacidade fixa 50, ocupada por janelas de 10 dias Ãºteis (nÃ£o por dia da semana)
-const SALA_HIBRIDO={unidade:'Polo Liberdade',nome:'Sala HÃ­brido',capacidade:50};
+// ── SALA DEDICADA AO HÍBRIDO ──
+// Uma única sala, só no Polo Liberdade, capacidade fixa 50, ocupada por janelas de 10 dias úteis (não por dia da semana)
+const SALA_HIBRIDO={unidade:'Polo Liberdade',nome:'Sala Híbrido',capacidade:50};
 function turmasHibridasAtivas(){
   turmasSim=turmasSimAtivas();
   return [...TURMAS_FIXAS,...turmasSim].filter(t=>t.modalidade==='hibrida'&&t.entrada);
 }
 function _janelasOverlap(aIni,aFim,bIni,bFim){return aIni<=bFim&&bIni<=aFim;}
-// OcupaÃ§Ã£o da Sala HÃ­brido considerando a janela presencial de inÃ­cio de uma entrada candidata
+// Ocupação da Sala Híbrido considerando a janela presencial de início de uma entrada candidata
 function ocupacaoSalaHibrido(entradaCandidataStr,excluirTurmaNome){
   const cap=SALA_HIBRIDO.capacidade;
   const jCand=janelasHibrido(entradaCandidataStr);
@@ -485,17 +485,17 @@ function ocupacaoSalaHibrido(entradaCandidataStr,excluirTurmaNome){
 }
 
 function ocupacaoSala(dia,sala,unidade){
-  unidade=unidade||'Freguesia do Ã“';
+  unidade=unidade||'Freguesia do Ó';
   let j=0,ts=[];
   TURMAS_FIXAS.forEach(t=>{
     if(t._sem_sala)return;
-    if(t.dia===dia&&t.sala===sala&&(t.unidade||'Freguesia do Ã“')===unidade){
+    if(t.dia===dia&&t.sala===sala&&(t.unidade||'Freguesia do Ó')===unidade){
       ts.push({...t});
-      if(!estaOnlineHibrido(t))j+=t.jovens; // turma hÃ­brida em fase online nÃ£o ocupa capacidade fÃ­sica
+      if(!estaOnlineHibrido(t))j+=t.jovens; // turma híbrida em fase online não ocupa capacidade física
     }
   });
   turmasSim.forEach(t=>{
-    if(t.dia===dia&&t.sala===sala&&(t.unidade||'Freguesia do Ã“')===unidade){
+    if(t.dia===dia&&t.sala===sala&&(t.unidade||'Freguesia do Ó')===unidade){
       ts.push({...t});
       if(!estaOnlineHibrido(t))j+=t.jovens;
     }
@@ -507,17 +507,17 @@ function ocupacaoSala(dia,sala,unidade){
 function turmasSimAtivas(){
   const mapa={};
   const fixasNomes=new Set(TURMAS_FIXAS.map(t=>t.nome));
-  // Combina as duas trilhas de simulaÃ§Ã£o: presencial (entradas) e hÃ­brido (entradasHibrido)
+  // Combina as duas trilhas de simulação: presencial (entradas) e híbrido (entradasHibrido)
   [...entradas,...entradasHibrido].forEach(entrada=>{
     entrada.empresas.forEach(emp=>{
       if(!emp.turma||emp.status==='Adiado'||!emp.jovens)return;
       const ehHibrida=emp.modalidade==='hibrida';
-      if(!emp.dia&&!ehHibrida)return; // dia da semana sÃ³ Ã© obrigatÃ³rio pra turma presencial normal
+      if(!emp.dia&&!ehHibrida)return; // dia da semana só é obrigatório pra turma presencial normal
       const nomeT='Turma '+emp.turma;
-      // Ignorar sÃ³ se a turma fixa real existe E nÃ£o Ã© injetada temporariamente
+      // Ignorar só se a turma fixa real existe E não é injetada temporariamente
       const fixaReal=TURMAS_FIXAS.find(t=>t.nome===nomeT&&!t._injetada);
       if(fixaReal)return;
-      const unidade=emp.unidade||(ehHibrida?SALA_HIBRIDO.unidade:'Freguesia do Ã“');
+      const unidade=emp.unidade||(ehHibrida?SALA_HIBRIDO.unidade:'Freguesia do Ó');
       const sala=emp.sala||(ehHibrida?SALA_HIBRIDO.nome:melhorSala(emp.dia,unidade));
       const chave=nomeT+'|'+(emp.dia||'hibrido')+'|'+sala+'|'+unidade;
       if(!mapa[chave]){mapa[chave]={nome:nomeT,dia:emp.dia||null,sala,unidade,entrada:entrada.data,jovens:0,empresas:[],pl:emp.pl||null,modalidade:emp.modalidade||null,status:'simulada'};}
@@ -532,7 +532,7 @@ function turmasSimAtivas(){
 }
 
 function melhorSala(dia,unidade){
-  unidade=unidade||'Freguesia do Ã“';
+  unidade=unidade||'Freguesia do Ó';
   const u=unidades.find(x=>x.nome===unidade);
   const salas=u?u.salas:['Sala 1','Sala 2'];
   const cap=u?u.capacidade:32;
@@ -546,10 +546,10 @@ function melhorSala(dia,unidade){
 
 function atribuirPLs(){
   const usado={};
-  TURMAS_FIXAS.forEach(t=>{const k=t.dia+'|'+t.sala+'|'+(t.unidade||'Freguesia do Ã“');usado[k]=t.pl;});
+  TURMAS_FIXAS.forEach(t=>{const k=t.dia+'|'+t.sala+'|'+(t.unidade||'Freguesia do Ó');usado[k]=t.pl;});
   turmasSim.forEach(t=>{
-    const k=t.dia+'|'+t.sala+'|'+(t.unidade||'Freguesia do Ã“');
-    // Se turma jÃ¡ tem PL definido pelo usuÃ¡rio, respeitar
+    const k=t.dia+'|'+t.sala+'|'+(t.unidade||'Freguesia do Ó');
+    // Se turma já tem PL definido pelo usuário, respeitar
     if(t.pl){usado[k]=t.pl;return;}
     if(usado[k]){t.pl=usado[k];return;}
     const usadosDia=new Set(Object.entries(usado).filter(([kk])=>kk.startsWith(t.dia+'|')).map(([,v])=>v));
@@ -559,24 +559,24 @@ function atribuirPLs(){
   });
 }
 
-// â”€â”€ RENDER GRADE (genÃ©rica) â”€â”€
+// ── RENDER GRADE (genérica) ──
 
-// Verifica se sala ainda estÃ¡ dentro da janela de cronograma (mÃ¡x 2 entradas apÃ³s a mais antiga)
+// Verifica se sala ainda está dentro da janela de cronograma (máx 2 entradas após a mais antiga)
 // dataRef: data da entrada sendo avaliada (YYYY-MM-DD). Se omitida, usa hoje para a grade.
 function salaAindaDisponivel(dia, sala, unidade, dataRef) {
-  unidade = unidade || 'Freguesia do Ã“';
+  unidade = unidade || 'Freguesia do Ó';
   // Apenas turmas REAIS do Directus
   const turmasSala = TURMAS_FIXAS.filter(t =>
-    t.dia === dia && t.sala === sala && (t.unidade || 'Freguesia do Ã“') === unidade && t.entrada && !t._sem_sala
+    t.dia === dia && t.sala === sala && (t.unidade || 'Freguesia do Ó') === unidade && t.entrada && !t._sem_sala
   );
-  if (!turmasSala.length) return true; // sala vazia = disponÃ­vel
+  if (!turmasSala.length) return true; // sala vazia = disponível
   const dataMaisAntiga = turmasSala.reduce((min, t) => t.entrada < min ? t.entrada : min, turmasSala[0].entrada);
-  // Usar datas distintas de TODAS as turmas do Directus como referÃªncia de entradas passadas
-  // (nÃ£o o estado.json, que perde entradas antigas quando elas passam)
+  // Usar datas distintas de TODAS as turmas do Directus como referência de entradas passadas
+  // (não o estado.json, que perde entradas antigas quando elas passam)
   const ref = dataRef || '9999-99-99';
   const datasDistintas = new Set(TURMAS_FIXAS.filter(t => t.entrada).map(t => t.entrada));
   const entradasDepois = [...datasDistintas].filter(d => d > dataMaisAntiga && d <= ref).length;
-  return entradasDepois <= 2; // disponÃ­vel se 2 ou menos entradas depois da mais antiga
+  return entradasDepois <= 2; // disponível se 2 ou menos entradas depois da mais antiga
 }
 
 function buildGradeHTML(tblId,compact,incluirHibrido,legId,alertasId){
@@ -589,7 +589,7 @@ function buildGradeHTML(tblId,compact,incluirHibrido,legId,alertasId){
   if(leg){
     leg.innerHTML=Object.entries(plCores).map(([pl,cor])=>
       `<span style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--mu)"><span style="width:9px;height:9px;border-radius:99px;background:${cor.bg};display:inline-block"></span>${pl}</span>`
-    ).join('')+`<span style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--mu)"><span style="width:11px;height:11px;border-radius:3px;border:1.5px dashed #373afd;display:inline-block"></span>SimulaÃ§Ã£o</span>`;
+    ).join('')+`<span style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--mu)"><span style="width:11px;height:11px;border-radius:3px;border:1.5px dashed #373afd;display:inline-block"></span>Simulação</span>`;
   }
   let h=`<thead><tr><th class="dia-col" rowspan="2">Dia</th>`;
   unidades.forEach(u=>{const headerColor=u.nome==='Polo Liberdade'?{bg:'#35dcb225',tx:'#054a36',bd:'#35dcb2'}:{bg:'#373afd18',tx:'#373afd',bd:'#373afd'};
@@ -598,7 +598,7 @@ function buildGradeHTML(tblId,compact,incluirHibrido,legId,alertasId){
   h+=`</tr><tr>`;
   unidades.forEach(u=>{
     u.salas.forEach(s=>{h+=`<th style="font-size:10px">${s}</th>`;});
-    if(incluirHibrido&&u.nome==='Polo Liberdade')h+=`<th style="font-size:10px;background:#fff7ed;color:#92400e">Sala HÃ­brido</th>`;
+    if(incluirHibrido&&u.nome==='Polo Liberdade')h+=`<th style="font-size:10px;background:#fff7ed;color:#92400e">Sala Híbrido</th>`;
   });
   h+=`</tr></thead><tbody>`;
   const alertas=[];
@@ -607,16 +607,16 @@ function buildGradeHTML(tblId,compact,incluirHibrido,legId,alertasId){
     const cap=ocp.capacidade;
     const pct=Math.min(100,Math.round(ocp.jovens/cap*100));
     const corBar=ocp.jovens>cap?'#fc5959':ocp.jovens>cap*.85?'#f2cf6b':'#35dcb2';
-    if(ocp.jovens>cap)alertas.push(`âš  ${unidadeNome} ${sala} (${dia}): ${ocp.jovens}j â€” excede capacidade de ${cap}j. Turmas simuladas precisam ir para outro dia/unidade.`);
+    if(ocp.jovens>cap)alertas.push(`⚠ ${unidadeNome} ${sala} (${dia}): ${ocp.jovens}j — excede capacidade de ${cap}j. Turmas simuladas precisam ir para outro dia/unidade.`);
     const uniColor=ehHibridoCol?'background:#fffdf7;':unidadeNome==='Polo Liberdade'?'background:#f7fffe;':'background:#fafaff;';
     let c=`<td style="${compact?'min-width:140px':'min-width:170px'};${uniColor}">`;
     if(!ocp.turmas.length){
       if(!ehHibridoCol&&!salaAindaDisponivel(dia,sala,unidadeNome)){
-        // Cronograma distante â€” nÃ£o mostrar nada
+        // Cronograma distante — não mostrar nada
       } else {
         const hoje=new Date();
         const turmasFuturasSala=TURMAS_FIXAS.filter(t=>{
-          if(t.dia!==dia||t.sala!==sala||(t.unidade||'Freguesia do Ã“')!==unidadeNome)return false;
+          if(t.dia!==dia||t.sala!==sala||(t.unidade||'Freguesia do Ó')!==unidadeNome)return false;
           if(!t.entrada||t._sem_sala)return false;
           const enc=new Date(t.entrada+'T12:00:00');
           enc.setMonth(enc.getMonth()+15);
@@ -624,8 +624,8 @@ function buildGradeHTML(tblId,compact,incluirHibrido,legId,alertasId){
         });
         const ocupacaoFutura=turmasFuturasSala.length>0;
         c+=ocupacaoFutura?
-          `<div style="color:#f2cf6b;font-size:10px;font-style:italic;font-weight:600">âš  em uso</div>`:
-          `<div class="livre">livre Â· ${cap}j</div>`;
+          `<div style="color:#f2cf6b;font-size:10px;font-style:italic;font-weight:600">⚠ em uso</div>`:
+          `<div class="livre">livre · ${cap}j</div>`;
       }
     }
     else{
@@ -642,9 +642,9 @@ function buildGradeHTML(tblId,compact,incluirHibrido,legId,alertasId){
         const cor=corPL(t.pl);
         const isSim=t.status==='simulada';
         const fase=t.modalidade==='hibrida'?faseHibrido(t):null;
-        const faseBadge=fase==='online'?' Â· <span style="opacity:.8">ðŸ’» online</span>':fase?' Â· <span style="opacity:.8">ðŸ« presencial</span>':'';
+        const faseBadge=fase==='online'?' · <span style="opacity:.8">💻 online</span>':fase?' · <span style="opacity:.8">🏫 presencial</span>':'';
         c+=`<div class="chip-turma" style="background:${cor.light};color:${cor.text};border:${isSim?`1.5px dashed ${cor.border}`:`1px solid ${cor.border}55`}" onclick="abrirDetalhe('${t.nome}','${dia}','${sala}','${unidadeNome}')">
-          <span>${isSim?'âœ¦ ':''}<b>${t.nome}</b>${faseBadge}</span><span style="color:${cor.border};font-weight:700">${t.jovens}j</span>
+          <span>${isSim?'✦ ':''}<b>${t.nome}</b>${faseBadge}</span><span style="color:${cor.border};font-weight:700">${t.jovens}j</span>
         </div>`;
       });
       const turmaDominante=ocp.turmas.reduce((a,b)=>b.jovens>a.jovens?b:a,ocp.turmas[0]);
@@ -669,8 +669,8 @@ function buildGradeHTML(tblId,compact,incluirHibrido,legId,alertasId){
   if(aDiv){
     let semTurma=0;
     entradas.forEach(en=>en.empresas.forEach(e=>{if(e.status==='Em aberto'&&!e.turma)semTurma+=e.jovens;}));
-    let html=alertas.map(a=>`<div class="alerta-err">âš  ${a}</div>`).join('');
-    if(semTurma>0)html+=`<div class="alerta-warn">ðŸ’¡ ${semTurma}j em aberto sem turma. Use Alocar para distribuir.</div>`;
+    let html=alertas.map(a=>`<div class="alerta-err">⚠ ${a}</div>`).join('');
+    if(semTurma>0)html+=`<div class="alerta-warn">💡 ${semTurma}j em aberto sem turma. Use Alocar para distribuir.</div>`;
     aDiv.innerHTML=html;
   }
 }
@@ -682,9 +682,9 @@ function renderGrade(){
 function renderTotaisJovens(){
   const el=document.getElementById('grade-totais');
   if(!el)return;
-  // Calcular totais por dia (sÃ³ turmas fixas â€” dados do backoffice)
-  const DIAS_ORD=['segunda','terÃ§a','quarta','quinta','sexta'];
-  const DIAS_LABEL={segunda:'Seg',terÃ§a:'Ter',quarta:'Qua',quinta:'Qui',sexta:'Sex'};
+  // Calcular totais por dia (só turmas fixas — dados do backoffice)
+  const DIAS_ORD=['segunda','terça','quarta','quinta','sexta'];
+  const DIAS_LABEL={segunda:'Seg',terça:'Ter',quarta:'Qua',quinta:'Qui',sexta:'Sex'};
   const porDia={};
   let total=0;
   [...TURMAS_FIXAS].forEach(t=>{
@@ -705,15 +705,15 @@ function renderTotaisJovens(){
 function renderGradeMini(){buildGradeHTML('grade-mini-tbl',true,false);}
 function renderGradeMiniHib(){buildGradeHTML('grade-mini-hib-tbl',true,true,'grade-mini-hib-leg','grade-mini-hib-alertas');}
 
-// â”€â”€ DETALHE TURMA â”€â”€
+// ── DETALHE TURMA ──
 function abrirDetalhe(nomeTurma,dia,sala,unidade){
-  const t=[...TURMAS_FIXAS,...turmasSim].find(x=>x.nome===nomeTurma&&x.dia===dia&&x.sala===sala&&(x.unidade||'Freguesia do Ã“')===(unidade||'Freguesia do Ã“'));
+  const t=[...TURMAS_FIXAS,...turmasSim].find(x=>x.nome===nomeTurma&&x.dia===dia&&x.sala===sala&&(x.unidade||'Freguesia do Ó')===(unidade||'Freguesia do Ó'));
   if(!t)return;
   const cor=corPL(t.pl);
   const pp=calcPP(t.entrada,t.dia);
   let h=`<div style="background:${cor.light};border:1px solid ${cor.border}55;border-radius:var(--rs);padding:10px 14px;margin-bottom:12px">
     <div style="font-size:20px;font-weight:800;font-family:'Krona One',sans-serif;color:${cor.text}">${t.nome}</div>
-    <div style="font-size:11px;color:${cor.text};margin-top:2px">${dia} Â· ${sala} Â· ${unidade||'Freguesia do Ã“'} Â· ${t.pl}</div>
+    <div style="font-size:11px;color:${cor.text};margin-top:2px">${dia} · ${sala} · ${unidade||'Freguesia do Ó'} · ${t.pl}</div>
   </div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
     <div style="background:#fafafa;border:1px solid var(--br);border-radius:var(--rs);padding:8px;text-align:center">
@@ -721,20 +721,20 @@ function abrirDetalhe(nomeTurma,dia,sala,unidade){
       <div style="font-size:22px;font-weight:800;color:var(--blue)">${t.jovens}j</div>
     </div>
     <div style="background:#fafafa;border:1px solid var(--br);border-radius:var(--rs);padding:8px;text-align:center">
-      <div style="font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase;margin-bottom:3px">1Âº Presencial</div>
+      <div style="font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase;margin-bottom:3px">1º Presencial</div>
       <div style="font-size:14px;font-weight:700">${pp}</div>
     </div>
   </div>`;
   if(t.modalidade==='hibrida'&&t.entrada){
     const jH=janelasHibrido(t.entrada);
     const faseAtual=faseHibrido(t);
-    const faseLabel=({'presencial-inicio':'ðŸ« Presencial (inÃ­cio de turma)','online':'ðŸ’» 100% online','presencial-fim':'ðŸ« Presencial (fim de turma)'})[faseAtual]||'â€”';
+    const faseLabel=({'presencial-inicio':'🏫 Presencial (início de turma)','online':'💻 100% online','presencial-fim':'🏫 Presencial (fim de turma)'})[faseAtual]||'—';
     h+=`<div style="background:#fff7ed;border:1px solid #fdba7455;border-radius:var(--rs);padding:8px 10px;margin-bottom:12px;font-size:11px">
-      <div style="font-weight:700;margin-bottom:4px">Curso HÃ­brido â€” fase atual: ${faseLabel}</div>
-      ${jH?`<div style="color:var(--mu)">Presencial: ${fmtDataCurta(jH.inicio1)}â€“${fmtDataCurta(jH.fim1)} e ${fmtDataCurta(jH.inicio2)}â€“${fmtDataCurta(jH.fim2)} Â· Online no restante</div>`:''}
+      <div style="font-weight:700;margin-bottom:4px">Curso Híbrido — fase atual: ${faseLabel}</div>
+      ${jH?`<div style="color:var(--mu)">Presencial: ${fmtDataCurta(jH.inicio1)}–${fmtDataCurta(jH.fim1)} e ${fmtDataCurta(jH.inicio2)}–${fmtDataCurta(jH.fim2)} · Online no restante</div>`:''}
     </div>`;
   }
-  // Data de inÃ­cio e fim de contrato (15 meses)
+  // Data de início e fim de contrato (15 meses)
   if(t.entrada){
     const dtInicio=fmtData(t.entrada);
     const dtFimObj=new Date(t.entrada+'T12:00:00');
@@ -742,7 +742,7 @@ function abrirDetalhe(nomeTurma,dia,sala,unidade){
     const dtFim=`${String(dtFimObj.getDate()).padStart(2,'0')}/${String(dtFimObj.getMonth()+1).padStart(2,'0')}/${dtFimObj.getFullYear()}`;
     h+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
       <div style="background:#fafafa;border:1px solid var(--br);border-radius:var(--rs);padding:8px;text-align:center">
-        <div style="font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase;margin-bottom:3px">InÃ­cio de contrato</div>
+        <div style="font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase;margin-bottom:3px">Início de contrato</div>
         <div style="font-size:13px;font-weight:700">${dtInicio}</div>
       </div>
       <div style="background:#fafafa;border:1px solid var(--br);border-radius:var(--rs);padding:8px;text-align:center">
@@ -757,17 +757,17 @@ function abrirDetalhe(nomeTurma,dia,sala,unidade){
   }
   if(t.status==='simulada'){
     h+=`<div style="display:flex;gap:8px;margin-top:12px">
-      <button onclick="confirmarTurma('${nomeTurma}','${dia}','${sala}','${unidade}');fecharModalTurma();" style="flex:1;height:36px;background:var(--green);color:#054a36;border:none;border-radius:var(--rs);font-size:11px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif">âœ“ Confirmar</button>
+      <button onclick="confirmarTurma('${nomeTurma}','${dia}','${sala}','${unidade}');fecharModalTurma();" style="flex:1;height:36px;background:var(--green);color:#054a36;border:none;border-radius:var(--rs);font-size:11px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif">✓ Confirmar</button>
     </div>`;
   }
-  // BotÃ£o de editar sala/PL para turmas do Directus (nÃ£o se aplica Ã  Sala HÃ­brido dedicada)
+  // Botão de editar sala/PL para turmas do Directus (não se aplica à Sala Híbrido dedicada)
   if(t.modalidade!=='hibrida'){
-    // Calcular instÃ¢ncia pelo Ã­ndice no grupo de mesma turma+dia
+    // Calcular instância pelo índice no grupo de mesma turma+dia
     const grupoTotal=TURMAS_FIXAS.filter(x=>x.nome===t.nome&&x.dia===t.dia);
     let instancia=grupoTotal.findIndex(x=>x===t);
     if(instancia<0){
       // Turma splitada: encontrar pelo sala+unidade
-      instancia=grupoTotal.findIndex(x=>x.sala===t.sala&&(x.unidade||'Freguesia do Ã“')===(t.unidade||'Freguesia do Ã“'));
+      instancia=grupoTotal.findIndex(x=>x.sala===t.sala&&(x.unidade||'Freguesia do Ó')===(t.unidade||'Freguesia do Ó'));
     }
     if(instancia<0)instancia=0;
     h+=`<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--br)">
@@ -780,11 +780,11 @@ function abrirDetalhe(nomeTurma,dia,sala,unidade){
           ${plsState.map(p=>`<option value="${p.nome}" ${p.nome===t.pl?'selected':''}>${p.nome}</option>`).join('')}
         </select>
         <select id="ov-unidade" style="flex:1;height:32px;border:1px solid var(--br);border-radius:var(--rs);font-size:11px;padding:0 6px;font-family:'Montserrat',sans-serif">
-          ${unidades.map(u=>`<option value="${u.nome}" ${u.nome===(t.unidade||'Freguesia do Ã“')?'selected':''}>${u.nome}</option>`).join('')}
+          ${unidades.map(u=>`<option value="${u.nome}" ${u.nome===(t.unidade||'Freguesia do Ó')?'selected':''}>${u.nome}</option>`).join('')}
         </select>
       </div>
-<button onclick="salvarOverrideTurma('${nomeTurma}','${dia}',${instancia});fecharModalTurma();" style="width:100%;height:32px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:11px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif;margin-bottom:4px">ðŸ’¾ Salvar ajuste</button>
-      ${t.jovens>16&&!t._split?'<button onclick="splitTurma(\''+nomeTurma+'\',\''+dia+'\','+instancia+');fecharModalTurma();" style="width:100%;height:32px;background:#fff;color:var(--blue);border:1px solid var(--blue);border-radius:var(--rs);font-size:11px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">âœ‚ Dividir em 2 salas</button>':''}
+<button onclick="salvarOverrideTurma('${nomeTurma}','${dia}',${instancia});fecharModalTurma();" style="width:100%;height:32px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:11px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif;margin-bottom:4px">💾 Salvar ajuste</button>
+      ${t.jovens>16&&!t._split?'<button onclick="splitTurma(\''+nomeTurma+'\',\''+dia+'\','+instancia+');fecharModalTurma();" style="width:100%;height:32px;background:#fff;color:var(--blue);border:1px solid var(--blue);border-radius:var(--rs);font-size:11px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">✂ Dividir em 2 salas</button>':''}
     </div>`;
   }
 
@@ -820,7 +820,7 @@ async function salvarOverrideTurma(nome,dia,instancia){
 function confirmarTurma(nome,dia,sala,unidade){
   // Marcar empresas desta turma como confirmadas
   entradas.forEach(en=>en.empresas.forEach(emp=>{
-    if(emp.turma&&'Turma '+emp.turma===nome&&emp.dia===dia&&emp.sala===sala&&(emp.unidade||'Freguesia do Ã“')===(unidade||'Freguesia do Ã“')){
+    if(emp.turma&&'Turma '+emp.turma===nome&&emp.dia===dia&&emp.sala===sala&&(emp.unidade||'Freguesia do Ó')===(unidade||'Freguesia do Ó')){
       emp.status='Confirmado';
     }
   }));
@@ -835,19 +835,19 @@ async function splitTurma(nome,dia,instancia){
 Quantos ficam na Sala 1 (Manu)?`);
   if(!j1)return;
   const n1=parseInt(j1);
-  if(isNaN(n1)||n1<=0||n1>=total){alert('NÃºmero invÃ¡lido');return;}
+  if(isNaN(n1)||n1<=0||n1>=total){alert('Número inválido');return;}
   const n2=total-n1;
-  const salas=(unidades.find(u=>u.nome===(t.unidade||'Freguesia do Ã“'))||{salas:['Sala 1','Sala 2']}).salas;
+  const salas=(unidades.find(u=>u.nome===(t.unidade||'Freguesia do Ó'))||{salas:['Sala 1','Sala 2']}).salas;
   const chave=nome+'|'+dia+'|'+instancia;
   salaOverrides[chave]={split:[
-    {sala:salas[0],pl:'Manu',jovens:n1,unidade:t.unidade||'Freguesia do Ã“'},
-    {sala:salas[1],pl:'Carol',jovens:n2,unidade:t.unidade||'Freguesia do Ã“'}
+    {sala:salas[0],pl:'Manu',jovens:n1,unidade:t.unidade||'Freguesia do Ó'},
+    {sala:salas[1],pl:'Carol',jovens:n2,unidade:t.unidade||'Freguesia do Ó'}
   ]};
   await saveSalaOverrides();
   carregarDoDirectus();
 }
 
-// â”€â”€ RENDER EMPRESAS â”€â”€
+// ── RENDER EMPRESAS ──
 function filtrar(f){
   filtroAtivo=f;
   ['todos','Em aberto','Confirmado','Adiado'].forEach(s=>{
@@ -868,7 +868,7 @@ function renderEmpresas(){
     const empsRaw=filtroAtivo==='todos'?entrada.empresas:entrada.empresas.filter(e=>e.status===filtroAtivo);
     // Ordenar: Freguesia primeiro, depois Liberdade; dentro de cada polo por turma
     const emps=[...empsRaw].sort((a,b)=>{
-      // Sem alocaÃ§Ã£o vai para o final
+      // Sem alocação vai para o final
       const semA=!a.turma?1:0;
       const semB=!b.turma?1:0;
       if(semA!==semB)return semA-semB;
@@ -896,8 +896,8 @@ function renderEmpresas(){
           ${conf?`<span class="badge" style="background:#e8fff9;color:#0a7a60;border-color:#35dcb255">${conf}j conf</span>`:''}
           ${aberto?`<span class="badge" style="background:#fffbeb;color:#856404;border-color:#fcd34d55">${aberto}j aberto</span>`:''}
           ${adiado?`<span class="badge" style="background:#f5f5f5;color:#888;border-color:#ddd">${adiado}j adiado</span>`:''}
-          <button onclick="event.stopPropagation();excluirEntrada('${entrada.id}')" style="background:none;border:none;cursor:pointer;color:#ddd;font-size:13px;padding:2px 4px" title="Excluir entrada">ðŸ—‘</button>
-          <span style="color:var(--mu)">â–¾</span>
+          <button onclick="event.stopPropagation();excluirEntrada('${entrada.id}')" style="background:none;border:none;cursor:pointer;color:#ddd;font-size:13px;padding:2px 4px" title="Excluir entrada">🗑</button>
+          <span style="color:var(--mu)">▾</span>
         </div>
       </div>
       <div id="ecb-${entrada.id}" class="emp-list">
@@ -907,7 +907,7 @@ function renderEmpresas(){
     emps.forEach(emp=>{
       const sCor={Confirmado:'#0a7a60','Em aberto':'#856404',Adiado:'#888'}[emp.status]||'#888';
       const sBg={Confirmado:'#e8fff9','Em aberto':'#fffbeb',Adiado:'#f5f5f5'}[emp.status]||'#f5f5f5';
-      h+=`<div class="emp-row"><input type="text" value="${emp.nome}" onchange="updNome('${entrada.id}','${emp.id}',this.value)" style="border:none;border-bottom:1px solid transparent;background:transparent;font-size:12px;font-weight:600;font-family:'Montserrat',sans-serif;color:var(--tx);width:100%;padding:0;height:auto" onfocus="this.style.borderBottomColor='var(--blue)'" onblur="this.style.borderBottomColor='transparent'"/><input type="number" min="1" max="9999" value="${emp.jovens}" onchange="updJovens('${entrada.id}','${emp.id}',this.value)" style="width:100%;height:26px;border:1px solid var(--br);border-radius:5px;padding:0 4px;font-size:12px;font-weight:700;color:var(--blue);font-family:'Montserrat',sans-serif;text-align:center"/><select class="status-sel" onchange="updStatus('${entrada.id}','${emp.id}',this.value)" style="background:${sBg};color:${sCor};border-color:${sCor}55">${['Confirmado','Em aberto','Adiado'].map(s=>`<option ${emp.status===s?'selected':''}>${s}</option>`).join('')}</select><div>${emp.turma?`<span style="font-size:10px;color:var(--blue);font-weight:600;background:#eeefff;padding:2px 6px;border-radius:99px;border:1px solid #b4b6fd">${emp.turma}</span>`:'<span style="font-size:10px;color:#ccc">â€”</span>'}</div><div>${emp.dia?`<span style="font-size:10px;color:var(--mu);font-weight:600;background:#f5f5f2;padding:2px 6px;border-radius:99px;border:1px solid var(--br);text-transform:capitalize">${emp.dia}</span>`:'<span style="font-size:10px;color:#ccc">â€”</span>'}</div><div>${emp.unidade==='Polo Liberdade'?`<span style="font-size:10px;font-weight:700;background:#35dcb222;color:#054a36;padding:2px 6px;border-radius:99px;border:1px solid #35dcb244">Liberdade</span>`:emp.unidade==='Freguesia do Ã“'?`<span style="font-size:10px;font-weight:700;background:#373afd18;color:#373afd;padding:2px 6px;border-radius:99px;border:1px solid #373afd44">Freguesia</span>`:'<span style="font-size:10px;color:#ccc">â€”</span>'}</div><button class="mover-btn" onclick="abrirMover('${entrada.id}','${emp.id}')">${emp.turma?'â†» Mover':'Alocar'}</button><button onclick="abrirMoverEntrada('${entrada.id}','${emp.id}')" title="Mover para outra entrada (mesma trilha)" style="height:26px;width:26px;background:#f5f5f2;color:var(--blue);border:1px solid var(--br);border-radius:5px;font-size:13px;cursor:pointer">â‡„</button><button onclick="moverParaTrilha('presencial','hibrido','${entrada.id}','${emp.id}')" title="Mover para SimulaÃ§Ã£o HÃ­brido" style="height:26px;width:28px;background:#fff7ed;color:#92400e;border:1px solid #fdba7455;border-radius:5px;font-size:9px;font-weight:700;cursor:pointer">â†’H</button><button class="del-btn" onclick="excluirEmp('${entrada.id}','${emp.id}')" title="Excluir">Ã—</button></div>`;
+      h+=`<div class="emp-row"><input type="text" value="${emp.nome}" onchange="updNome('${entrada.id}','${emp.id}',this.value)" style="border:none;border-bottom:1px solid transparent;background:transparent;font-size:12px;font-weight:600;font-family:'Montserrat',sans-serif;color:var(--tx);width:100%;padding:0;height:auto" onfocus="this.style.borderBottomColor='var(--blue)'" onblur="this.style.borderBottomColor='transparent'"/><input type="number" min="1" max="9999" value="${emp.jovens}" onchange="updJovens('${entrada.id}','${emp.id}',this.value)" style="width:100%;height:26px;border:1px solid var(--br);border-radius:5px;padding:0 4px;font-size:12px;font-weight:700;color:var(--blue);font-family:'Montserrat',sans-serif;text-align:center"/><select class="status-sel" onchange="updStatus('${entrada.id}','${emp.id}',this.value)" style="background:${sBg};color:${sCor};border-color:${sCor}55">${['Confirmado','Em aberto','Adiado'].map(s=>`<option ${emp.status===s?'selected':''}>${s}</option>`).join('')}</select><div>${emp.turma?`<span style="font-size:10px;color:var(--blue);font-weight:600;background:#eeefff;padding:2px 6px;border-radius:99px;border:1px solid #b4b6fd">${emp.turma}</span>`:'<span style="font-size:10px;color:#ccc">—</span>'}</div><div>${emp.dia?`<span style="font-size:10px;color:var(--mu);font-weight:600;background:#f5f5f2;padding:2px 6px;border-radius:99px;border:1px solid var(--br);text-transform:capitalize">${emp.dia}</span>`:'<span style="font-size:10px;color:#ccc">—</span>'}</div><div>${emp.unidade==='Polo Liberdade'?`<span style="font-size:10px;font-weight:700;background:#35dcb222;color:#054a36;padding:2px 6px;border-radius:99px;border:1px solid #35dcb244">Liberdade</span>`:emp.unidade==='Freguesia do Ó'?`<span style="font-size:10px;font-weight:700;background:#373afd18;color:#373afd;padding:2px 6px;border-radius:99px;border:1px solid #373afd44">Freguesia</span>`:'<span style="font-size:10px;color:#ccc">—</span>'}</div><button class="mover-btn" onclick="abrirMover('${entrada.id}','${emp.id}')">${emp.turma?'↻ Mover':'Alocar'}</button><button onclick="abrirMoverEntrada('${entrada.id}','${emp.id}')" title="Mover para outra entrada (mesma trilha)" style="height:26px;width:26px;background:#f5f5f2;color:var(--blue);border:1px solid var(--br);border-radius:5px;font-size:13px;cursor:pointer">⇄</button><button onclick="moverParaTrilha('presencial','hibrido','${entrada.id}','${emp.id}')" title="Mover para Simulação Híbrido" style="height:26px;width:28px;background:#fff7ed;color:#92400e;border:1px solid #fdba7455;border-radius:5px;font-size:9px;font-weight:700;cursor:pointer">→H</button><button class="del-btn" onclick="excluirEmp('${entrada.id}','${emp.id}')" title="Excluir">×</button></div>`;
     });
     h+=`<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--br)">
         <button onclick="adicionarEmp('${entrada.id}')" style="height:28px;padding:0 10px;border:1.5px dashed var(--blue);color:var(--blue);background:transparent;border-radius:var(--rs);font-size:11px;font-weight:600;cursor:pointer;font-family:'Montserrat',sans-serif">+ Empresa</button>
@@ -919,7 +919,7 @@ function renderEmpresas(){
 
 function toggleEC(id){const el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'block':'';}
 
-// â”€â”€ CRUD ENTRADAS/EMPRESAS â”€â”€
+// ── CRUD ENTRADAS/EMPRESAS ──
 function excluirEntrada(eid){
   if(bloquearSeNaoAutenticado(()=>excluirEntrada(eid)))return;
   if(!confirm('Excluir esta entrada e todas as empresas?'))return;
@@ -964,7 +964,7 @@ function updStatus(eid,empid,val){
         alert(`${emp.nome} movido para entrada de ${fmtData(novaData)}.`);
       } else {
         // Criar nova entrada
-        if(confirm(`NÃ£o existe entrada para ${fmtData(novaData)}. Criar nova entrada?`)){
+        if(confirm(`Não existe entrada para ${fmtData(novaData)}. Criar nova entrada?`)){
           const novEmp={...emp,id:'emp'+Date.now(),status:'Em aberto',turma:null,dia:null,sala:null,unidade:null};
           e.empresas=e.empresas.filter(x=>x.id!==empid);
           entradas.push({id:'e'+Date.now(),data:novaData,empresas:[novEmp]});
@@ -977,7 +977,7 @@ function updStatus(eid,empid,val){
   renderEmpresas();renderGradeMini();saveEstado();
 }
 
-// â”€â”€ NOVA ENTRADA INLINE â”€â”€
+// ── NOVA ENTRADA INLINE ──
 function toggleNovaEntrada(){
   const f=document.getElementById('form-nova-entrada');
   if(!f)return;
@@ -994,14 +994,14 @@ function renderNE(){
     <div style="display:grid;grid-template-columns:1fr 80px 26px;gap:6px;align-items:center;margin-bottom:6px">
       <input type="text" value="${e.nome}" placeholder="Nome da empresa" onchange="neEmpresas[${i}].nome=this.value"/>
       <input type="number" value="${e.jovens}" min="1" placeholder="Qtde" onchange="neEmpresas[${i}].jovens=parseInt(this.value)||1" style="text-align:center"/>
-      <button onclick="neEmpresas.splice(${i},1);renderNE()" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:17px;padding:0">Ã—</button>
+      <button onclick="neEmpresas.splice(${i},1);renderNE()" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:17px;padding:0">×</button>
     </div>`).join('');
 }
 function addEmpNE(){neEmpresas.push({nome:'',jovens:1});renderNE();}
 function salvarNE(){if(bloquearSeNaoAutenticado(salvarNE))return;
   const data=document.getElementById('ne-data').value;
   if(!data){alert('Informe a data.');return;}
-  if(entradas.find(e=>e.data===data)){alert(`JÃ¡ existe uma entrada para ${fmtData(data)}. Adicione empresas diretamente nela.`);return;}
+  if(entradas.find(e=>e.data===data)){alert(`Já existe uma entrada para ${fmtData(data)}. Adicione empresas diretamente nela.`);return;}
   if(!neEmpresas.length){alert('Adicione pelo menos uma empresa.');return;}
   const emps=neEmpresas.map(e=>({id:'emp'+Date.now()+Math.random().toString(36).slice(2),nome:e.nome||'Empresa',jovens:e.jovens||1,status:'Em aberto',turma:null,dia:null,sala:null,unidade:null}));
   entradas.push({id:'e'+Date.now(),data,empresas:emps});
@@ -1015,7 +1015,7 @@ function salvarNE(){if(bloquearSeNaoAutenticado(salvarNE))return;
   },200);
 }
 
-// â•â• SIMULAÃ‡ÃƒO HÃBRIDO â€” CRUD prÃ³prio (entradasHibrido) â•â•
+// ══ SIMULAÇÃO HÍBRIDO — CRUD próprio (entradasHibrido) ══
 function filtrarHib(f){
   filtroAtivoHib=f;
   ['todos','Em aberto','Confirmado','Adiado'].forEach(s=>{
@@ -1040,7 +1040,7 @@ function renderEmpresasHibrido(){
     const aberto=entrada.empresas.filter(e=>e.status==='Em aberto').reduce((s,e)=>s+e.jovens,0);
     const adiado=entrada.empresas.filter(e=>e.status==='Adiado').reduce((s,e)=>s+e.jovens,0);
     const j=janelasHibrido(entrada.data);
-    const janelaTxt=j?`ImersÃ£o: ${fmtDataCurta(j.inicio1)}â€“${fmtDataCurta(j.fim1)} (10 dias corridos)`:'';
+    const janelaTxt=j?`Imersão: ${fmtDataCurta(j.inicio1)}–${fmtDataCurta(j.fim1)} (10 dias corridos)`:'';
     h+=`<div class="entrada-card" id="ech-${entrada.id}">
       <div class="entrada-header" onclick="toggleEC('echb-${entrada.id}')">
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
@@ -1051,8 +1051,8 @@ function renderEmpresasHibrido(){
           ${conf?`<span class="badge" style="background:#e8fff9;color:#0a7a60;border-color:#35dcb255">${conf}j conf</span>`:''}
           ${aberto?`<span class="badge" style="background:#fffbeb;color:#856404;border-color:#fcd34d55">${aberto}j aberto</span>`:''}
           ${adiado?`<span class="badge" style="background:#f5f5f5;color:#888;border-color:#ddd">${adiado}j adiado</span>`:''}
-          <button onclick="event.stopPropagation();excluirEntradaHib('${entrada.id}')" style="background:none;border:none;cursor:pointer;color:#ddd;font-size:13px;padding:2px 4px" title="Excluir entrada">ðŸ—‘</button>
-          <span style="color:var(--mu)">â–¾</span>
+          <button onclick="event.stopPropagation();excluirEntradaHib('${entrada.id}')" style="background:none;border:none;cursor:pointer;color:#ddd;font-size:13px;padding:2px 4px" title="Excluir entrada">🗑</button>
+          <span style="color:var(--mu)">▾</span>
         </div>
       </div>
       <div id="echb-${entrada.id}" class="emp-list">
@@ -1062,19 +1062,19 @@ function renderEmpresasHibrido(){
     emps.forEach(emp=>{
       const sCor={Confirmado:'#0a7a60','Em aberto':'#856404',Adiado:'#888'}[emp.status]||'#888';
       const sBg={Confirmado:'#e8fff9','Em aberto':'#fffbeb',Adiado:'#f5f5f5'}[emp.status]||'#f5f5f5';
-      h+=`<div class="emp-row"><input type="text" value="${emp.nome}" onchange="updNomeHib('${entrada.id}','${emp.id}',this.value)" style="border:none;border-bottom:1px solid transparent;background:transparent;font-size:12px;font-weight:600;font-family:'Montserrat',sans-serif;color:var(--tx);width:100%;padding:0;height:auto" onfocus="this.style.borderBottomColor='var(--blue)'" onblur="this.style.borderBottomColor='transparent'"/><input type="number" min="1" max="9999" value="${emp.jovens}" onchange="updJovensHib('${entrada.id}','${emp.id}',this.value)" style="width:100%;height:26px;border:1px solid var(--br);border-radius:5px;padding:0 4px;font-size:12px;font-weight:700;color:var(--blue);font-family:'Montserrat',sans-serif;text-align:center"/><select class="status-sel" onchange="updStatusHib('${entrada.id}','${emp.id}',this.value)" style="background:${sBg};color:${sCor};border-color:${sCor}55">${['Confirmado','Em aberto','Adiado'].map(s=>`<option ${emp.status===s?'selected':''}>${s}</option>`).join('')}</select><div>${emp.turma?`<span style="font-size:10px;color:#92400e;font-weight:600;background:#fff7ed;padding:2px 6px;border-radius:99px;border:1px solid #fdba7455">${emp.turma}</span>`:'<span style="font-size:10px;color:#ccc">â€”</span>'}</div><div>${emp.dia?`<span style="font-size:10px;color:var(--mu);font-weight:600;background:#f5f5f2;padding:2px 6px;border-radius:99px;border:1px solid var(--br);text-transform:capitalize">${emp.dia}</span>`:'<span style="font-size:10px;color:#ccc">â€”</span>'}</div><div>${emp.unidade==='Polo Liberdade'?`<span style="font-size:10px;font-weight:700;background:#35dcb222;color:#054a36;padding:2px 6px;border-radius:99px;border:1px solid #35dcb244">Liberdade</span>`:'<span style="font-size:10px;color:#ccc">â€”</span>'}</div><button class="mover-btn" onclick="abrirAlocarHibrido('${entrada.id}','${emp.id}')">${emp.turma?'â†» Mover':'Alocar'}</button><button onclick="abrirMoverEntradaHib('${entrada.id}','${emp.id}')" title="Mover para outra entrada hÃ­brida" style="height:26px;width:26px;background:#f5f5f2;color:var(--blue);border:1px solid var(--br);border-radius:5px;font-size:13px;cursor:pointer">â‡„</button><button onclick="moverParaTrilha('hibrido','presencial','${entrada.id}','${emp.id}')" title="Mover para SimulaÃ§Ã£o Presencial" style="height:26px;width:28px;background:#eeefff;color:var(--blue);border:1px solid #b4b6fd;border-radius:5px;font-size:9px;font-weight:700;cursor:pointer">â†’P</button><button class="del-btn" onclick="excluirEmpHib('${entrada.id}','${emp.id}')" title="Excluir">Ã—</button></div>`;
+      h+=`<div class="emp-row"><input type="text" value="${emp.nome}" onchange="updNomeHib('${entrada.id}','${emp.id}',this.value)" style="border:none;border-bottom:1px solid transparent;background:transparent;font-size:12px;font-weight:600;font-family:'Montserrat',sans-serif;color:var(--tx);width:100%;padding:0;height:auto" onfocus="this.style.borderBottomColor='var(--blue)'" onblur="this.style.borderBottomColor='transparent'"/><input type="number" min="1" max="9999" value="${emp.jovens}" onchange="updJovensHib('${entrada.id}','${emp.id}',this.value)" style="width:100%;height:26px;border:1px solid var(--br);border-radius:5px;padding:0 4px;font-size:12px;font-weight:700;color:var(--blue);font-family:'Montserrat',sans-serif;text-align:center"/><select class="status-sel" onchange="updStatusHib('${entrada.id}','${emp.id}',this.value)" style="background:${sBg};color:${sCor};border-color:${sCor}55">${['Confirmado','Em aberto','Adiado'].map(s=>`<option ${emp.status===s?'selected':''}>${s}</option>`).join('')}</select><div>${emp.turma?`<span style="font-size:10px;color:#92400e;font-weight:600;background:#fff7ed;padding:2px 6px;border-radius:99px;border:1px solid #fdba7455">${emp.turma}</span>`:'<span style="font-size:10px;color:#ccc">—</span>'}</div><div>${emp.dia?`<span style="font-size:10px;color:var(--mu);font-weight:600;background:#f5f5f2;padding:2px 6px;border-radius:99px;border:1px solid var(--br);text-transform:capitalize">${emp.dia}</span>`:'<span style="font-size:10px;color:#ccc">—</span>'}</div><div>${emp.unidade==='Polo Liberdade'?`<span style="font-size:10px;font-weight:700;background:#35dcb222;color:#054a36;padding:2px 6px;border-radius:99px;border:1px solid #35dcb244">Liberdade</span>`:'<span style="font-size:10px;color:#ccc">—</span>'}</div><button class="mover-btn" onclick="abrirAlocarHibrido('${entrada.id}','${emp.id}')">${emp.turma?'↻ Mover':'Alocar'}</button><button onclick="abrirMoverEntradaHib('${entrada.id}','${emp.id}')" title="Mover para outra entrada híbrida" style="height:26px;width:26px;background:#f5f5f2;color:var(--blue);border:1px solid var(--br);border-radius:5px;font-size:13px;cursor:pointer">⇄</button><button onclick="moverParaTrilha('hibrido','presencial','${entrada.id}','${emp.id}')" title="Mover para Simulação Presencial" style="height:26px;width:28px;background:#eeefff;color:var(--blue);border:1px solid #b4b6fd;border-radius:5px;font-size:9px;font-weight:700;cursor:pointer">→P</button><button class="del-btn" onclick="excluirEmpHib('${entrada.id}','${emp.id}')" title="Excluir">×</button></div>`;
     });
     h+=`<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--br)">
         <button onclick="adicionarEmpHib('${entrada.id}')" style="height:28px;padding:0 10px;border:1.5px dashed var(--blue);color:var(--blue);background:transparent;border-radius:var(--rs);font-size:11px;font-weight:600;cursor:pointer;font-family:'Montserrat',sans-serif">+ Empresa</button>
       </div>
       </div></div>`;
   });
-  el.innerHTML=h||'<div style="color:var(--mu);text-align:center;padding:2rem;font-size:13px">Nenhuma empresa hÃ­brida cadastrada.</div>';
+  el.innerHTML=h||'<div style="color:var(--mu);text-align:center;padding:2rem;font-size:13px">Nenhuma empresa híbrida cadastrada.</div>';
 }
 
 function excluirEntradaHib(eid){
   if(bloquearSeNaoAutenticado(()=>excluirEntradaHib(eid)))return;
-  if(!confirm('Excluir esta entrada hÃ­brida e todas as empresas?'))return;
+  if(!confirm('Excluir esta entrada híbrida e todas as empresas?'))return;
   entradasHibrido=entradasHibrido.filter(e=>e.id!==eid);
   renderEmpresasHibrido();renderGrade();renderGradeMini();renderGradeMiniHib();renderHibrido();saveEstado();
 }
@@ -1111,14 +1111,14 @@ function updStatusHib(eid,empid,val){
         emp.turma=null;emp.dia=null;emp.sala=null;emp.unidade=null;emp.pl=null;
         e.empresas=e.empresas.filter(x=>x.id!==empid);
         entradaDest.empresas.push({...emp,id:'emp'+Date.now(),status:'Em aberto'});
-        alert(`${emp.nome} movido para entrada hÃ­brida de ${fmtData(novaData)}.`);
+        alert(`${emp.nome} movido para entrada híbrida de ${fmtData(novaData)}.`);
       } else {
-        if(confirm(`NÃ£o existe entrada hÃ­brida para ${fmtData(novaData)}. Criar nova entrada?`)){
+        if(confirm(`Não existe entrada híbrida para ${fmtData(novaData)}. Criar nova entrada?`)){
           const novEmp={...emp,id:'emp'+Date.now(),status:'Em aberto',turma:null,dia:null,sala:null,unidade:null,pl:null};
           e.empresas=e.empresas.filter(x=>x.id!==empid);
           entradasHibrido.push({id:'e'+Date.now(),data:novaData,empresas:[novEmp]});
           entradasHibrido.sort((a,b)=>a.data.localeCompare(b.data));
-          alert(`Entrada hÃ­brida criada para ${fmtData(novaData)} com ${emp.nome}.`);
+          alert(`Entrada híbrida criada para ${fmtData(novaData)} com ${emp.nome}.`);
         } else {emp.status=antigo;}
       }
     } else {emp.turma=null;emp.dia=null;emp.sala=null;emp.unidade=null;emp.pl=null;}
@@ -1126,7 +1126,7 @@ function updStatusHib(eid,empid,val){
   renderEmpresasHibrido();renderGrade();renderGradeMini();renderGradeMiniHib();renderHibrido();saveEstado();
 }
 
-// â”€â”€ NOVA ENTRADA HÃBRIDA INLINE â”€â”€
+// ── NOVA ENTRADA HÍBRIDA INLINE ──
 function toggleNovaEntradaHib(){
   const f=document.getElementById('form-nova-entrada-hib');
   if(!f)return;
@@ -1143,14 +1143,14 @@ function renderNEHib(){
     <div style="display:grid;grid-template-columns:1fr 80px 26px;gap:6px;align-items:center;margin-bottom:6px">
       <input type="text" value="${e.nome}" placeholder="Nome da empresa" onchange="neEmpresasHib[${i}].nome=this.value"/>
       <input type="number" value="${e.jovens}" min="1" placeholder="Qtde" onchange="neEmpresasHib[${i}].jovens=parseInt(this.value)||1" style="text-align:center"/>
-      <button onclick="neEmpresasHib.splice(${i},1);renderNEHib()" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:17px;padding:0">Ã—</button>
+      <button onclick="neEmpresasHib.splice(${i},1);renderNEHib()" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:17px;padding:0">×</button>
     </div>`).join('');
 }
 function addEmpNEHib(){neEmpresasHib.push({nome:'',jovens:1});renderNEHib();}
 function salvarNEHib(){if(bloquearSeNaoAutenticado(salvarNEHib))return;
   const data=document.getElementById('neh-data').value;
   if(!data){alert('Informe a data.');return;}
-  if(entradasHibrido.find(e=>e.data===data)){alert(`JÃ¡ existe uma entrada hÃ­brida para ${fmtData(data)}. Adicione empresas diretamente nela.`);return;}
+  if(entradasHibrido.find(e=>e.data===data)){alert(`Já existe uma entrada híbrida para ${fmtData(data)}. Adicione empresas diretamente nela.`);return;}
   if(!neEmpresasHib.length){alert('Adicione pelo menos uma empresa.');return;}
   const emps=neEmpresasHib.map(e=>({id:'emp'+Date.now()+Math.random().toString(36).slice(2),nome:e.nome||'Empresa',jovens:e.jovens||1,status:'Em aberto',turma:null,dia:null,sala:null,unidade:null,pl:null,modalidade:null}));
   entradasHibrido.push({id:'e'+Date.now(),data,empresas:emps});
@@ -1172,8 +1172,8 @@ function abrirMoverEntradaHib(eid,empid){
   const opts=outras.map(e=>`<option value="${e.id}">${fmtData(e.data)}</option>`).join('');
   const h=`<div style="padding:4px 0 12px">
     <div style="font-size:20px;font-weight:800;font-family:'Krona One',sans-serif;margin-bottom:4px">${emp.nome}</div>
-    <div style="font-size:11px;color:var(--mu);margin-bottom:16px">${emp.jovens}j Â· mover para outra entrada hÃ­brida</div>
-    <div style="font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase;margin-bottom:6px">Entrada hÃ­brida de destino</div>
+    <div style="font-size:11px;color:var(--mu);margin-bottom:16px">${emp.jovens}j · mover para outra entrada híbrida</div>
+    <div style="font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase;margin-bottom:6px">Entrada híbrida de destino</div>
     <select id="destino-entrada-hib-sel" style="width:100%;height:36px;border:1.5px solid var(--blue);border-radius:var(--rs);font-size:13px;padding:0 8px;font-family:'Montserrat',sans-serif;margin-bottom:6px">
       ${opts}
       <option value="__nova__">+ Nova entrada (digitar data)</option>
@@ -1183,11 +1183,11 @@ function abrirMoverEntradaHib(eid,empid){
       <input id="nova-data-hib-inp" type="date" style="width:100%;height:36px;border:1.5px solid var(--blue);border-radius:var(--rs);font-size:13px;padding:0 8px;box-sizing:border-box;font-family:'Montserrat',sans-serif"/>
     </div>
     <div style="font-size:10px;color:var(--mu);background:#fafafa;border-radius:var(--rs);padding:8px;margin-bottom:12px">
-      A empresa serÃ¡ movida com <b>${emp.jovens} jovens</b>. Turma, dia e PL serÃ£o zerados para realocar na nova entrada.
+      A empresa será movida com <b>${emp.jovens} jovens</b>. Turma, dia e PL serão zerados para realocar na nova entrada.
     </div>
-    <button onclick="confirmarMoverEntradaHib('${eid}','${empid}')" style="width:100%;height:38px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:12px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif">â‡„ Confirmar mudanÃ§a de entrada</button>
+    <button onclick="confirmarMoverEntradaHib('${eid}','${empid}')" style="width:100%;height:38px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:12px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif">⇄ Confirmar mudança de entrada</button>
   </div>`;
-  document.getElementById('modal-titulo').textContent='Mover para outra entrada hÃ­brida';
+  document.getElementById('modal-titulo').textContent='Mover para outra entrada híbrida';
   document.getElementById('modal-body').innerHTML=h;
   document.getElementById('modal-bg').style.display='flex';
   document.getElementById('destino-entrada-hib-sel').onchange=function(){
@@ -1209,13 +1209,13 @@ function confirmarMoverEntradaHib(eid,empid){
     destinoId=novaEntrada.id;
   }
   const destino=entradasHibrido.find(e=>e.id===destinoId);
-  if(!destino){alert('Entrada de destino nÃ£o encontrada.');return;}
+  if(!destino){alert('Entrada de destino não encontrada.');return;}
   entradaAtual.empresas=entradaAtual.empresas.filter(x=>x.id!==empid);
   destino.empresas.push({id:'emp'+Date.now(),nome:emp.nome,jovens:emp.jovens,status:emp.status==='Confirmado'?'Confirmado':'Em aberto',turma:null,dia:null,sala:null,unidade:null,pl:null,modalidade:null});
   fecharModal();renderGrade();renderGradeMini();renderGradeMiniHib();renderEmpresasHibrido();renderHibrido();saveEstado();
 }
 
-// â”€â”€ MOVER ENTRE SIMULAÃ‡Ã•ES (Presencial â‡„ HÃ­brido) â”€â”€
+// ── MOVER ENTRE SIMULAÇÕES (Presencial ⇄ Híbrido) ──
 function moverParaTrilha(origem,destino,eid,empid){
   if(bloquearSeNaoAutenticado(()=>moverParaTrilha(origem,destino,eid,empid)))return;
   const arrOrigem=origem==='presencial'?entradas:entradasHibrido;
@@ -1223,8 +1223,8 @@ function moverParaTrilha(origem,destino,eid,empid){
   const entradaOrig=arrOrigem.find(e=>e.id===eid);
   const emp=entradaOrig?.empresas.find(x=>x.id===empid);
   if(!emp)return;
-  const labelDestino=destino==='presencial'?'SimulaÃ§Ã£o Presencial':'SimulaÃ§Ã£o HÃ­brido';
-  if(!confirm(`Mover ${emp.nome} (${emp.jovens}j) para ${labelDestino}? Ela entra como pendente (sem turma) lÃ¡, numa entrada de ${fmtData(entradaOrig.data)}.`))return;
+  const labelDestino=destino==='presencial'?'Simulação Presencial':'Simulação Híbrido';
+  if(!confirm(`Mover ${emp.nome} (${emp.jovens}j) para ${labelDestino}? Ela entra como pendente (sem turma) lá, numa entrada de ${fmtData(entradaOrig.data)}.`))return;
   entradaOrig.empresas=entradaOrig.empresas.filter(x=>x.id!==empid);
   let entradaDest=arrDestino.find(e=>e.data===entradaOrig.data);
   const novaEmp={id:'emp'+Date.now(),nome:emp.nome,jovens:emp.jovens,status:'Em aberto',turma:null,dia:null,sala:null,unidade:null,pl:null,modalidade:null};
@@ -1237,7 +1237,7 @@ function moverParaTrilha(origem,destino,eid,empid){
   renderEmpresas();renderEmpresasHibrido();renderGrade();renderGradeMini();renderGradeMiniHib();renderHibrido();saveEstado();
 }
 
-// â”€â”€ MODAL ALOCAR â”€â”€
+// ── MODAL ALOCAR ──
 function abrirMover(eid,empid){if(bloquearSeNaoAutenticado(()=>abrirMover(eid,empid)))return;
   _moverEid=eid;_moverEmpid=empid;
   const entrada=entradas.find(e=>e.id===eid);
@@ -1250,7 +1250,7 @@ function abrirMover(eid,empid){if(bloquearSeNaoAutenticado(()=>abrirMover(eid,em
     <div style="text-align:right"><div style="font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase">A alocar</div>
     <div id="restante-ctr" style="font-size:22px;font-weight:800;color:var(--blue)">${emp.jovens}j</div></div>
   </div>`;
-  h+=`<div style="font-size:11px;color:var(--mu);background:#eeefff;border-radius:var(--rs);padding:8px 10px;margin-bottom:14px">Empresas do Curso HÃ­brido nÃ£o sÃ£o alocadas aqui â€” use a aba <b>SimulaÃ§Ã£o HÃ­brido</b>.</div>`;
+  h+=`<div style="font-size:11px;color:var(--mu);background:#eeefff;border-radius:var(--rs);padding:8px 10px;margin-bottom:14px">Empresas do Curso Híbrido não são alocadas aqui — use a aba <b>Simulação Híbrido</b>.</div>`;
   DIAS.forEach(dia=>{
     let salas='';
     unidades.forEach(u=>{u.salas.forEach(sala=>{
@@ -1261,20 +1261,20 @@ function abrirMover(eid,empid){if(bloquearSeNaoAutenticado(()=>abrirMover(eid,em
       const plId=`pl-${dia}-${sala.replace(/ /g,'-')}-${u.nome.replace(/ /g,'-')}`;
       const uBg=u.nome==='Polo Liberdade'?'#f0fffe':'#f3f3ff';
       const uBd=u.nome==='Polo Liberdade'?'#35dcb2':'#a0a3ff';
-      // Verificar se cronograma estÃ¡ distante para esta sala (usando data da entrada atual)
+      // Verificar se cronograma está distante para esta sala (usando data da entrada atual)
       const cronDistanteModal=!salaAindaDisponivel(dia,sala,u.nome,entrada?.data);
-      // PLs jÃ¡ ocupados neste dia (turmas fixas + simuladas)
-      const plsOcupadosDia=new Set([...TURMAS_FIXAS,...turmasSim].filter(t=>t.dia===dia&&(t.sala!==sala||(t.unidade||'Freguesia do Ã“')!==u.nome)).map(t=>t.pl).filter(Boolean));
+      // PLs já ocupados neste dia (turmas fixas + simuladas)
+      const plsOcupadosDia=new Set([...TURMAS_FIXAS,...turmasSim].filter(t=>t.dia===dia&&(t.sala!==sala||(t.unidade||'Freguesia do Ó')!==u.nome)).map(t=>t.pl).filter(Boolean));
       const plsDisponiveisSala=plsState.filter(p=>!plsOcupadosDia.has(p.nome));
       const plOpts=plsDisponiveisSala.map(p=>`<option value="${p.nome}">${p.nome}</option>`).join('');
       const salaIndisponivel=cronDistanteModal||(ocp.livre<=0);
-      const motivoIndisponivel=cronDistanteModal?'Cronograma distante demais para novas entradas':ocp.livre<=0?'Sem vagas disponÃ­veis':'';
+      const motivoIndisponivel=cronDistanteModal?'Cronograma distante demais para novas entradas':ocp.livre<=0?'Sem vagas disponíveis':'';
       salas+=`<div class="destino-row" style="background:${salaIndisponivel?'#f9f9f9;opacity:.5':'${uBg}'};border:1px solid ${salaIndisponivel?'#ddd':'${uBd}'};border-radius:var(--rs);padding:8px 10px;margin-bottom:4px">
         <div style="flex:1">
-          <div style="font-size:12px;font-weight:700">${u.nome} â€” ${sala}</div>
-          <div style="font-size:10px;color:var(--mu)">${ocp.jovens}/${cap}j Â· <b style="color:${corBar}">${livre}j livres</b>${ocp.turmas.length?' Â· '+ocp.turmas.map(t=>t.nome).join(', '):''}</div>
+          <div style="font-size:12px;font-weight:700">${u.nome} — ${sala}</div>
+          <div style="font-size:10px;color:var(--mu)">${ocp.jovens}/${cap}j · <b style="color:${corBar}">${livre}j livres</b>${ocp.turmas.length?' · '+ocp.turmas.map(t=>t.nome).join(', '):''}</div>
           <select id="${plId}" style="margin-top:5px;width:100%;height:26px;border:1px solid var(--br);border-radius:5px;font-size:10px;padding:0 4px;font-family:'Montserrat',sans-serif;display:none">
-            <option value="">â€” PL â€”</option>
+            <option value="">— PL —</option>
             ${plOpts}
           </select>
         </div>
@@ -1285,14 +1285,14 @@ function abrirMover(eid,empid){if(bloquearSeNaoAutenticado(()=>abrirMover(eid,em
           ${(livre<=0||cronDistanteModal)?'disabled':''}/>
       </div>`;
     });});
-    // Abrir o <details> sÃ³ se houver ao menos uma sala disponÃ­vel neste dia
+    // Abrir o <details> só se houver ao menos uma sala disponível neste dia
     const temSalaDisp=unidades.some(u2=>u2.salas.some(s2=>salaAindaDisponivel(dia,s2,u2.nome,entrada?.data)&&ocupacaoSala(dia,s2,u2.nome).livre>0));
     h+=`<details style="margin-bottom:6px" ${temSalaDisp?'open':''}>
-      <summary style="font-size:11px;font-weight:700;cursor:pointer;text-transform:capitalize;padding:4px 0;list-style:none;color:var(--tx)">â–¶ ${dia}</summary>
+      <summary style="font-size:11px;font-weight:700;cursor:pointer;text-transform:capitalize;padding:4px 0;list-style:none;color:var(--tx)">▶ ${dia}</summary>
       <div style="margin-top:4px">${salas}</div>
     </details>`;
   });
-  h+=`<button onclick="confirmarAlocacao()" style="width:100%;height:38px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:12px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif;margin-top:12px">âœ“ Confirmar alocaÃ§Ã£o</button>`;
+  h+=`<button onclick="confirmarAlocacao()" style="width:100%;height:38px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:12px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif;margin-top:12px">✓ Confirmar alocação</button>`;
   document.getElementById('modal-body').innerHTML=h;
   document.getElementById('modal-bg').style.display='flex';
 }
@@ -1328,7 +1328,7 @@ function confirmarAlocacao(){if(bloquearSeNaoAutenticado(confirmarAlocacao))retu
   if(!alocs.length){alert('Preencha a quantidade em pelo menos uma sala.');return;}
   const total=alocs.reduce((s,a)=>s+a.jovens,0);
   if(total>emp.jovens){alert(`Total (${total}j) excede os jovens da empresa (${emp.jovens}j).`);return;}
-  if(total<emp.jovens){alert(`VocÃª precisa alocar todos os ${emp.jovens}j de ${emp.nome}. Faltam ${emp.jovens-total}j. Distribua entre as salas disponÃ­veis.`);return;}
+  if(total<emp.jovens){alert(`Você precisa alocar todos os ${emp.jovens}j de ${emp.nome}. Faltam ${emp.jovens-total}j. Distribua entre as salas disponíveis.`);return;}
 
   // Ler PL de cada linha individualmente
   alocs.forEach(a=>{
@@ -1346,21 +1346,21 @@ function confirmarAlocacao(){if(bloquearSeNaoAutenticado(confirmarAlocacao))retu
   fecharModal();renderGrade();renderGradeMini();renderEmpresas();renderHibrido();saveEstado();saveSalaOverrides();
 }
 
-// Aloca uma empresa na Sala HÃ­brido dedicada (Polo Liberdade, cap. 50 por janela de 10 du).
-// dia/pl sÃ£o sÃ³ pro rastreio na Grade de Salas (qual PL estÃ¡ com essa turma e em que dia aparece).
+// Aloca uma empresa na Sala Híbrido dedicada (Polo Liberdade, cap. 50 por janela de 10 du).
+// dia/pl são só pro rastreio na Grade de Salas (qual PL está com essa turma e em que dia aparece).
 function _alocarHibrido(emp,entrada,dia,pl){
   emp.unidade=SALA_HIBRIDO.unidade;emp.sala=SALA_HIBRIDO.nome;emp.dia=dia;emp.pl=pl;emp.modalidade='hibrida';
-  // Agrupar com outra empresa da MESMA entrada jÃ¡ marcada como hÃ­brida (mesma turma nova, mesmo dia)
+  // Agrupar com outra empresa da MESMA entrada já marcada como híbrida (mesma turma nova, mesmo dia)
   const companheira=entrada.empresas.find(e=>e.id!==emp.id&&e.modalidade==='hibrida'&&e.dia===dia&&e.turma);
   if(companheira){emp.turma=companheira.turma;return;}
-  // Nova turma hÃ­brida: sequÃªncia prÃ³pria "H", nunca reaproveita numeraÃ§Ã£o das turmas presenciais
+  // Nova turma híbrida: sequência própria "H", nunca reaproveita numeração das turmas presenciais
   let max=0;
   turmasHibridasAtivas().forEach(t=>{const m=t.nome.match(/Turma H(\d+)/);if(m)max=Math.max(max,parseInt(m[1]));});
   entradasHibrido.forEach(en=>en.empresas.forEach(e=>{if(e.turma){const m=String(e.turma).match(/^H(\d+)$/);if(m)max=Math.max(max,parseInt(m[1]));}}));
   emp.turma='H'+(max+1);
 }
 
-// â”€â”€ MODAL ALOCAR HÃBRIDO (dedicado, aberto a partir da aba SimulaÃ§Ã£o HÃ­brido) â”€â”€
+// ── MODAL ALOCAR HÍBRIDO (dedicado, aberto a partir da aba Simulação Híbrido) ──
 let _moverEidHib=null,_moverEmpidHib=null;
 function abrirAlocarHibrido(eid,empid){
   if(bloquearSeNaoAutenticado(()=>abrirAlocarHibrido(eid,empid)))return;
@@ -1371,28 +1371,28 @@ function abrirAlocarHibrido(eid,empid){
   const ocpH=ocupacaoSalaHibrido(entrada?.data,emp.turma?('Turma '+emp.turma):null);
   const jCand=janelasHibrido(entrada?.data);
   const excedeH=emp.jovens>ocpH.livre;
-  document.getElementById('modal-titulo').textContent=`Alocar hÃ­brido: ${emp.nome}`;
+  document.getElementById('modal-titulo').textContent=`Alocar híbrido: ${emp.nome}`;
   let h=`<div style="display:flex;justify-content:space-between;align-items:center;background:#fff7ed;border-radius:var(--rs);padding:10px 14px;margin-bottom:14px">
     <div><div style="font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase">Total empresa</div>
     <div style="font-size:22px;font-weight:800;color:#92400e">${emp.jovens}j</div></div>
-    <div style="text-align:right"><div style="font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase">Sala HÃ­brido</div>
+    <div style="text-align:right"><div style="font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase">Sala Híbrido</div>
     <div style="font-size:13px;font-weight:700">Polo Liberdade</div></div>
   </div>`;
   h+=`<div style="background:#f0fffe;border:1px solid #35dcb255;border-radius:var(--rs);padding:10px 14px;margin-bottom:14px">
     <div style="font-size:12px;font-weight:700;margin-bottom:4px">Capacidade fixa: ${ocpH.capacidade}j</div>
-    ${jCand?`<div style="font-size:11px;color:var(--mu);margin-bottom:6px">Janela presencial desta entrada: ${fmtDataCurta(jCand.inicio1)} â€“ ${fmtDataCurta(jCand.fim1)} (10 dias corridos)</div>`:''}
-    <div style="font-size:11px;margin-bottom:6px">${ocpH.jovens}/${ocpH.capacidade}j jÃ¡ reservados nessa janela${ocpH.turmas.length?' â€” '+ocpH.turmas.map(t=>t.nome+' ('+t.jovens+'j)').join(', '):''} Â· <b style="color:${excedeH?'#dc2626':'#0a7a60'}">${Math.max(0,ocpH.livre)}j livres</b></div>
-    ${excedeH?`<div class="alerta-err">âš  ${emp.jovens}j de ${emp.nome} excede a capacidade livre da Sala HÃ­brido nessa janela.</div>`:''}
+    ${jCand?`<div style="font-size:11px;color:var(--mu);margin-bottom:6px">Janela presencial desta entrada: ${fmtDataCurta(jCand.inicio1)} – ${fmtDataCurta(jCand.fim1)} (10 dias corridos)</div>`:''}
+    <div style="font-size:11px;margin-bottom:6px">${ocpH.jovens}/${ocpH.capacidade}j já reservados nessa janela${ocpH.turmas.length?' — '+ocpH.turmas.map(t=>t.nome+' ('+t.jovens+'j)').join(', '):''} · <b style="color:${excedeH?'#dc2626':'#0a7a60'}">${Math.max(0,ocpH.livre)}j livres</b></div>
+    ${excedeH?`<div class="alerta-err">⚠ ${emp.jovens}j de ${emp.nome} excede a capacidade livre da Sala Híbrido nessa janela.</div>`:''}
   </div>
-  <div style="font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;margin-bottom:4px">Dia do PL responsÃ¡vel (Ã© o que aparece na Grade de Salas)</div>
+  <div style="font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;margin-bottom:4px">Dia do PL responsável (é o que aparece na Grade de Salas)</div>
   <select id="hib-dia" onchange="atualizarPLsHibridoModal()" style="width:100%;height:32px;border:1px solid var(--br);border-radius:var(--rs);font-size:12px;padding:0 8px;font-family:'Montserrat',sans-serif;margin-bottom:8px">
-    <option value="">â€” selecione o dia â€”</option>
+    <option value="">— selecione o dia —</option>
     ${DIAS.map(d=>`<option value="${d}" ${emp.dia===d?'selected':''}>${d.charAt(0).toUpperCase()+d.slice(1)}</option>`).join('')}
   </select>
   <select id="hib-pl" style="width:100%;height:32px;border:1px solid var(--br);border-radius:var(--rs);font-size:12px;padding:0 8px;font-family:'Montserrat',sans-serif;margin-bottom:14px">
-    <option value="">${emp.dia?'â€” PL â€”':'â€” selecione o dia primeiro â€”'}</option>
+    <option value="">${emp.dia?'— PL —':'— selecione o dia primeiro —'}</option>
   </select>
-  <button onclick="confirmarAlocarHibrido()" style="width:100%;height:38px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:12px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif">âœ“ Confirmar alocaÃ§Ã£o hÃ­brida</button>`;
+  <button onclick="confirmarAlocarHibrido()" style="width:100%;height:38px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:12px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif">✓ Confirmar alocação híbrida</button>`;
   document.getElementById('modal-body').innerHTML=h;
   document.getElementById('modal-bg').style.display='flex';
   if(emp.dia)atualizarPLsHibridoModal(emp.pl);
@@ -1401,11 +1401,11 @@ function atualizarPLsHibridoModal(plAtual){
   const dia=document.getElementById('hib-dia')?.value;
   const plSel=document.getElementById('hib-pl');
   if(!plSel)return;
-  if(!dia){plSel.innerHTML='<option value="">â€” selecione o dia primeiro â€”</option>';return;}
+  if(!dia){plSel.innerHTML='<option value="">— selecione o dia primeiro —</option>';return;}
   const plsOcupados=new Set([...TURMAS_FIXAS,...turmasSim].filter(t=>t.dia===dia&&t.pl!==plAtual).map(t=>t.pl).filter(Boolean));
   const disponiveis=plsState.filter(p=>!plsOcupados.has(p.nome));
-  plSel.innerHTML='<option value="">â€” PL â€”</option>'+
-    plsState.map(p=>`<option value="${p.nome}" ${p.nome===plAtual?'selected':''}>${p.nome}${plsOcupados.has(p.nome)?' (jÃ¡ ocupado nesse dia)':''}</option>`).join('');
+  plSel.innerHTML='<option value="">— PL —</option>'+
+    plsState.map(p=>`<option value="${p.nome}" ${p.nome===plAtual?'selected':''}>${p.nome}${plsOcupados.has(p.nome)?' (já ocupado nesse dia)':''}</option>`).join('');
 }
 function confirmarAlocarHibrido(){
   if(bloquearSeNaoAutenticado(confirmarAlocarHibrido))return;
@@ -1414,11 +1414,11 @@ function confirmarAlocarHibrido(){
   if(!emp)return;
   const diaHib=document.getElementById('hib-dia')?.value;
   const plHib=document.getElementById('hib-pl')?.value;
-  if(!diaHib){alert('Selecione o dia do PL responsÃ¡vel pela turma hÃ­brida.');return;}
-  if(!plHib){alert('Selecione o PL responsÃ¡vel pela turma hÃ­brida.');return;}
+  if(!diaHib){alert('Selecione o dia do PL responsável pela turma híbrida.');return;}
+  if(!plHib){alert('Selecione o PL responsável pela turma híbrida.');return;}
   const ocpH=ocupacaoSalaHibrido(entrada.data,emp.turma?('Turma '+emp.turma):null);
   if(emp.jovens>ocpH.livre){
-    if(!confirm(`A Sala HÃ­brido jÃ¡ tem ${ocpH.jovens}/${ocpH.capacidade}j reservados nessa janela. Alocar mais ${emp.jovens}j de ${emp.nome} vai passar da capacidade de 50. Quer continuar mesmo assim?`))return;
+    if(!confirm(`A Sala Híbrido já tem ${ocpH.jovens}/${ocpH.capacidade}j reservados nessa janela. Alocar mais ${emp.jovens}j de ${emp.nome} vai passar da capacidade de 50. Quer continuar mesmo assim?`))return;
   }
   _alocarHibrido(emp,entrada,diaHib,plHib);
   fecharModal();renderGrade();renderGradeMini();renderGradeMiniHib();renderEmpresasHibrido();renderHibrido();saveEstado();saveSalaOverrides();
@@ -1429,37 +1429,37 @@ function _alocar(emp,entrada,dia,sala,unidade,jovens,pl){
   if(pl)emp.pl=pl;
   const letra=LETRA[dia]||'A';
   // Turma existente no mesmo dia/sala/unidade desta entrada
-  const companheira=entrada.empresas.find(e=>e.id!==emp.id&&e.dia===dia&&e.sala===sala&&(e.unidade||'Freguesia do Ã“')===unidade&&e.turma);
+  const companheira=entrada.empresas.find(e=>e.id!==emp.id&&e.dia===dia&&e.sala===sala&&(e.unidade||'Freguesia do Ó')===unidade&&e.turma);
   if(companheira){emp.turma=companheira.turma;return;}
   // Agrupar com empresa da MESMA entrada no mesmo dia/sala
   const companheiraMesmaSala=entrada.empresas.find(e=>
     e.id!==emp.id&&e.dia===dia&&e.sala===sala&&
-    (e.unidade||'Freguesia do Ã“')===unidade&&e.turma
+    (e.unidade||'Freguesia do Ó')===unidade&&e.turma
   );
   if(companheiraMesmaSala){emp.turma=companheiraMesmaSala.turma;return;}
-  // Criar novo nome â€” sempre incrementa o max global da letra (nunca herda de outra entrada)
+  // Criar novo nome — sempre incrementa o max global da letra (nunca herda de outra entrada)
   let max=0;
-  // Base: mÃ¡ximo histÃ³rico de todas as turmas do Directus
+  // Base: máximo histórico de todas as turmas do Directus
   if(window._maxHistoricoTurma&&window._maxHistoricoTurma[letra]){
     max=window._maxHistoricoTurma[letra];
   }
-  // TambÃ©m considerar TURMAS_FIXAS ativas (garante que turmas recentes contam)
+  // Também considerar TURMAS_FIXAS ativas (garante que turmas recentes contam)
   TURMAS_FIXAS.forEach(t=>{
     const m=t.nome.match(/([A-E])[MT](\d+)/);
     if(m&&m[1]===letra)max=Math.max(max,parseInt(m[2]));
   });
-  // E turmas simuladas jÃ¡ alocadas nesta sessÃ£o (recalcular para pegar estado atual)
+  // E turmas simuladas já alocadas nesta sessão (recalcular para pegar estado atual)
   const simAtual=turmasSimAtivas();
   simAtual.forEach(t=>{
     const m=t.nome.match(/([A-E])[MT](\d+)/);
     if(m&&m[1]===letra)max=Math.max(max,parseInt(m[2]));
   });
-  // TambÃ©m entradas jÃ¡ salvas com turma atribuÃ­da
+  // Também entradas já salvas com turma atribuída
   entradas.forEach(en=>en.empresas.forEach(e=>{
     if(e.turma){const m=e.turma.match(/([A-E])[MT](\d+)/);if(m&&m[1]===letra)max=Math.max(max,parseInt(m[2]));}
   }));
-  // NÃ£o contar entradas salvas â€” evita inflacionar sequÃªncia apÃ³s simulaÃ§Ãµes apagadas
-  console.log('[Aleapyo] prÃ³xima turma de',dia,'â†’ letra='+letra+' max='+max+' prÃ³xima='+letra+'M'+(max+1));
+  // Não contar entradas salvas — evita inflacionar sequência após simulações apagadas
+  console.log('[Aleapyo] próxima turma de',dia,'→ letra='+letra+' max='+max+' próxima='+letra+'M'+(max+1));
   emp.turma=letra+TURNO+(max+1);
 }
 
@@ -1475,8 +1475,8 @@ function renderEcossistema(){
     return;
   }
   // Agrupar por dia
-  const DIAS_ORD=['segunda','terÃ§a','quarta','quinta','sexta'];
-  const DIAS_LABEL={segunda:'Segunda-feira',terÃ§a:'TerÃ§a-feira',quarta:'Quarta-feira',quinta:'Quinta-feira',sexta:'Sexta-feira'};
+  const DIAS_ORD=['segunda','terça','quarta','quinta','sexta'];
+  const DIAS_LABEL={segunda:'Segunda-feira',terça:'Terça-feira',quarta:'Quarta-feira',quinta:'Quinta-feira',sexta:'Sexta-feira'};
   const porDia={};
   turmasEco.forEach(t=>{
     if(!porDia[t.dia])porDia[t.dia]=[];
@@ -1488,10 +1488,10 @@ function renderEcossistema(){
     h+=`<div style="margin-bottom:20px">
       <div style="font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">${DIAS_LABEL[dia]||dia}</div>`;
     porDia[dia].forEach(t=>{
-      const pl=t.pl||'â€”';
+      const pl=t.pl||'—';
       const plLabel=t.nome==='Turma CM3'?'Tutor Ecossistema':(pl==='Guilherme'?'Guilherme':pl);
       const corPl=t.nome==='Turma CM3'?{bg:'#a78bfa',light:'#a78bfa18',border:'#a78bfa'}:corPL('Guilherme');
-      const empList=t.empresas&&t.empresas.length?t.empresas.map(e=>`<span style="font-size:10px;background:#f5f5f2;padding:1px 6px;border-radius:99px;margin-right:4px">${e.nome} (${e.jovens}j)</span>`).join(''):'<span style="font-size:10px;color:var(--mu)">â€”</span>';
+      const empList=t.empresas&&t.empresas.length?t.empresas.map(e=>`<span style="font-size:10px;background:#f5f5f2;padding:1px 6px;border-radius:99px;margin-right:4px">${e.nome} (${e.jovens}j)</span>`).join(''):'<span style="font-size:10px;color:var(--mu)">—</span>';
       h+=`<div style="background:${corPl.light};border:1px solid ${corPl.border}44;border-radius:var(--rs);padding:12px 14px;margin-bottom:8px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
           <div><b style="font-size:14px">${t.nome}</b> <span style="font-size:11px;color:var(--mu);margin-left:6px">${t.jovens}j</span></div>
@@ -1510,7 +1510,7 @@ function renderHibrido(){
   if(!el)return;
   const turmasHibridas=turmasHibridasAtivas();
   if(!turmasHibridas.length){
-    el.innerHTML='<div style="color:var(--mu);font-size:13px;padding:20px 0">Nenhuma turma hÃ­brida alocada ainda. Cadastre uma entrada acima e use o botÃ£o Alocar.</div>';
+    el.innerHTML='<div style="color:var(--mu);font-size:13px;padding:20px 0">Nenhuma turma híbrida alocada ainda. Cadastre uma entrada acima e use o botão Alocar.</div>';
     return;
   }
   const grupos={'presencial-inicio':[],'online':[],'presencial-fim':[],'sem-data':[]};
@@ -1518,7 +1518,7 @@ function renderHibrido(){
     const fase=faseHibrido(t)||'sem-data';
     grupos[fase].push(t);
   });
-  const labelFase={'presencial-inicio':'Presencial â€” inÃ­cio de turma','online':'100% online','presencial-fim':'Presencial â€” fim de turma','sem-data':'Sem data de entrada definida'};
+  const labelFase={'presencial-inicio':'Presencial — início de turma','online':'100% online','presencial-fim':'Presencial — fim de turma','sem-data':'Sem data de entrada definida'};
   let h='';
   ['presencial-inicio','online','presencial-fim','sem-data'].forEach(fase=>{
     if(!grupos[fase].length)return;
@@ -1526,13 +1526,13 @@ function renderHibrido(){
       <div style="font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">${labelFase[fase]}</div>`;
     grupos[fase].forEach(t=>{
       const j=t.entrada?janelasHibrido(t.entrada):null;
-      const janelaTxt=j?`Presencial: ${fmtDataCurta(j.inicio1)}â€“${fmtDataCurta(j.fim1)} e ${fmtDataCurta(j.inicio2)}â€“${fmtDataCurta(j.fim2)}`:'Sem janelas calculadas (falta data de entrada)';
-      const localTxt=fase==='online'?'100% online â€” sem sala fÃ­sica':`${t.unidade||'Freguesia do Ã“'} Â· ${t.sala||'â€”'}`;
-      const empList=t.empresas&&t.empresas.length?t.empresas.map(e=>`<span style="font-size:10px;background:#f5f5f2;padding:1px 6px;border-radius:99px;margin-right:4px">${e.nome} (${e.jovens}j)</span>`).join(''):'<span style="font-size:10px;color:var(--mu)">â€”</span>';
+      const janelaTxt=j?`Presencial: ${fmtDataCurta(j.inicio1)}–${fmtDataCurta(j.fim1)} e ${fmtDataCurta(j.inicio2)}–${fmtDataCurta(j.fim2)}`:'Sem janelas calculadas (falta data de entrada)';
+      const localTxt=fase==='online'?'100% online — sem sala física':`${t.unidade||'Freguesia do Ó'} · ${t.sala||'—'}`;
+      const empList=t.empresas&&t.empresas.length?t.empresas.map(e=>`<span style="font-size:10px;background:#f5f5f2;padding:1px 6px;border-radius:99px;margin-right:4px">${e.nome} (${e.jovens}j)</span>`).join(''):'<span style="font-size:10px;color:var(--mu)">—</span>';
       h+=`<div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rs);padding:12px 14px;margin-bottom:8px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:6px">
-          <div><b style="font-size:14px">${t.nome}</b> <span style="font-size:11px;color:var(--mu);margin-left:6px">${t.jovens}j Â· ${t.dia||'â€”'}</span></div>
-          <span style="font-size:11px;font-weight:600;color:var(--blue);background:#eeefff;border:1px solid #b4b6fd;border-radius:99px;padding:2px 10px">${t.pl||'â€”'}</span>
+          <div><b style="font-size:14px">${t.nome}</b> <span style="font-size:11px;color:var(--mu);margin-left:6px">${t.jovens}j · ${t.dia||'—'}</span></div>
+          <span style="font-size:11px;font-weight:600;color:var(--blue);background:#eeefff;border:1px solid #b4b6fd;border-radius:99px;padding:2px 10px">${t.pl||'—'}</span>
         </div>
         <div style="font-size:11px;color:var(--mu);margin-bottom:4px">${localTxt}</div>
         <div style="font-size:10px;color:var(--mu);margin-bottom:6px">${janelaTxt}</div>
@@ -1549,12 +1549,12 @@ function abrirMoverEntrada(eid, empid){
   const entradaAtual=entradas.find(e=>e.id===eid);
   const emp=entradaAtual?.empresas.find(x=>x.id===empid);
   if(!emp)return;
-  // Montar opÃ§Ãµes â€” todas as entradas exceto a atual
+  // Montar opções — todas as entradas exceto a atual
   const outras=entradas.filter(e=>e.id!==eid).sort((a,b)=>a.data.localeCompare(b.data));
   const opts=outras.map(e=>`<option value="${e.id}">${fmtData(e.data)}</option>`).join('');
   const h=`<div style="padding:4px 0 12px">
     <div style="font-size:20px;font-weight:800;font-family:'Krona One',sans-serif;margin-bottom:4px">${emp.nome}</div>
-    <div style="font-size:11px;color:var(--mu);margin-bottom:16px">${emp.jovens}j Â· mover para outra entrada</div>
+    <div style="font-size:11px;color:var(--mu);margin-bottom:16px">${emp.jovens}j · mover para outra entrada</div>
     <div style="font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase;margin-bottom:6px">Entrada de destino</div>
     <select id="destino-entrada-sel" style="width:100%;height:36px;border:1.5px solid var(--blue);border-radius:var(--rs);font-size:13px;padding:0 8px;font-family:'Montserrat',sans-serif;margin-bottom:6px">
       ${opts}
@@ -1565,9 +1565,9 @@ function abrirMoverEntrada(eid, empid){
       <input id="nova-data-inp" type="date" style="width:100%;height:36px;border:1.5px solid var(--blue);border-radius:var(--rs);font-size:13px;padding:0 8px;box-sizing:border-box;font-family:'Montserrat',sans-serif"/>
     </div>
     <div style="font-size:10px;color:var(--mu);background:#fafafa;border-radius:var(--rs);padding:8px;margin-bottom:12px">
-      A empresa serÃ¡ movida com <b>${emp.jovens} jovens</b>. Turma, dia e sala serÃ£o zerados para realocar na nova entrada.
+      A empresa será movida com <b>${emp.jovens} jovens</b>. Turma, dia e sala serão zerados para realocar na nova entrada.
     </div>
-    <button onclick="confirmarMoverEntrada('${eid}','${empid}')" style="width:100%;height:38px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:12px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif">â‡„ Confirmar mudanÃ§a de entrada</button>
+    <button onclick="confirmarMoverEntrada('${eid}','${empid}')" style="width:100%;height:38px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:12px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif">⇄ Confirmar mudança de entrada</button>
   </div>`;
   document.getElementById('modal-titulo').textContent='Mover para outra entrada';
   document.getElementById('modal-body').innerHTML=h;
@@ -1584,7 +1584,7 @@ function confirmarMoverEntrada(eid, empid){
   if(!emp)return;
   const sel=document.getElementById('destino-entrada-sel');
   let destinoId=sel?.value;
-  // Criar nova entrada se necessÃ¡rio
+  // Criar nova entrada se necessário
   if(destinoId==='__nova__'){
     const dataVal=document.getElementById('nova-data-inp')?.value;
     if(!dataVal){alert('Informe a data da nova entrada.');return;}
@@ -1594,8 +1594,8 @@ function confirmarMoverEntrada(eid, empid){
     destinoId=novaEntrada.id;
   }
   const destino=entradas.find(e=>e.id===destinoId);
-  if(!destino){alert('Entrada de destino nÃ£o encontrada.');return;}
-  // Mover empresa: remover da atual, adicionar na destino sem alocaÃ§Ã£o
+  if(!destino){alert('Entrada de destino não encontrada.');return;}
+  // Mover empresa: remover da atual, adicionar na destino sem alocação
   entradaAtual.empresas=entradaAtual.empresas.filter(x=>x.id!==empid);
   destino.empresas.push({
     id:'emp'+Date.now(),
@@ -1607,13 +1607,13 @@ function confirmarMoverEntrada(eid, empid){
   fecharModal();renderGrade();renderGradeMini();renderEmpresas();saveEstado();
 }
 
-// â”€â”€ PLs â”€â”€
+// ── PLs ──
 function renderPLs(){
   document.getElementById('pls-wrap').innerHTML=plsState.map((pl,pi)=>`
     <div class="pl-card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
         <div style="font-weight:700;font-size:14px">${pl.nome}</div>
-        <button onclick="excluirPL(${pi})" style="font-size:10px;color:#dc2626;background:#fef2f2;border:1px solid #fca5a5;border-radius:5px;padding:2px 8px;cursor:pointer;font-family:'Montserrat',sans-serif">âœ• Excluir</button>
+        <button onclick="excluirPL(${pi})" style="font-size:10px;color:#dc2626;background:#fef2f2;border:1px solid #fca5a5;border-radius:5px;padding:2px 8px;cursor:pointer;font-family:'Montserrat',sans-serif">✕ Excluir</button>
       </div>
       <div>${['Seg','Ter','Qua','Qui','Sex'].map(d=>{
         const al=pl.alocados.includes(d);
@@ -1632,18 +1632,18 @@ function novoPL(){
   renderPLs();renderGrade();renderGradeMini();saveEstado();
 }
 
-// â”€â”€ UNIDADES â”€â”€
+// ── UNIDADES ──
 function gerenciarUnidades(){
   const lista=unidades.map((u,i)=>`${i+1}. ${u.nome}: ${u.salas.join(', ')} (${u.capacidade}j/sala)`).join('\n');
   const op=prompt(`Unidades:\n${lista}\n\n1 - Nova unidade\n2 - Nova sala\n3 - Alterar capacidade`);
   if(op==='1'){const n=prompt('Nome:');if(!n)return;const c=parseInt(prompt('Capacidade:')||'32');unidades.push({nome:n,salas:['Sala 1'],capacidade:c});}
-  else if(op==='2'){const i=parseInt(prompt('NÃºmero da unidade:')||'1')-1;if(i<0||i>=unidades.length)return;const s=prompt('Nome da sala:')||`Sala ${unidades[i].salas.length+1}`;unidades[i].salas.push(s);}
-  else if(op==='3'){const i=parseInt(prompt('NÃºmero da unidade:')||'1')-1;if(i<0||i>=unidades.length)return;unidades[i].capacidade=parseInt(prompt('Nova capacidade:')||'32');}
+  else if(op==='2'){const i=parseInt(prompt('Número da unidade:')||'1')-1;if(i<0||i>=unidades.length)return;const s=prompt('Nome da sala:')||`Sala ${unidades[i].salas.length+1}`;unidades[i].salas.push(s);}
+  else if(op==='3'){const i=parseInt(prompt('Número da unidade:')||'1')-1;if(i<0||i>=unidades.length)return;unidades[i].capacidade=parseInt(prompt('Nova capacidade:')||'32');}
   renderGrade();renderGradeMini();
   saveEstado();
 }
 
-// â”€â”€ NAVEGAÃ‡ÃƒO â”€â”€
+// ── NAVEGAÇÃO ──
 function setTab(t,btn){
   ['empresas','grade','pls','cronogramas','ecossistema','mudancaturma','hibrido'].forEach(k=>document.getElementById('tab-'+k).style.display=k===t?'block':'none');
   document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
@@ -1660,10 +1660,10 @@ function resetarSim(){
   turmasSim=[];renderGrade();renderGradeMini();renderGradeMiniHib();renderEmpresas();renderEmpresasHibrido();renderHibrido();
 }
 
-// â”€â”€ INTEGRAÃ‡ÃƒO DIRECTUS â”€â”€
+// ── INTEGRAÇÃO DIRECTUS ──
 const DIRECTUS_URL='https://backoffice.leapy.com.br';
 
-// â”€â”€ SISTEMA DE SENHA â”€â”€
+// ── SISTEMA DE SENHA ──
 const SENHA_CORRETA='Aleapyo_2026';
 let _autenticado=false;
 
@@ -1681,7 +1681,7 @@ async function pedirSenha(){
     overlay.innerHTML=`
       <div style="background:#fff;border-radius:12px;padding:32px 28px;width:320px;box-shadow:0 8px 32px #0004;text-align:center">
         <div style="font-family:'Krona One',sans-serif;font-size:20px;font-weight:800;color:#1d0328;margin-bottom:4px">Aleapyo</div>
-        <div style="font-size:12px;color:#888;margin-bottom:24px">Simulador de AlocaÃ§Ã£o â€” Leapy</div>
+        <div style="font-size:12px;color:#888;margin-bottom:24px">Simulador de Alocação — Leapy</div>
         <div style="font-size:11px;font-weight:700;color:#555;text-align:left;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Senha de acesso</div>
         <input id="senha-input" type="password" placeholder="Digite a senha"
           style="width:100%;box-sizing:border-box;height:38px;border:1.5px solid #ddd;border-radius:8px;padding:0 12px;font-size:13px;font-family:'Montserrat',sans-serif;margin-bottom:8px;outline:none"
@@ -1691,7 +1691,7 @@ async function pedirSenha(){
           Entrar
         </button>
         <div style="margin-top:16px;font-size:10px;color:#bbb">
-          Sem a senha? VocÃª pode visualizar o simulador, mas nÃ£o editar.
+          Sem a senha? Você pode visualizar o simulador, mas não editar.
         </div>
         <button onclick="document.getElementById('senha-overlay').remove();resolve(false)"
           style="margin-top:8px;background:none;border:none;color:#aaa;font-size:11px;cursor:pointer;font-family:'Montserrat',sans-serif;text-decoration:underline">
@@ -1729,7 +1729,7 @@ const DIRECTUS_TOKEN='FXAdWLdfo_YKGCTwDs0LzPToWu3XxW2l';
 async function obterTokenDirectus(){
   return DIRECTUS_TOKEN;
 }
-const DIAS_MAP={'segunda_feira':'segunda','terca_feira':'terÃ§a','quarta_feira':'quarta','quinta_feira':'quinta','sexta_feira':'sexta'};
+const DIAS_MAP={'segunda_feira':'segunda','terca_feira':'terça','quarta_feira':'quarta','quinta_feira':'quinta','sexta_feira':'sexta'};
 const SALA_MAP={'Sala 1':'Sala 1','Sala 2':'Sala 2'};
 
 // Normalizar nome do PL para o simulador
@@ -1741,21 +1741,21 @@ function normPL(first,last){
   if(nome.includes('carol'))return 'Carol';
   if(nome.includes('guilherme'))return 'Guilherme';
   if(nome.includes('marialice')||nome.includes('maria alice')||nome.includes('mariana'))return 'Marialice';
-  return null; // PL nÃ£o reconhecido â€” nÃ£o adicionar Ã  grade principal
+  return null; // PL não reconhecido — não adicionar à grade principal
 }
 
 // Normalizar nome da turma
 function normNomeTurma(name){
   if(!name)return null;
-  // Remover "Turma " do inÃ­cio se houver e formatar
+  // Remover "Turma " do início se houver e formatar
   return name.startsWith('Turma ')?name.slice(6):name;
 }
 
 async function carregarDoDirectus(){
   const DIRECTUS_TOKEN=await obterTokenDirectus();
-  if(!DIRECTUS_TOKEN){console.warn('Sem token Directus â€” sync cancelado');return;}
+  if(!DIRECTUS_TOKEN){console.warn('Sem token Directus — sync cancelado');return;}
   const statusEl=document.getElementById('sync-status');
-  if(statusEl){statusEl.textContent='â†» Sincronizando...';statusEl.style.color='var(--mu)';}
+  if(statusEl){statusEl.textContent='↻ Sincronizando...';statusEl.style.color='var(--mu)';}
   try{
     // 1. Buscar turmas ativas (excluindo Ecossistema)
     const urlTurmas=`${DIRECTUS_URL}/items/Turmas?filter[Status_new][_eq]=ativa&filter[dia_de_curso][_nnull]=true&fields=id,Name,dia_de_curso,program_lead.first_name,program_lead.last_name,data_de_inicio,data_de_termino&access_token=${DIRECTUS_TOKEN}`;
@@ -1763,7 +1763,7 @@ async function carregarDoDirectus(){
     if(!rT.ok)throw new Error('HTTP '+rT.status);
     const dataTurmas=(await rT.json()).data||[];
     const DATA_MINIMA='2026-03-02';
-    // Normalizar dia_de_curso: quinta_feira â†’ quinta, etc.
+    // Normalizar dia_de_curso: quinta_feira → quinta, etc.
     dataTurmas.forEach(t=>{if(t.dia_de_curso)t.dia_de_curso=DIAS_MAP[t.dia_de_curso]||t.dia_de_curso;});
     console.log('[Aleapyo] Todas turmas do Directus:',dataTurmas.map(t=>t.Name+'|'+t.dia_de_curso+'|'+t.data_de_inicio?.slice(0,10)));
     const turmasLeapy=dataTurmas.filter(t=>{
@@ -1771,23 +1771,23 @@ async function carregarDoDirectus(){
       if(!t.data_de_inicio)return false;
       if(t.data_de_inicio.slice(0,10)<DATA_MINIMA)return false;
       // Excluir turmas teste: sufixo com letra N (ex: Turma N1, Turma BN3, Turma 3N)
-      const sufixo=t.Name.slice(6); // tudo apÃ³s "Turma "
+      const sufixo=t.Name.slice(6); // tudo após "Turma "
       if(/N/i.test(sufixo))return false;
-      // Excluir turmas ecossistema especÃ­ficas
+      // Excluir turmas ecossistema específicas
       const EXCLUIR_NOMES=[]; // turmas completamente ignoradas
       if(EXCLUIR_NOMES.includes(t.Name))return false;
       return true;
     });
-    console.log('[Aleapyo] Turmas apÃ³s filtro:',turmasLeapy.map(t=>t.Name+'|'+t.dia_de_curso));
+    console.log('[Aleapyo] Turmas após filtro:',turmasLeapy.map(t=>t.Name+'|'+t.dia_de_curso));
     const turmaIdMap={};
     turmasLeapy.forEach(t=>turmaIdMap[t.id]=t);
 
-    // Buscar histÃ³rico completo de nomes de turmas (para numeraÃ§Ã£o correta)
-    // Sem filtro de data â€” pega AMx, DMx anteriores a 02/03
+    // Buscar histórico completo de nomes de turmas (para numeração correta)
+    // Sem filtro de data — pega AMx, DMx anteriores a 02/03
     const urlHistorico=`${DIRECTUS_URL}/items/Turmas?fields=Name&filter[Name][_starts_with]=Turma&limit=-1&access_token=${DIRECTUS_TOKEN}`;
     const rH=await fetch(urlHistorico);
     const historicoNomes=rH.ok?((await rH.json()).data||[]).map(t=>t.Name):[];
-    // Calcular mÃ¡ximo histÃ³rico por letra
+    // Calcular máximo histórico por letra
     window._maxHistoricoTurma={};
     historicoNomes.forEach(nome=>{
       const m=nome.match(/Turma ([A-E])[MT](\d+)/);
@@ -1795,7 +1795,7 @@ async function carregarDoDirectus(){
       const [,letra,num]=m;
       window._maxHistoricoTurma[letra]=Math.max(window._maxHistoricoTurma[letra]||0,parseInt(num));
     });
-    console.log('[Aleapyo] mÃ¡ximos histÃ³ricos por letra:',window._maxHistoricoTurma);
+    console.log('[Aleapyo] máximos históricos por letra:',window._maxHistoricoTurma);
     // 2. Buscar jovens em andamento com turma e empresa
     // Buscar jovens com empresa aninhada (account.name > Empresa como fallback)
     const urlJovens=`${DIRECTUS_URL}/items/user_apprenticeship_data?filter[Status_formacao][_eq]=em_andamento&fields=turma_id,empresa_id,empresa_id.id,empresa_id.Empresa,empresa_id.account.name&limit=-1&access_token=${DIRECTUS_TOKEN}`;
@@ -1803,14 +1803,14 @@ async function carregarDoDirectus(){
     if(!rJ.ok)throw new Error('HTTP jovens '+rJ.status);
     const jovens=(await rJ.json()).data||[];
 
-    // Montar empresaNomes a partir dos dados aninhados jÃ¡ retornados
+    // Montar empresaNomes a partir dos dados aninhados já retornados
     const empresaNomes={};
     jovens.forEach(j=>{
       const emp=j.empresa_id;
       if(!emp||typeof emp!=='object')return;
       const eid=emp.id;
       if(!eid)return;
-      // SEMPRE preferir account.name; sÃ³ usar Empresa se account for null/undefined
+      // SEMPRE preferir account.name; só usar Empresa se account for null/undefined
       const nome=emp.account?.name||emp.Empresa;
       if(nome)empresaNomes[eid]=nome;
     });
@@ -1822,7 +1822,7 @@ async function carregarDoDirectus(){
       if(!j.turma_id||!turmaIdMap[j.turma_id])return;
       if(!turmaCounts[j.turma_id])turmaCounts[j.turma_id]=0;
       turmaCounts[j.turma_id]++;
-      // empresa_id Ã© objeto aninhado â€” extrair id
+      // empresa_id é objeto aninhado — extrair id
       const emp=j.empresa_id;
       const eid=emp&&typeof emp==='object'?emp.id:emp;
       if(eid){
@@ -1840,11 +1840,11 @@ async function carregarDoDirectus(){
     let adicionadas=0;
 
     // Mapear sala por turma: usar o mesmo dia para agrupar turmas e distribuir por sala
-    // EstratÃ©gia: ordenar por data_de_inicio e distribuir em salas disponÃ­veis
+    // Estratégia: ordenar por data_de_inicio e distribuir em salas disponíveis
     // Agrupar turmas do Directus por dia para distribuir salas corretamente
     const turmasPorDia={};
     turmasLeapy.forEach(t=>{
-      if(!turmaCounts[t.id])return; // sem jovens em andamento â†’ ignorar
+      if(!turmaCounts[t.id])return; // sem jovens em andamento → ignorar
       const dia=DIAS_MAP[t.dia_de_curso]||t.dia_de_curso;
       if(!turmasPorDia[dia])turmasPorDia[dia]=[];
       turmasPorDia[dia].push(t);
@@ -1853,20 +1853,20 @@ async function carregarDoDirectus(){
     // Popular TURMAS_FIXAS com todas as turmas ativas do Directus
     // Distribuir salas: dentro de cada dia, preencher sala 1 primeiro, depois sala 2
     Object.entries(turmasPorDia).forEach(([dia,turmasDia])=>{
-      // Ordenar por data_de_inicio para consistÃªncia
+      // Ordenar por data_de_inicio para consistência
       turmasDia.sort((a,b)=>(a.data_de_inicio||'').localeCompare(b.data_de_inicio||''));
 
-      // Determinar unidade de cada turma (para simplificar, todas em Freguesia do Ã“ por enquanto)
-      // Polo Liberdade: turmas com sufixo especÃ­fico podem ser mapeadas depois manualmente
+      // Determinar unidade de cada turma (para simplificar, todas em Freguesia do Ó por enquanto)
+      // Polo Liberdade: turmas com sufixo específico podem ser mapeadas depois manualmente
       const ocupacaoPorSala={};
-      const unidades_lista=unidades.length?unidades:[{nome:'Freguesia do Ã“',salas:['Sala 1','Sala 2'],capacidade:32}];
+      const unidades_lista=unidades.length?unidades:[{nome:'Freguesia do Ó',salas:['Sala 1','Sala 2'],capacidade:32}];
 
       turmasDia.forEach(t=>{
         const nomeCompleto=t.Name;
         const pl=normPL(t.program_lead?.first_name,t.program_lead?.last_name);
-        // Override de PL por turma (ex: AM7 â†’ Marialice mesmo com PL errado no backoffice)
+        // Override de PL por turma (ex: AM7 → Marialice mesmo com PL errado no backoffice)
         const PL_OVERRIDE={'Turma AM7':'Marialice'};
-        const plFinal=PL_OVERRIDE[nomeCompleto]||pl||'â€”';
+        const plFinal=PL_OVERRIDE[nomeCompleto]||pl||'—';
         const jovensCount=turmaCounts[t.id]||0;
         const empMap=turmaEmpresas[t.id]||{};
         // Agrupar por nome (mesma empresa pode ter IDs distintos se entrou em datas diferentes)
@@ -1877,15 +1877,15 @@ const empresas=Object.entries(empresasAgrup).map(([nome,jovens])=>({nome,jovens}
 
         // Adicionar PLs reconhecidos ao estado
         const PL_CORES={'Manu':'#35dcb2','Carol':'#f2cf6b','Marialice':'#a78bfa','Guilherme':'#60a5fa'};
-        if(plFinal&&plFinal!=='â€”'&&PL_CORES[plFinal]&&!plsState.find(p=>p.nome===plFinal)){
+        if(plFinal&&plFinal!=='—'&&PL_CORES[plFinal]&&!plsState.find(p=>p.nome===plFinal)){
           plsState.push({nome:plFinal,alocados:[],livres:[],simDias:[]});
           const cor=PL_CORES[plFinal];
           plCores[plFinal]={bg:cor,light:cor+'18',text:'#1d0328',border:cor};
         }
 
-        // Encontrar unidade e sala: verificar se hÃ¡ turma com mesmo nome jÃ¡ mapeada,
-        // senÃ£o distribuir pela sala menos cheia da unidade padrÃ£o
-        let unidade='Freguesia do Ã“';
+        // Encontrar unidade e sala: verificar se há turma com mesmo nome já mapeada,
+        // senão distribuir pela sala menos cheia da unidade padrão
+        let unidade='Freguesia do Ó';
         let sala='Sala 1';
 
         // Verificar se a turma tem mapeamento de unidade nas entradas existentes
@@ -1900,8 +1900,8 @@ const empresas=Object.entries(empresasAgrup).map(([nome,jovens])=>({nome,jovens}
         }
 
         if(!encontrou){
-          // Sala determinada pelo PL: Manu â†’ Sala 1, Carol â†’ Sala 2
-          // Regra fixa da Leapy â€” nÃ£o distribuir por ocupaÃ§Ã£o
+          // Sala determinada pelo PL: Manu → Sala 1, Carol → Sala 2
+          // Regra fixa da Leapy — não distribuir por ocupação
           if(plFinal==='Manu') sala='Sala 1';
           else if(plFinal==='Carol') sala='Sala 2';
           else if(plFinal==='Marialice') sala='Sala 1';
@@ -1919,7 +1919,7 @@ const empresas=Object.entries(empresasAgrup).map(([nome,jovens])=>({nome,jovens}
           ocupacaoPorSala[chave]=(ocupacaoPorSala[chave]||0)+jovensCount;
         }
 
-        // Override final de unidade/sala â€” prioridade absoluta
+        // Override final de unidade/sala — prioridade absoluta
         const TURMA_OVERRIDE={'Turma AM7':{unidade:'Polo Liberdade',sala:'Sala 1'}};
         if(TURMA_OVERRIDE[nomeCompleto]){
           unidade=TURMA_OVERRIDE[nomeCompleto].unidade;
@@ -1942,10 +1942,10 @@ const empresas=Object.entries(empresasAgrup).map(([nome,jovens])=>({nome,jovens}
       });
     });
 
-    // Aplicar overrides de sala/PL/split salvos pelo usuÃ¡rio
+    // Aplicar overrides de sala/PL/split salvos pelo usuário
     const paraRemover=[];
     const paraAdicionar=[];
-    console.log('[Aleapyo] TURMAS_FIXAS apÃ³s sync:',TURMAS_FIXAS.map(t=>t.nome+'|'+t.dia+'|'+t.jovens+'j'));
+    console.log('[Aleapyo] TURMAS_FIXAS após sync:',TURMAS_FIXAS.map(t=>t.nome+'|'+t.dia+'|'+t.jovens+'j'));
     console.log('[Aleapyo] salaOverrides keys:',Object.keys(salaOverrides));
     TURMAS_FIXAS.forEach((t,i)=>{
       const sameGroup=TURMAS_FIXAS.filter(x=>x.nome===t.nome&&x.dia===t.dia);
@@ -1970,36 +1970,36 @@ const empresas=Object.entries(empresasAgrup).map(([nome,jovens])=>({nome,jovens}
     });
     paraRemover.forEach(t=>{const i=TURMAS_FIXAS.indexOf(t);if(i>=0)TURMAS_FIXAS.splice(i,1);});
     paraAdicionar.forEach(t=>TURMAS_FIXAS.push(t));
-    // Injetar turmas que estÃ£o no override com _injetar:true mas nÃ£o vieram do Directus
+    // Injetar turmas que estão no override com _injetar:true mas não vieram do Directus
     Object.entries(salaOverrides).forEach(([chave,ov])=>{
       if(!ov._injetar)return;
       const [nome,dia]=chave.split('|');
       if(TURMAS_FIXAS.some(t=>t.nome===nome&&t.dia===dia))return;
-      TURMAS_FIXAS.push({nome,dia,sala:ov.sala||'Sala 2',pl:ov.pl||'â€”',
-        unidade:ov.unidade||'Freguesia do Ã“',jovens:ov.jovens_override||0,
+      TURMAS_FIXAS.push({nome,dia,sala:ov.sala||'Sala 2',pl:ov.pl||'—',
+        unidade:ov.unidade||'Freguesia do Ó',jovens:ov.jovens_override||0,
         entrada:ov.entrada||null,empresas:[],status:'ativa',_injetada:true});
     });
 
     if(statusEl){
-      const msg=`âœ“ Backoffice: ${adicionadas} turmas ativas carregadas`;
+      const msg=`✓ Backoffice: ${adicionadas} turmas ativas carregadas`;
       statusEl.textContent=msg;statusEl.style.color='#0a7a60';
       setTimeout(()=>{if(statusEl)statusEl.textContent='';},5000);
     }
     renderGrade();renderGradeMini();renderGradeMiniHib();renderEmpresas();renderEmpresasHibrido();renderHibrido();
   }catch(e){
-    console.warn('Directus indisponÃ­vel:',e.message,e);
-    if(statusEl){statusEl.textContent='âš  Backoffice indisponÃ­vel: '+e.message;statusEl.style.color='#856404';}
+    console.warn('Directus indisponível:',e.message,e);
+    if(statusEl){statusEl.textContent='⚠ Backoffice indisponível: '+e.message;statusEl.style.color='#856404';}
   }
 }
 
-// â”€â”€ INIT â”€â”€
+// ── INIT ──
 renderGrade();
 renderGradeMini();
 renderGradeMiniHib();
 renderEmpresas();
 renderEmpresasHibrido();
 renderHibrido();
-// Restaurar autenticaÃ§Ã£o da sessÃ£o
+// Restaurar autenticação da sessão
 if(sessionStorage.getItem('aleapyo_auth')==='1')_autenticado=true;
 // Carregar estado (entradas) + overrides do GitHub, depois sincronizar com Directus
 Promise.all([loadEstado(), loadOverrides()]).then(()=>{
@@ -2016,10 +2016,10 @@ function limparEntradasPassadas(){
   const hoje=new Date().toISOString().slice(0,10);
   const passadas=entradas.filter(e=>e.data<=hoje);
   if(!passadas.length)return;
-  // PrÃ³xima entrada (primeira com data > hoje)
+  // Próxima entrada (primeira com data > hoje)
   const proxima=entradas.filter(e=>e.data>hoje).sort((a,b)=>a.data.localeCompare(b.data))[0];
   passadas.forEach(entrada=>{
-    // Migrar empresas em aberto para a prÃ³xima entrada (sem alocaÃ§Ã£o)
+    // Migrar empresas em aberto para a próxima entrada (sem alocação)
     if(proxima){
       entrada.empresas.filter(e=>e.status==='Em aberto').forEach(e=>{
         proxima.empresas.push({
@@ -2033,7 +2033,7 @@ function limparEntradasPassadas(){
     const idx=entradas.indexOf(entrada);
     if(idx>=0)entradas.splice(idx,1);
   });
-  // Mesma limpeza para as entradas hÃ­bridas
+  // Mesma limpeza para as entradas híbridas
   const passadasHib=entradasHibrido.filter(e=>e.data<=hoje);
   if(passadasHib.length){
     const proximaHib=entradasHibrido.filter(e=>e.data>hoje).sort((a,b)=>a.data.localeCompare(b.data))[0];
@@ -2050,9 +2050,9 @@ function limparEntradasPassadas(){
   if(passadas.length>0||passadasHib.length>0)saveEstado();
 }
 
-// â”€â”€ MUDANÃ‡A DE TURMA â”€â”€
-const MODULO_TEMA_MT={5:"Marketing",6:"Empreendedor 1 a 1",7:"Projeto de vida",8:"LÃ³gica de programaÃ§Ã£o",10:"Privacidade de Dados",11:"Planejamento de carreira",15:"IA e o impacto no mercado do trabalho",17:"Direito trabalhistas + Lei do Jovem aprendiz",21:"Relacionamentos interpessoais",24:"FinanÃ§as corporativas",25:"Ã‰tica",31:"InovaÃ§Ã£o no dia a dia do trabalho",32:"Planejamento de um negÃ³cio",33:"SaÃºde no trabalho",34:"RaciocÃ­nio analÃ­tico",36:"GestÃ£o de tempo e produtividade",38:"IntroduÃ§Ã£o a estatÃ­stica",40:"Planejamento financeiro",50:"Fundamentos e base de estatÃ­sticas",58:"Feedback assertivo",94:"MÃ©todos Ãgeis",97:"ConstruÃ§Ã£o de hÃ¡bitos",98:"Aprendendo a aprender",101:"Pensamento sistÃªmico",251:"NegociaÃ§Ã£o e comunicaÃ§Ã£o empresarial",310:"GestÃ£o emocional",311:"Protagonismo e autolideranÃ§a",312:"AnÃ¡lise de Dados com SQL - Parte 1/4",313:"VisualizaÃ§Ã£o de dados - Parte 1/4",314:"AnÃ¡lise de Dados com SQL - Parte 2/4",315:"VisualizaÃ§Ã£o de dados - Parte 2/4",316:"AnÃ¡lise de Dados com SQL - Parte 3/4",317:"AnÃ¡lise de Dados com SQL - Parte 4/4",318:"VisualizaÃ§Ã£o de dados - Parte 3/4",319:"Projeto Empreendedor - Entrega 1",320:"Projeto Empreendedor - Entrega 2",321:"Projeto Empreendedor - Entrega 3 - Parte 1",322:"Projeto Empreendedor - Entrega 4 - Parte 1",323:"Projeto Empreendedor - Entrega 5",325:"VisualizaÃ§Ã£o de dados - Parte 4/4",328:"Recursos Humanos",329:"Google Sheets - Parte 1",330:"Excel - Parte 1",331:"Google Sheets - Parte 2",332:"Excel - Parte 2",333:"Google Sheets - Parte 3",334:"Google Sheets - Parte 4",335:"Excel - Parte 3",336:"Excel - Parte 4",337:"Diversidade, equidade e inclusÃ£o",341:"GestÃ£o de Projetos"};
-function nomeModuloMT(id){ return (NOMES_MODULO_MT_LIVE[id]) || MODULO_TEMA_MT[id] || ('MÃ³dulo '+id); }
+// ── MUDANÇA DE TURMA ──
+const MODULO_TEMA_MT={5:"Marketing",6:"Empreendedor 1 a 1",7:"Projeto de vida",8:"Lógica de programação",10:"Privacidade de Dados",11:"Planejamento de carreira",15:"IA e o impacto no mercado do trabalho",17:"Direito trabalhistas + Lei do Jovem aprendiz",21:"Relacionamentos interpessoais",24:"Finanças corporativas",25:"Ética",31:"Inovação no dia a dia do trabalho",32:"Planejamento de um negócio",33:"Saúde no trabalho",34:"Raciocínio analítico",36:"Gestão de tempo e produtividade",38:"Introdução a estatística",40:"Planejamento financeiro",50:"Fundamentos e base de estatísticas",58:"Feedback assertivo",94:"Métodos Ágeis",97:"Construção de hábitos",98:"Aprendendo a aprender",101:"Pensamento sistêmico",251:"Negociação e comunicação empresarial",310:"Gestão emocional",311:"Protagonismo e autoliderança",312:"Análise de Dados com SQL - Parte 1/4",313:"Visualização de dados - Parte 1/4",314:"Análise de Dados com SQL - Parte 2/4",315:"Visualização de dados - Parte 2/4",316:"Análise de Dados com SQL - Parte 3/4",317:"Análise de Dados com SQL - Parte 4/4",318:"Visualização de dados - Parte 3/4",319:"Projeto Empreendedor - Entrega 1",320:"Projeto Empreendedor - Entrega 2",321:"Projeto Empreendedor - Entrega 3 - Parte 1",322:"Projeto Empreendedor - Entrega 4 - Parte 1",323:"Projeto Empreendedor - Entrega 5",325:"Visualização de dados - Parte 4/4",328:"Recursos Humanos",329:"Google Sheets - Parte 1",330:"Excel - Parte 1",331:"Google Sheets - Parte 2",332:"Excel - Parte 2",333:"Google Sheets - Parte 3",334:"Google Sheets - Parte 4",335:"Excel - Parte 3",336:"Excel - Parte 4",337:"Diversidade, equidade e inclusão",341:"Gestão de Projetos"};
+function nomeModuloMT(id){ return (NOMES_MODULO_MT_LIVE[id]) || MODULO_TEMA_MT[id] || ('Módulo '+id); }
 let NOMES_MODULO_MT_LIVE = {};
 let _mtCandidatosBusca = [];
 let _mtJovemAtual = null;
@@ -2086,13 +2086,13 @@ async function _mtCarregarNomesModulos(ids){
 async function buscarJovemMT(){
   const el = document.getElementById('mt-resultado');
   const q = (document.getElementById('mt-busca').value||'').trim();
-  if(!q){ alert('Informe o ID da matrÃ­cula ou o nome do jovem.'); return; }
+  if(!q){ alert('Informe o ID da matrícula ou o nome do jovem.'); return; }
   el.innerHTML = '<div style="color:var(--mu);font-size:13px;padding:8px 0">Buscando...</div>';
   const TOKEN = await obterTokenDirectus();
   if(!TOKEN){ el.innerHTML = '<div class="alerta err">Sem token do backoffice.</div>'; return; }
   try{
     let lista = [];
-    const camposComuns = 'id,Name,turma_id,empresa_id.account.name,empresa_id.Empresa,cohort_entrada,Modulos,arco_id,Status_formacao,user.first_name,user.last_name,InÃ­cio de contrato,Fim de contrato';
+    const camposComuns = 'id,Name,turma_id,empresa_id.account.name,empresa_id.Empresa,cohort_entrada,Modulos,arco_id,Status_formacao,user.first_name,user.last_name,Início de contrato,Fim de contrato';
     if(/^\d+$/.test(q)){
       const params = new URLSearchParams();
       params.set('filter[id][_eq]', q);
@@ -2113,7 +2113,7 @@ async function buscarJovemMT(){
     if(lista.length>1){
       el.innerHTML = '<div style="font-size:13px;font-weight:600;color:var(--mu);margin-bottom:8px">Mais de um resultado, selecione:</div>' + lista.map((c,i)=>{
         const nomeC = (c.user && c.user[0]) ? `${c.user[0].first_name||''} ${c.user[0].last_name||''}`.trim() : (c.Name||'(sem nome)');
-        return `<div style="padding:8px;border:1px solid var(--br);border-radius:8px;margin-bottom:6px;cursor:pointer" onclick="selecionarJovemMT(${i})"><b>${nomeC}</b> â€” matrÃ­cula ${c.id}</div>`;
+        return `<div style="padding:8px;border:1px solid var(--br);border-radius:8px;margin-bottom:6px;cursor:pointer" onclick="selecionarJovemMT(${i})"><b>${nomeC}</b> — matrícula ${c.id}</div>`;
       }).join('');
       return;
     }
@@ -2158,7 +2158,7 @@ async function cronogramaTurmaMT(turmaId){
     const TOKEN = await obterTokenDirectus();
     const params = new URLSearchParams();
     params.set('filter[cronograma_id][turma_id][_eq]', turmaId);
-    params.set('fields','cronograma_id.modulo_id,cronograma_id.Data de inÃ­cio,cronograma_id.Data de encerramento,cronograma_id.tipo');
+    params.set('fields','cronograma_id.modulo_id,cronograma_id.Data de início,cronograma_id.Data de encerramento,cronograma_id.tipo');
     params.set('limit','-1');
     const r = await fetch(`${DIRECTUS_URL}/items/Matriculas?${params.toString()}`, {headers:{Authorization:`Bearer ${TOKEN}`}});
     const j = await r.json();
@@ -2167,7 +2167,7 @@ async function cronogramaTurmaMT(turmaId){
       const c = m.cronograma_id;
       if(!c || c.tipo!=='modulo' || !c.modulo_id) return;
       const fim = c['Data de encerramento'] ? new Date(c['Data de encerramento']) : null;
-      const inicio = c['Data de inÃ­cio'] ? new Date(c['Data de inÃ­cio']) : null;
+      const inicio = c['Data de início'] ? new Date(c['Data de início']) : null;
       if(!map[c.modulo_id] || (fim && (!map[c.modulo_id].fim || fim>map[c.modulo_id].fim))){ map[c.modulo_id]={inicio,fim}; }
     });
     return map;
@@ -2189,7 +2189,7 @@ async function _mtJovensNaTurma(turmaId){
 }
 
 function capacidadeTurmaMT(nomeTurma){
-  // Usa TURMAS_FIXAS (populado no sync) para achar sala/unidade/capacidade real, igual Ã  Grade de Salas.
+  // Usa TURMAS_FIXAS (populado no sync) para achar sala/unidade/capacidade real, igual à Grade de Salas.
   const grupo=TURMAS_FIXAS.filter(t=>t.nome==='Turma '+nomeTurma);
   if(TURMAS_SEM_SALA.includes('Turma '+nomeTurma)){
     return {semSalaFisica:true,jovens:grupo.reduce((s,t)=>s+(t.jovens||0),0),capacidade:null,livre:null,sala:null,unidade:null};
@@ -2197,9 +2197,9 @@ function capacidadeTurmaMT(nomeTurma){
   if(!grupo.length)return {semSalaFisica:false,jovens:null,capacidade:null,livre:null,sala:null,unidade:null,semDados:true};
   let melhor=null;
   grupo.forEach(t=>{
-    const cap=(unidades.find(u=>u.nome===(t.unidade||'Freguesia do Ã“'))||{capacidade:32}).capacidade;
+    const cap=(unidades.find(u=>u.nome===(t.unidade||'Freguesia do Ó'))||{capacidade:32}).capacidade;
     const livre=cap-(t.jovens||0);
-    if(!melhor||livre>melhor.livre)melhor={sala:t.sala,unidade:t.unidade||'Freguesia do Ã“',capacidade:cap,jovens:t.jovens||0,livre};
+    if(!melhor||livre>melhor.livre)melhor={sala:t.sala,unidade:t.unidade||'Freguesia do Ó',capacidade:cap,jovens:t.jovens||0,livre};
   });
   return Object.assign({semSalaFisica:false},melhor);
 }
@@ -2213,12 +2213,12 @@ function abrirModalMT(nomeTurma){
   const curr = _mtCurriculoJovemAtual || new Set();
   const mods = Array.from(curr).sort((a,b)=>a-b);
   const tEl = document.getElementById('modal-mt-titulo');
-  if(tEl) tEl.textContent = `De-para de cronogramas â€” turma atual vs. ${nomeTurma}`;
-  let b = '<table style="width:100%;border-collapse:collapse;font-size:12px"><tr style="text-align:left;color:var(--mu)"><th style="padding:4px">MÃ³dulo</th><th style="padding:4px">Turma atual</th><th style="padding:4px">'+nomeTurma+'</th></tr>';
+  if(tEl) tEl.textContent = `De-para de cronogramas — turma atual vs. ${nomeTurma}`;
+  let b = '<table style="width:100%;border-collapse:collapse;font-size:12px"><tr style="text-align:left;color:var(--mu)"><th style="padding:4px">Módulo</th><th style="padding:4px">Turma atual</th><th style="padding:4px">'+nomeTurma+'</th></tr>';
   mods.forEach(m=>{
     const o = origem[m]; const d = destino[m];
-    const oTxt = (o && o.inicio) ? _mtFmtData(o.inicio)+' â€“ '+(o.fim?_mtFmtData(o.fim):'?') : 'â€”';
-    const dTxt = (d && d.inicio) ? _mtFmtData(d.inicio)+' â€“ '+(d.fim?_mtFmtData(d.fim):'?') : 'â€”';
+    const oTxt = (o && o.inicio) ? _mtFmtData(o.inicio)+' – '+(o.fim?_mtFmtData(o.fim):'?') : '—';
+    const dTxt = (d && d.inicio) ? _mtFmtData(d.inicio)+' – '+(d.fim?_mtFmtData(d.fim):'?') : '—';
     b += `<tr style="border-top:1px solid var(--br)"><td style="padding:4px">${nomeModuloMT(m)}</td><td style="padding:4px">${oTxt}</td><td style="padding:4px">${dTxt}</td></tr>`;
   });
   b += '</table>';
@@ -2237,13 +2237,13 @@ async function analisarCenariosMT(){
     if(!TURMAS_FIXAS.length) await carregarDoDirectus();
     const todasTurmas = await turmasAtivasMT();
     const turmaAtualInfo = todasTurmas.find(t=>String(t.id)===String(j.turma_id));
-    if(!turmaAtualInfo){ el.innerHTML = `<div class="alerta err">NÃ£o encontrei a turma atual desse jovem no backoffice (turma_id ${j.turma_id}). Verifique se a turma ainda estÃ¡ ativa.</div>`; return; }
+    if(!turmaAtualInfo){ el.innerHTML = `<div class="alerta err">Não encontrei a turma atual desse jovem no backoffice (turma_id ${j.turma_id}). Verifique se a turma ainda está ativa.</div>`; return; }
     const nomeAtual = normNomeTurma(turmaAtualInfo.Name);
     const diaAtual = turmaAtualInfo.dia_de_curso;
     const capAtual = capacidadeTurmaMT(nomeAtual);
     const nomeCompleto = (j.user && j.user[0]) ? `${j.user[0].first_name||''} ${j.user[0].last_name||''}`.trim() : (j.Name || null);
     if(capAtual.semSalaFisica){
-      el.innerHTML = `<div style="margin-bottom:12px"><b>${nomeCompleto||'(sem nome)'}</b><div style="font-size:12px;color:var(--mu)">matrÃ­cula ${j.id}</div></div><div class="alerta">Essa jovem estÃ¡ no Ecossistema Plus â€” mudanÃ§a de turma nÃ£o se aplica a turmas do Ecossistema Plus.</div>`;
+      el.innerHTML = `<div style="margin-bottom:12px"><b>${nomeCompleto||'(sem nome)'}</b><div style="font-size:12px;color:var(--mu)">matrícula ${j.id}</div></div><div class="alerta">Essa jovem está no Ecossistema Plus — mudança de turma não se aplica a turmas do Ecossistema Plus.</div>`;
       return;
     }
     const unidadeAtual = capAtual.unidade;
@@ -2291,8 +2291,8 @@ async function analisarCenariosMT(){
       if(String(t.id)===String(turmaAtualInfo.id)) continue;
       const nome = normNomeTurma(t.Name);
       const cap = capacidadeTurmaMT(nome);
-      if(cap.semSalaFisica){ excluidas.push({nome, dia:t.dia_de_curso, motivo:'Ecossistema Plus nÃ£o participa de MudanÃ§a de Turma'}); continue; }
-      if(!cap.unidade || cap.unidade!==unidadeAtual){ excluidas.push({nome, dia:t.dia_de_curso, motivo:`Unidade diferente (${cap.unidade||'sem dados'}) â€” a troca sÃ³ pode acontecer dentro da mesma unidade`}); continue; }
+      if(cap.semSalaFisica){ excluidas.push({nome, dia:t.dia_de_curso, motivo:'Ecossistema Plus não participa de Mudança de Turma'}); continue; }
+      if(!cap.unidade || cap.unidade!==unidadeAtual){ excluidas.push({nome, dia:t.dia_de_curso, motivo:`Unidade diferente (${cap.unidade||'sem dados'}) — a troca só pode acontecer dentro da mesma unidade`}); continue; }
       if(t.dia_de_curso===diaAtual){ excluidas.push({nome, dia:t.dia_de_curso, motivo:'Mesmo dia de curso da turma atual'}); continue; }
       candidatas.push(t);
     }
@@ -2308,7 +2308,7 @@ async function analisarCenariosMT(){
       const info319 = cronoMap[MT_MODULO_PROJETO_FINAL];
       const inicio319 = info319 ? _mtSoData(info319.inicio) : null;
       if(jovemJaComecou319 || (inicio319 && inicio319<=hoje)){
-        excluidas.push({nome, dia:t.dia_de_curso, motivo:'MÃ³dulo de Projeto Empreendedor - Entrega 1 - Parte 1 (319) jÃ¡ foi iniciado pela jovem ou pela turma destino'});
+        excluidas.push({nome, dia:t.dia_de_curso, motivo:'Módulo de Projeto Empreendedor - Entrega 1 - Parte 1 (319) já foi iniciado pela jovem ou pela turma destino'});
         continue;
       }
 
@@ -2340,7 +2340,7 @@ async function analisarCenariosMT(){
         }
       }
       if(bloqueadoTecnico){
-        excluidas.push({nome, dia:t.dia_de_curso, motivo:`Turma jÃ¡ cobriu o mÃ³dulo tÃ©cnico "${nomeModuloMT(bloqueadoTecnico.modulo)}" antes da jovem, fora de uma janela de catch-up em andamento`});
+        excluidas.push({nome, dia:t.dia_de_curso, motivo:`Turma já cobriu o módulo técnico "${nomeModuloMT(bloqueadoTecnico.modulo)}" antes da jovem, fora de uma janela de catch-up em andamento`});
         continue;
       }
 
@@ -2367,25 +2367,25 @@ async function analisarCenariosMT(){
         hDiasPref = semOpcaoNoDia.map(d=>{
           const turmasNoDia = todasTurmas.filter(t=>t.dia_de_curso===d && String(t.id)!==String(turmaAtualInfo.id));
           if(!turmasNoDia.length){
-            return `<div class="alerta-warn">NÃ£o hÃ¡ nenhuma turma cadastrada Ã s <b>${d}</b>.</div>`;
+            return `<div class="alerta-warn">Não há nenhuma turma cadastrada às <b>${d}</b>.</div>`;
           }
           const motivosNoDia = excluidas.filter(e=>e.dia===d);
           if(!motivosNoDia.length){
-            return `<div class="alerta-warn">NÃ£o encontrei um motivo especÃ­fico de exclusÃ£o para turmas de <b>${d}</b>, mas nenhuma passou nos filtros de unidade/regras.</div>`;
+            return `<div class="alerta-warn">Não encontrei um motivo específico de exclusão para turmas de <b>${d}</b>, mas nenhuma passou nos filtros de unidade/regras.</div>`;
           }
           const lista = motivosNoDia.map(e=>`<div style="margin:2px 0"><b>${e.nome}</b>: ${e.motivo}</div>`).join('');
-          return `<div class="alerta-warn"><b>${d}</b> nÃ£o tem opÃ§Ã£o viÃ¡vel hoje:${lista}</div>`;
+          return `<div class="alerta-warn"><b>${d}</b> não tem opção viável hoje:${lista}</div>`;
         }).join('');
       }
     }
 
     let h = '';
-    h += `<div style="margin-bottom:14px"><b style="font-size:16px">${nomeCompleto||'(sem nome)'}</b><div style="font-size:12px;color:var(--mu);margin-top:2px">matrÃ­cula ${j.id} Â· turma atual <b>${nomeAtual}</b> (${diaAtual}) Â· inÃ­cio ${_mtFmtData(turmaAtualInfo.data_de_inicio)} Â· tÃ©rmino ${_mtFmtData(turmaAtualInfo.data_de_termino)} Â· ${modulosConcluidosCount} mÃ³dulo(s) concluÃ­do(s)</div></div>`;
+    h += `<div style="margin-bottom:14px"><b style="font-size:16px">${nomeCompleto||'(sem nome)'}</b><div style="font-size:12px;color:var(--mu);margin-top:2px">matrícula ${j.id} · turma atual <b>${nomeAtual}</b> (${diaAtual}) · início ${_mtFmtData(turmaAtualInfo.data_de_inicio)} · término ${_mtFmtData(turmaAtualInfo.data_de_termino)} · ${modulosConcluidosCount} módulo(s) concluído(s)</div></div>`;
 
     h += hDiasPref;
 
     if(!cenarios.length){
-      h += `<div class="alerta err">Nenhuma turma compatÃ­vel encontrada â€” todas as opÃ§Ãµes na mesma unidade, em outro dia, esbarraram em bloqueio de mÃ³dulo tÃ©cnico, no mÃ³dulo de projeto final, ou nÃ£o hÃ¡ turma disponÃ­vel.</div>`;
+      h += `<div class="alerta err">Nenhuma turma compatível encontrada — todas as opções na mesma unidade, em outro dia, esbarraram em bloqueio de módulo técnico, no módulo de projeto final, ou não há turma disponível.</div>`;
     } else {
       const ordenados = diasPref.length ? [...cenarios].sort((a,b)=>{
         const ap = diasPref.includes(a.dia) ? 0 : 1;
@@ -2394,30 +2394,30 @@ async function analisarCenariosMT(){
       }) : cenarios;
       const top = ordenados[0];
       const podeJa = top.melhorDia<=hoje;
-      h += `<div style="background:#e8fff9;border:1px solid #10b98155;border-radius:var(--r);padding:12px 14px;margin-bottom:14px"><b>âœ… MudanÃ§a de turma Ã© possÃ­vel.</b><br>RecomendaÃ§Ã£o: <b>${top.nome}</b> (${top.dia}) â€” ${top.diferenca===0?'nenhum mÃ³dulo perdido ou repetido':`${top.naoVistoCount} mÃ³dulo(s) nÃ£o visto(s) pela jovem, ${top.jaVistoCount} mÃ³dulo(s) jÃ¡ visto(s) pela jovem`}. ${podeJa?'Pode mudar a partir de hoje.':`Melhor data para a troca: ${_mtFmtData(top.melhorDia)}.`}</div>`;
+      h += `<div style="background:#e8fff9;border:1px solid #10b98155;border-radius:var(--r);padding:12px 14px;margin-bottom:14px"><b>✅ Mudança de turma é possível.</b><br>Recomendação: <b>${top.nome}</b> (${top.dia}) — ${top.diferenca===0?'nenhum módulo perdido ou repetido':`${top.naoVistoCount} módulo(s) não visto(s) pela jovem, ${top.jaVistoCount} módulo(s) já visto(s) pela jovem`}. ${podeJa?'Pode mudar a partir de hoje.':`Melhor data para a troca: ${_mtFmtData(top.melhorDia)}.`}</div>`;
 
-      h += '<div style="font-size:12px;color:var(--mu);margin-bottom:8px">Outros cenÃ¡rios, do mais pro menos compatÃ­vel:</div>';
+      h += '<div style="font-size:12px;color:var(--mu);margin-bottom:8px">Outros cenários, do mais pro menos compatível:</div>';
 
       ordenados.forEach(c=>{
         const corBorda = c.diferenca===0 ? '#10b98155' : '#fcd34d55';
         const bgTop = c.diferenca===0 ? '#e8fff9' : '#fffbeb';
         let vagaLabel;
-        if(c.temVaga===true){ vagaLabel = `${c.cap.livre} livre(s) em ${c.cap.sala} Â· ${c.cap.unidade}`; }
-        else if(c.temVaga===null){ vagaLabel = 'Sem dados de sala sincronizados para esta turma â€” sincronize a Grade de Salas'; }
-        else { vagaLabel = `Sem vaga (${c.cap.jovens}/${c.cap.capacidade} j) em ${c.cap.sala} Â· ${c.cap.unidade}`; }
+        if(c.temVaga===true){ vagaLabel = `${c.cap.livre} livre(s) em ${c.cap.sala} · ${c.cap.unidade}`; }
+        else if(c.temVaga===null){ vagaLabel = 'Sem dados de sala sincronizados para esta turma — sincronize a Grade de Salas'; }
+        else { vagaLabel = `Sem vaga (${c.cap.jovens}/${c.cap.capacidade} j) em ${c.cap.sala} · ${c.cap.unidade}`; }
         const melhorDiaTxt = c.melhorDia<=hoje ? 'hoje' : _mtFmtData(c.melhorDia);
         const nomeEscapado = String(c.nome).replace(/'/g,"\\'");
 
         h += `<div style="background:${bgTop};border:1px solid ${corBorda};border-radius:var(--r);padding:12px 14px;margin-bottom:10px">`;
         h += `<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><div><b style="font-size:14px">${c.nome}</b><span style="font-size:12px;color:var(--mu);text-transform:capitalize;margin-left:8px">${c.dia}</span></div><span style="font-size:12px;font-weight:600">${vagaLabel}</span></div>`;
-        h += `<div style="margin-top:4px;font-size:12px;color:var(--mu)">Turma: inÃ­cio ${_mtFmtData(c.dataInicio)} Â· tÃ©rmino ${_mtFmtData(c.dataFim)} Â· ${c.jovensNaTurma===null?'â€”':c.jovensNaTurma} jovem(ns) atualmente na turma Â· melhor data para a troca: <b>${melhorDiaTxt}</b></div>`;
-        h += c.naoVistoCount ? `<div style="margin-top:10px"><div style="font-size:12px;font-weight:600;color:#92400e;margin-bottom:4px">MÃ³dulo(s) nÃ£o visto(s) pela jovem que vai mudar de turma (${c.naoVistoCount}) â€” a turma jÃ¡ deu, ela precisa repor:</div><div>${c.naoVistoDetalhe.map(x=>`<span style="font-size:11px;background:#fffbeb;color:#92400e;border:1px solid #fcd34d55;border-radius:6px;padding:2px 6px;margin:0 4px 4px 0;display:inline-block">${nomeModuloMT(x.modulo)}</span>`).join('')}</div></div>` : '<div style="margin-top:10px;font-size:12px;color:#0a7a60">Nenhum mÃ³dulo nÃ£o visto â€” cronogramas totalmente compatÃ­veis nesse quesito.</div>';
+        h += `<div style="margin-top:4px;font-size:12px;color:var(--mu)">Turma: início ${_mtFmtData(c.dataInicio)} · término ${_mtFmtData(c.dataFim)} · ${c.jovensNaTurma===null?'—':c.jovensNaTurma} jovem(ns) atualmente na turma · melhor data para a troca: <b>${melhorDiaTxt}</b></div>`;
+        h += c.naoVistoCount ? `<div style="margin-top:10px"><div style="font-size:12px;font-weight:600;color:#92400e;margin-bottom:4px">Módulo(s) não visto(s) pela jovem que vai mudar de turma (${c.naoVistoCount}) — a turma já deu, ela precisa repor:</div><div>${c.naoVistoDetalhe.map(x=>`<span style="font-size:11px;background:#fffbeb;color:#92400e;border:1px solid #fcd34d55;border-radius:6px;padding:2px 6px;margin:0 4px 4px 0;display:inline-block">${nomeModuloMT(x.modulo)}</span>`).join('')}</div></div>` : '<div style="margin-top:10px;font-size:12px;color:#0a7a60">Nenhum módulo não visto — cronogramas totalmente compatíveis nesse quesito.</div>';
 
-        h += c.jaVistoCount ? `<div style="margin-top:10px"><div style="font-size:12px;font-weight:600;color:#92400e;margin-bottom:4px">MÃ³dulo(s) jÃ¡ visto(s) pela jovem que vai mudar de turma (${c.jaVistoCount}) â€” a turma ainda vai dar, enquanto o contrato estaria ativo:</div><div>${c.jaVistoDetalhe.map(x=>`<span style="font-size:11px;background:#fef2f2;color:#991b1b;border:1px solid #fca5a555;border-radius:6px;padding:2px 6px;margin:0 4px 4px 0;display:inline-block">${nomeModuloMT(x.modulo)} (${_mtFmtData(x.data)})</span>`).join('')}</div></div>` : '';
+        h += c.jaVistoCount ? `<div style="margin-top:10px"><div style="font-size:12px;font-weight:600;color:#92400e;margin-bottom:4px">Módulo(s) já visto(s) pela jovem que vai mudar de turma (${c.jaVistoCount}) — a turma ainda vai dar, enquanto o contrato estaria ativo:</div><div>${c.jaVistoDetalhe.map(x=>`<span style="font-size:11px;background:#fef2f2;color:#991b1b;border:1px solid #fca5a555;border-radius:6px;padding:2px 6px;margin:0 4px 4px 0;display:inline-block">${nomeModuloMT(x.modulo)} (${_mtFmtData(x.data)})</span>`).join('')}</div></div>` : '';
 
-        h += (c.proximasAulas && c.proximasAulas.length) ? `<div style="margin-top:10px"><div style="font-size:12px;font-weight:600;color:var(--mu);margin-bottom:4px">ðŸ“… Linha do tempo â€” prÃ³ximas aulas na turma destino:</div><div style="border-left:2px solid var(--br);padding-left:10px">${c.proximasAulas.map(a=>`<div style="font-size:12px;margin-bottom:4px"><b>${a.fim?_mtFmtData(a.fim):'sem data'}</b> â€” ${nomeModuloMT(a.modulo)}</div>`).join('')}</div></div>` : '';
+        h += (c.proximasAulas && c.proximasAulas.length) ? `<div style="margin-top:10px"><div style="font-size:12px;font-weight:600;color:var(--mu);margin-bottom:4px">📅 Linha do tempo — próximas aulas na turma destino:</div><div style="border-left:2px solid var(--br);padding-left:10px">${c.proximasAulas.map(a=>`<div style="font-size:12px;margin-bottom:4px"><b>${a.fim?_mtFmtData(a.fim):'sem data'}</b> — ${nomeModuloMT(a.modulo)}</div>`).join('')}</div></div>` : '';
 
-        h += `<div style="margin-top:10px"><button onclick="abrirModalMT('${nomeEscapado}')" style="background:none;border:1px solid var(--br);border-radius:var(--rs);padding:4px 10px;font-size:11px;cursor:pointer;color:var(--blue)">ðŸ” Ver de-para de cronogramas</button></div>`;
+        h += `<div style="margin-top:10px"><button onclick="abrirModalMT('${nomeEscapado}')" style="background:none;border:1px solid var(--br);border-radius:var(--rs);padding:4px 10px;font-size:11px;cursor:pointer;color:var(--blue)">🔍 Ver de-para de cronogramas</button></div>`;
 
         h += '</div>';
       });
@@ -2425,7 +2425,7 @@ async function analisarCenariosMT(){
 
     el.innerHTML = h;
   }catch(e){
-    el.innerHTML = `<div class="alerta err">Erro ao analisar cenÃ¡rios: ${e.message}</div>`;
+    el.innerHTML = `<div class="alerta err">Erro ao analisar cenários: ${e.message}</div>`;
   }
 }
 </script>
