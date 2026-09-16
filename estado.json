@@ -257,6 +257,18 @@
           "unidade": null,
           "pl": null,
           "modalidade": null
+        },
+        {
+          "id": "emp1789581649109",
+          "nome": "Nova empresa",
+          "jovens": 1,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null,
+          "pl": null,
+          "modalidade": null
         }
       ]
     }
