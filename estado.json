@@ -298,6 +298,24 @@
           "modalidade": null
         }
       ]
+    },
+    {
+      "id": "e1789598465547",
+      "data": "2026-11-03",
+      "empresas": [
+        {
+          "id": "emp1789598465547f9y256hufww",
+          "nome": "teste",
+          "jovens": 60,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null,
+          "pl": null,
+          "modalidade": null
+        }
+      ]
     }
   ],
   "pls": [
