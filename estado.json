@@ -243,12 +243,12 @@
           "nome": "Nubank",
           "jovens": 4,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null,
-          "pl": null,
-          "modalidade": null
+          "turma": "H1",
+          "dia": "segunda",
+          "sala": "Sala Híbrido",
+          "unidade": "Polo Liberdade",
+          "pl": "Guilherme",
+          "modalidade": "hibrida"
         }
       ]
     }
