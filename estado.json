@@ -251,12 +251,15 @@
           "nome": "Teste",
           "jovens": 50,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null,
+          "turma": "H2",
+          "dia": "segunda",
+          "sala": "Sala Híbrido",
+          "unidade": "Polo Liberdade",
           "pl": null,
-          "modalidade": null
+          "modalidade": "hibrida",
+          "plInicio": null,
+          "plOnline": null,
+          "plFim": null
         },
         {
           "id": "emp1789581649109",
