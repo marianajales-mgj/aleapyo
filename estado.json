@@ -233,6 +233,26 @@
       ]
     }
   ],
+  "entradasHibrido": [
+    {
+      "id": "e1789569136797",
+      "data": "2026-10-05",
+      "empresas": [
+        {
+          "id": "emp17895691367971igudh99rgc",
+          "nome": "Nubank",
+          "jovens": 4,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null,
+          "pl": null,
+          "modalidade": null
+        }
+      ]
+    }
+  ],
   "pls": [
     {
       "nome": "Marialice",
