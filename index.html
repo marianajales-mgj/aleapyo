@@ -1730,12 +1730,11 @@ function buildGanttHibrido(){
     const cor=corPL(t.pl);
     const isSim=t.status==='simulada';
     const salaT=t.sala||SALA_HIBRIDO.nome;
-    labels+=`<div style="height:${ALTURA_LINHA}px;display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--br);padding-right:8px;overflow:hidden">
-      <span style="width:11px;height:11px;border-radius:3px;flex-shrink:0;background:${isSim?'transparent':cor.bg};border:${isSim?`1.5px dashed ${cor.border}`:`1px solid ${cor.border}`}"></span>
-      <div style="min-width:0">
-        <div style="font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${isSim?'✦ ':''}${t.nome} <span style="color:var(--mu);font-weight:400">${t.jovens}j</span></div>
-        ${multiSala?`<div style="font-size:9px;color:var(--mu)">${salaT}</div>`:''}
+    labels+=`<div style="height:${ALTURA_LINHA}px;display:flex;flex-direction:column;justify-content:center;gap:2px;border-bottom:1px solid var(--br);padding:2px 6px 2px 0;overflow:hidden">
+      <div class="chip-turma" style="background:${cor.light};color:${cor.text};border:${isSim?`1.5px dashed ${cor.border}`:`1px solid ${cor.border}55`}" onclick="abrirDetalhe('${t.nome}','${t.dia}','${t.sala}','${t.unidade}')">
+        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><b>${isSim?'✦ ':''}${t.nome}</b></span><span style="color:${cor.border};font-weight:700;flex-shrink:0">${t.jovens}j</span>
       </div>
+      ${multiSala?`<div style="font-size:9px;color:var(--mu);padding-left:4px">${salaT}</div>`:''}
     </div>`;
     const leftIni=pos(j.inicio1),widthIni=Math.max(PX_DIA,pos(j.fim1)-leftIni+PX_DIA);
     const leftFim=pos(j.inicio2),widthFim=Math.max(PX_DIA,pos(j.fim2)-leftFim+PX_DIA);
