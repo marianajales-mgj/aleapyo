@@ -181,7 +181,7 @@ input[type=text],input[type=number],input[type=date]{height:30px;border:1px soli
 <div id="tab-hibrido" class="sec" style="display:none">
   <div style="margin-bottom:16px">
     <div style="font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Simulação — Curso Híbrido</div>
-    <div style="font-size:12px;color:var(--mu)">Sala Híbrido — Polo Liberdade, capacidade fixa de 50 jovens por janela de 10 dias corridos (início e fim de turma). No meio, 100% online.</div>
+    <div style="font-size:12px;color:var(--mu)">Sala Híbrido — Polo Liberdade, capacidade fixa de 50 jovens por janela de 10 dias de semana fixos, seg-sex (início e fim de turma; feriado no meio não estende a janela). No meio, 100% online.</div>
   </div>
   <div style="margin-bottom:18px">
     <div style="font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Cenário atual</div>
@@ -431,22 +431,38 @@ let _moverEid=null,_moverEmpid=null;
 const DURACAO_CONTRATO_MESES=15;
 const JANELA_HIBRIDO_DU=10;
 function subDU(d,n){let r=new Date(d),c=0;while(c<n){r.setDate(r.getDate()-1);if(r.getDay()!==0&&r.getDay()!==6&&!isFer(r))c++;}return r;}
-function _dataFimContrato(entradaStr){
-  if(!entradaStr)return null;
-  const d=new Date(entradaStr+'T12:00:00');
-  d.setMonth(d.getMonth()+DURACAO_CONTRATO_MESES);
-  return d;
+// Formato Híbrido (imersão Presencial, 10+10 dias): a janela é FIXA em dias de semana —
+// feriado dentro conta normalmente (não pula, não estica). Retorna o n-ésimo dia de semana
+// (seg-sex) a partir de startDate, inclusive.
+function nthWeekdayFrom(startDate,n){
+  let r=new Date(startDate),count=0;
+  while(count<n){
+    if(r.getDay()!==0&&r.getDay()!==6){count++;if(count===n)break;}
+    r.setDate(r.getDate()+1);
+  }
+  return r;
+}
+// Ajusta uma data para a segunda-feira mais próxima (antes ou depois, a mais próxima em dias).
+function _segundaMaisProxima(d){
+  const dow=d.getDay();
+  const distAntes=(dow-1+7)%7, distDepois=(8-dow)%7;
+  const r=new Date(d);
+  r.setDate(r.getDate()+(distAntes<=distDepois?-distAntes:distDepois));
+  return r;
 }
 function janelasHibrido(entradaStr){
   if(!entradaStr)return null;
-  // Janela fixa de 10 dias CORRIDOS (não úteis) — feriado/emenda dentro dela não estica a
-  // reserva da sala, senão a janela poderia encavalar com a próxima entrada (a cada ~15 dias).
+  // Imersão inicial: 10 dias de semana fixos a partir da data de início (feriado conta, não estende).
   const inicio=new Date(entradaStr+'T12:00:00');
-  const fim1=new Date(inicio);fim1.setDate(fim1.getDate()+JANELA_HIBRIDO_DU-1);
-  const fimContrato=_dataFimContrato(entradaStr);
-  if(!fimContrato)return null;
-  const inicio2=new Date(fimContrato);inicio2.setDate(inicio2.getDate()-(JANELA_HIBRIDO_DU-1));
-  return {inicio1:inicio,fim1,inicio2,fim2:fimContrato};
+  const fim1=nthWeekdayFrom(inicio,JANELA_HIBRIDO_DU);
+  // Imersão final: estima aproximadamente onde cairia (aqui, via duração padrão do contrato,
+  // já que o simulador não modela carga horária/módulos), ajusta pra segunda-feira mais próxima
+  // (pode esticar/encurtar o contrato em poucos dias — esperado), depois aplica a janela fixa
+  // de 10 dias de semana a partir dessa segunda (= 2 semanas completas, seg-sex + seg-sex).
+  const estimativaFim=new Date(inicio);estimativaFim.setMonth(estimativaFim.getMonth()+DURACAO_CONTRATO_MESES);
+  const inicio2=_segundaMaisProxima(estimativaFim);
+  const fim2=nthWeekdayFrom(inicio2,JANELA_HIBRIDO_DU);
+  return {inicio1:inicio,fim1,inicio2,fim2};
 }
 function faseHibrido(t){
   if(!t||t.modalidade!=='hibrida'||!t.entrada)return null;
@@ -490,14 +506,16 @@ function ocupacaoSala(dia,sala,unidade){
   TURMAS_FIXAS.forEach(t=>{
     if(t._sem_sala)return;
     if(t.dia===dia&&t.sala===sala&&(t.unidade||'Freguesia do Ó')===unidade){
+      if(estaOnlineHibrido(t))return; // turma híbrida em fase online: não ocupa nem aparece na Sala Híbrido
       ts.push({...t});
-      if(!estaOnlineHibrido(t))j+=t.jovens; // turma híbrida em fase online não ocupa capacidade física
+      j+=t.jovens;
     }
   });
   turmasSim.forEach(t=>{
     if(t.dia===dia&&t.sala===sala&&(t.unidade||'Freguesia do Ó')===unidade){
+      if(estaOnlineHibrido(t))return;
       ts.push({...t});
-      if(!estaOnlineHibrido(t))j+=t.jovens;
+      j+=t.jovens;
     }
   });
   const cap=unidades.find(u=>u.nome===unidade)?.capacidade||32;
@@ -520,13 +538,29 @@ function turmasSimAtivas(){
       const unidade=emp.unidade||(ehHibrida?SALA_HIBRIDO.unidade:'Freguesia do Ó');
       const sala=emp.sala||(ehHibrida?SALA_HIBRIDO.nome:melhorSala(emp.dia,unidade));
       const chave=nomeT+'|'+(emp.dia||'hibrido')+'|'+sala+'|'+unidade;
-      if(!mapa[chave]){mapa[chave]={nome:nomeT,dia:emp.dia||null,sala,unidade,entrada:entrada.data,jovens:0,empresas:[],pl:emp.pl||null,modalidade:emp.modalidade||null,status:'simulada'};}
-      // Se empresa tem PL definido, usar (primeira que tiver vence)
-      if(emp.pl&&!mapa[chave].pl)mapa[chave].pl=emp.pl;
+      if(!mapa[chave]){mapa[chave]={nome:nomeT,dia:emp.dia||null,sala,unidade,entrada:entrada.data,jovens:0,empresas:[],pl:emp.pl||null,plInicio:null,plOnline:null,plFim:null,modalidade:emp.modalidade||null,status:'simulada'};}
+      if(ehHibrida){
+        // PL por fase: início/fim da imersão presencial podem ter um PL diferente de quem
+        // acompanha a fase 100% online. Empresas antigas só com emp.pl (sem os 3 campos) caem
+        // no fallback abaixo, que usa esse valor único pras 3 fases.
+        if(emp.plInicio&&!mapa[chave].plInicio)mapa[chave].plInicio=emp.plInicio;
+        if(emp.plOnline&&!mapa[chave].plOnline)mapa[chave].plOnline=emp.plOnline;
+        if(emp.plFim&&!mapa[chave].plFim)mapa[chave].plFim=emp.plFim;
+      } else if(emp.pl&&!mapa[chave].pl){
+        mapa[chave].pl=emp.pl;
+      }
       if(emp.modalidade&&!mapa[chave].modalidade)mapa[chave].modalidade=emp.modalidade;
       mapa[chave].jovens+=emp.jovens;
       mapa[chave].empresas.push({nome:emp.nome,jovens:emp.jovens});
     });
+  });
+  // Resolve o PL efetivo das turmas híbridas de acordo com a fase atual (início/online/fim).
+  Object.values(mapa).forEach(m=>{
+    if(m.modalidade!=='hibrida')return;
+    const fallback=m.pl; // compat com empresas antigas que só tinham um único emp.pl
+    const fase=faseHibrido({modalidade:'hibrida',entrada:m.entrada});
+    const porFase=fase==='presencial-fim'?m.plFim:fase==='online'?m.plOnline:m.plInicio;
+    m.pl=porFase||fallback||null;
   });
   return Object.values(mapa);
 }
@@ -725,20 +759,31 @@ function abrirDetalhe(nomeTurma,dia,sala,unidade){
       <div style="font-size:14px;font-weight:700">${pp}</div>
     </div>
   </div>`;
-  if(t.modalidade==='hibrida'&&t.entrada){
-    const jH=janelasHibrido(t.entrada);
+  const jH=(t.modalidade==='hibrida'&&t.entrada)?janelasHibrido(t.entrada):null;
+  if(jH){
     const faseAtual=faseHibrido(t);
     const faseLabel=({'presencial-inicio':'🏫 Presencial (início de turma)','online':'💻 100% online','presencial-fim':'🏫 Presencial (fim de turma)'})[faseAtual]||'—';
     h+=`<div style="background:#fff7ed;border:1px solid #fdba7455;border-radius:var(--rs);padding:8px 10px;margin-bottom:12px;font-size:11px">
       <div style="font-weight:700;margin-bottom:4px">Curso Híbrido — fase atual: ${faseLabel}</div>
-      ${jH?`<div style="color:var(--mu)">Presencial: ${fmtDataCurta(jH.inicio1)}–${fmtDataCurta(jH.fim1)} e ${fmtDataCurta(jH.inicio2)}–${fmtDataCurta(jH.fim2)} · Online no restante</div>`:''}
+      <div style="color:var(--mu);margin-bottom:6px">Presencial: ${fmtDataCurta(jH.inicio1)}–${fmtDataCurta(jH.fim1)} e ${fmtDataCurta(jH.inicio2)}–${fmtDataCurta(jH.fim2)} · Online no restante</div>
+      <div style="display:flex;flex-direction:column;gap:2px">
+        <div><b>PL Imersão início:</b> ${t.plInicio||t.pl||'—'}${faseAtual==='presencial-inicio'?' (atual)':''}</div>
+        <div><b>PL Curso Híbrido (online):</b> ${t.plOnline||t.pl||'—'}${faseAtual==='online'?' (atual)':''}</div>
+        <div><b>PL Imersão final:</b> ${t.plFim||t.pl||'—'}${faseAtual==='presencial-fim'?' (atual)':''}</div>
+      </div>
     </div>`;
   }
-  // Data de início e fim de contrato (15 meses)
+  // Data de início e fim de contrato — turma híbrida usa o fim real da Imersão Final
+  // (ajustado pra segunda-feira, ver janelasHibrido); demais turmas usam a duração padrão.
   if(t.entrada){
     const dtInicio=fmtData(t.entrada);
-    const dtFimObj=new Date(t.entrada+'T12:00:00');
-    dtFimObj.setMonth(dtFimObj.getMonth()+15);
+    let dtFimObj;
+    if(jH){
+      dtFimObj=jH.fim2;
+    } else {
+      dtFimObj=new Date(t.entrada+'T12:00:00');
+      dtFimObj.setMonth(dtFimObj.getMonth()+15);
+    }
     const dtFim=`${String(dtFimObj.getDate()).padStart(2,'0')}/${String(dtFimObj.getMonth()+1).padStart(2,'0')}/${dtFimObj.getFullYear()}`;
     h+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
       <div style="background:#fafafa;border:1px solid var(--br);border-radius:var(--rs);padding:8px;text-align:center">
@@ -1040,7 +1085,7 @@ function renderEmpresasHibrido(){
     const aberto=entrada.empresas.filter(e=>e.status==='Em aberto').reduce((s,e)=>s+e.jovens,0);
     const adiado=entrada.empresas.filter(e=>e.status==='Adiado').reduce((s,e)=>s+e.jovens,0);
     const j=janelasHibrido(entrada.data);
-    const janelaTxt=j?`Imersão: ${fmtDataCurta(j.inicio1)}–${fmtDataCurta(j.fim1)} (10 dias corridos)`:'';
+    const janelaTxt=j?`Imersão: ${fmtDataCurta(j.inicio1)}–${fmtDataCurta(j.fim1)} (10 dias de semana fixos)`:'';
     h+=`<div class="entrada-card" id="ech-${entrada.id}">
       <div class="entrada-header" onclick="toggleEC('echb-${entrada.id}')">
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
@@ -1108,20 +1153,20 @@ function updStatusHib(eid,empid,val){
       const entradaDest=entradasHibrido.find(x=>x.data===novaData);
       if(entradaDest){
         emp.status='Em aberto';
-        emp.turma=null;emp.dia=null;emp.sala=null;emp.unidade=null;emp.pl=null;
+        emp.turma=null;emp.dia=null;emp.sala=null;emp.unidade=null;emp.pl=null;emp.plInicio=null;emp.plOnline=null;emp.plFim=null;
         e.empresas=e.empresas.filter(x=>x.id!==empid);
         entradaDest.empresas.push({...emp,id:'emp'+Date.now(),status:'Em aberto'});
         alert(`${emp.nome} movido para entrada híbrida de ${fmtData(novaData)}.`);
       } else {
         if(confirm(`Não existe entrada híbrida para ${fmtData(novaData)}. Criar nova entrada?`)){
-          const novEmp={...emp,id:'emp'+Date.now(),status:'Em aberto',turma:null,dia:null,sala:null,unidade:null,pl:null};
+          const novEmp={...emp,id:'emp'+Date.now(),status:'Em aberto',turma:null,dia:null,sala:null,unidade:null,pl:null,plInicio:null,plOnline:null,plFim:null};
           e.empresas=e.empresas.filter(x=>x.id!==empid);
           entradasHibrido.push({id:'e'+Date.now(),data:novaData,empresas:[novEmp]});
           entradasHibrido.sort((a,b)=>a.data.localeCompare(b.data));
           alert(`Entrada híbrida criada para ${fmtData(novaData)} com ${emp.nome}.`);
         } else {emp.status=antigo;}
       }
-    } else {emp.turma=null;emp.dia=null;emp.sala=null;emp.unidade=null;emp.pl=null;}
+    } else {emp.turma=null;emp.dia=null;emp.sala=null;emp.unidade=null;emp.pl=null;emp.plInicio=null;emp.plOnline=null;emp.plFim=null;}
   }
   renderEmpresasHibrido();renderGrade();renderGradeMini();renderGradeMiniHib();renderHibrido();saveEstado();
 }
@@ -1346,10 +1391,18 @@ function confirmarAlocacao(){if(bloquearSeNaoAutenticado(confirmarAlocacao))retu
   fecharModal();renderGrade();renderGradeMini();renderEmpresas();renderHibrido();saveEstado();saveSalaOverrides();
 }
 
-// Aloca uma empresa na Sala Híbrido dedicada (Polo Liberdade, cap. 50 por janela de 10 du).
-// dia/pl são só pro rastreio na Grade de Salas (qual PL está com essa turma e em que dia aparece).
-function _alocarHibrido(emp,entrada,dia,pl){
-  emp.unidade=SALA_HIBRIDO.unidade;emp.sala=SALA_HIBRIDO.nome;emp.dia=dia;emp.pl=pl;emp.modalidade='hibrida';
+// Aloca uma empresa na Sala Híbrido dedicada (Polo Liberdade, cap. 50 por janela de 10 dias de semana).
+// dia é só pro rastreio na Grade de Salas (em que dia aparece). PL agora é por fase, já que quem
+// supervisiona a Imersão Presencial (início/fim) pode ser diferente de quem acompanha o Curso
+// Híbrido na fase 100% online.
+const HIB_PL_FASES=[
+  {campo:'plInicio',id:'hib-pl-inicio',label:'PL da Imersão Presencial (início)'},
+  {campo:'plOnline',id:'hib-pl-online',label:'PL do Curso Híbrido (fase online)'},
+  {campo:'plFim',id:'hib-pl-fim',label:'PL da Imersão Presencial (final)'},
+];
+function _alocarHibrido(emp,entrada,dia,plInicio,plOnline,plFim){
+  emp.unidade=SALA_HIBRIDO.unidade;emp.sala=SALA_HIBRIDO.nome;emp.dia=dia;emp.modalidade='hibrida';
+  emp.plInicio=plInicio||null;emp.plOnline=plOnline||null;emp.plFim=plFim||null;
   // Agrupar com outra empresa da MESMA entrada já marcada como híbrida (mesma turma nova, mesmo dia)
   const companheira=entrada.empresas.find(e=>e.id!==emp.id&&e.modalidade==='hibrida'&&e.dia===dia&&e.turma);
   if(companheira){emp.turma=companheira.turma;return;}
@@ -1380,32 +1433,39 @@ function abrirAlocarHibrido(eid,empid){
   </div>`;
   h+=`<div style="background:#f0fffe;border:1px solid #35dcb255;border-radius:var(--rs);padding:10px 14px;margin-bottom:14px">
     <div style="font-size:12px;font-weight:700;margin-bottom:4px">Capacidade fixa: ${ocpH.capacidade}j</div>
-    ${jCand?`<div style="font-size:11px;color:var(--mu);margin-bottom:6px">Janela presencial desta entrada: ${fmtDataCurta(jCand.inicio1)} – ${fmtDataCurta(jCand.fim1)} (10 dias corridos)</div>`:''}
+    ${jCand?`<div style="font-size:11px;color:var(--mu);margin-bottom:2px">Imersão inicial: ${fmtDataCurta(jCand.inicio1)} – ${fmtDataCurta(jCand.fim1)}</div><div style="font-size:11px;color:var(--mu);margin-bottom:6px">Imersão final: ${fmtDataCurta(jCand.inicio2)} – ${fmtDataCurta(jCand.fim2)} (10 dias de semana fixos, ajustada pra começar numa segunda)</div>`:''}
     <div style="font-size:11px;margin-bottom:6px">${ocpH.jovens}/${ocpH.capacidade}j já reservados nessa janela${ocpH.turmas.length?' — '+ocpH.turmas.map(t=>t.nome+' ('+t.jovens+'j)').join(', '):''} · <b style="color:${excedeH?'#dc2626':'#0a7a60'}">${Math.max(0,ocpH.livre)}j livres</b></div>
     ${excedeH?`<div class="alerta-err">⚠ ${emp.jovens}j de ${emp.nome} excede a capacidade livre da Sala Híbrido nessa janela.</div>`:''}
   </div>
-  <div style="font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;margin-bottom:4px">Dia do PL responsável (é o que aparece na Grade de Salas)</div>
-  <select id="hib-dia" onchange="atualizarPLsHibridoModal()" style="width:100%;height:32px;border:1px solid var(--br);border-radius:var(--rs);font-size:12px;padding:0 8px;font-family:'Montserrat',sans-serif;margin-bottom:8px">
+  <div style="font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;margin-bottom:4px">Dia (é o que aparece na Grade de Salas)</div>
+  <select id="hib-dia" onchange="atualizarPLsHibridoModal()" style="width:100%;height:32px;border:1px solid var(--br);border-radius:var(--rs);font-size:12px;padding:0 8px;font-family:'Montserrat',sans-serif;margin-bottom:10px">
     <option value="">— selecione o dia —</option>
     ${DIAS.map(d=>`<option value="${d}" ${emp.dia===d?'selected':''}>${d.charAt(0).toUpperCase()+d.slice(1)}</option>`).join('')}
-  </select>
-  <select id="hib-pl" style="width:100%;height:32px;border:1px solid var(--br);border-radius:var(--rs);font-size:12px;padding:0 8px;font-family:'Montserrat',sans-serif;margin-bottom:14px">
-    <option value="">${emp.dia?'— PL —':'— selecione o dia primeiro —'}</option>
-  </select>
-  <button onclick="confirmarAlocarHibrido()" style="width:100%;height:38px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:12px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif">✓ Confirmar alocação híbrida</button>`;
+  </select>`;
+  HIB_PL_FASES.forEach(f=>{
+    h+=`<div style="font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;margin-bottom:4px">${f.label}</div>
+    <select id="${f.id}" style="width:100%;height:32px;border:1px solid var(--br);border-radius:var(--rs);font-size:12px;padding:0 8px;font-family:'Montserrat',sans-serif;margin-bottom:10px">
+      <option value="">${emp.dia?'— PL —':'— selecione o dia primeiro —'}</option>
+    </select>`;
+  });
+  h+=`<button onclick="confirmarAlocarHibrido()" style="width:100%;height:38px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:12px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif;margin-top:4px">✓ Confirmar alocação híbrida</button>`;
   document.getElementById('modal-body').innerHTML=h;
   document.getElementById('modal-bg').style.display='flex';
-  if(emp.dia)atualizarPLsHibridoModal(emp.pl);
+  if(emp.dia)atualizarPLsHibridoModal();
 }
-function atualizarPLsHibridoModal(plAtual){
+function atualizarPLsHibridoModal(){
   const dia=document.getElementById('hib-dia')?.value;
-  const plSel=document.getElementById('hib-pl');
-  if(!plSel)return;
-  if(!dia){plSel.innerHTML='<option value="">— selecione o dia primeiro —</option>';return;}
-  const plsOcupados=new Set([...TURMAS_FIXAS,...turmasSim].filter(t=>t.dia===dia&&t.pl!==plAtual).map(t=>t.pl).filter(Boolean));
-  const disponiveis=plsState.filter(p=>!plsOcupados.has(p.nome));
-  plSel.innerHTML='<option value="">— PL —</option>'+
-    plsState.map(p=>`<option value="${p.nome}" ${p.nome===plAtual?'selected':''}>${p.nome}${plsOcupados.has(p.nome)?' (já ocupado nesse dia)':''}</option>`).join('');
+  const entrada=entradasHibrido.find(e=>e.id===_moverEidHib);
+  const emp=entrada?.empresas.find(x=>x.id===_moverEmpidHib);
+  HIB_PL_FASES.forEach(f=>{
+    const sel=document.getElementById(f.id);
+    if(!sel)return;
+    if(!dia){sel.innerHTML='<option value="">— selecione o dia primeiro —</option>';return;}
+    const plAtual=emp?emp[f.campo]:null;
+    const plsOcupados=new Set([...TURMAS_FIXAS,...turmasSim].filter(t=>t.dia===dia&&t.pl!==plAtual).map(t=>t.pl).filter(Boolean));
+    sel.innerHTML='<option value="">— PL —</option>'+
+      plsState.map(p=>`<option value="${p.nome}" ${p.nome===plAtual?'selected':''}>${p.nome}${plsOcupados.has(p.nome)?' (já ocupado nesse dia)':''}</option>`).join('');
+  });
 }
 function confirmarAlocarHibrido(){
   if(bloquearSeNaoAutenticado(confirmarAlocarHibrido))return;
@@ -1413,14 +1473,13 @@ function confirmarAlocarHibrido(){
   const emp=entrada?.empresas.find(x=>x.id===_moverEmpidHib);
   if(!emp)return;
   const diaHib=document.getElementById('hib-dia')?.value;
-  const plHib=document.getElementById('hib-pl')?.value;
-  if(!diaHib){alert('Selecione o dia do PL responsável pela turma híbrida.');return;}
-  if(!plHib){alert('Selecione o PL responsável pela turma híbrida.');return;}
+  if(!diaHib){alert('Selecione o dia da turma híbrida.');return;}
+  const plsPorFase=HIB_PL_FASES.map(f=>document.getElementById(f.id)?.value||null);
   const ocpH=ocupacaoSalaHibrido(entrada.data,emp.turma?('Turma '+emp.turma):null);
   if(emp.jovens>ocpH.livre){
     if(!confirm(`A Sala Híbrido já tem ${ocpH.jovens}/${ocpH.capacidade}j reservados nessa janela. Alocar mais ${emp.jovens}j de ${emp.nome} vai passar da capacidade de 50. Quer continuar mesmo assim?`))return;
   }
-  _alocarHibrido(emp,entrada,diaHib,plHib);
+  _alocarHibrido(emp,entrada,diaHib,...plsPorFase);
   fecharModal();renderGrade();renderGradeMini();renderGradeMiniHib();renderEmpresasHibrido();renderHibrido();saveEstado();saveSalaOverrides();
 }
 
