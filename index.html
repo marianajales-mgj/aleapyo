@@ -1728,16 +1728,22 @@ function buildGanttHibrido(){
   let linhas='';
   itens.forEach(({t,j})=>{
     const cor=corPL(t.pl);
+    const isSim=t.status==='simulada';
     const salaT=t.sala||SALA_HIBRIDO.nome;
-    labels+=`<div style="height:${ALTURA_LINHA}px;display:flex;flex-direction:column;justify-content:center;border-bottom:1px solid var(--br);padding-right:8px;overflow:hidden">
-      <div style="font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.nome} <span style="color:var(--mu);font-weight:400">${t.jovens}j</span></div>
-      ${multiSala?`<div style="font-size:9px;color:var(--mu)">${salaT}</div>`:''}
+    labels+=`<div style="height:${ALTURA_LINHA}px;display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--br);padding-right:8px;overflow:hidden">
+      <span style="width:11px;height:11px;border-radius:3px;flex-shrink:0;background:${isSim?'transparent':cor.bg};border:${isSim?`1.5px dashed ${cor.border}`:`1px solid ${cor.border}`}"></span>
+      <div style="min-width:0">
+        <div style="font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${isSim?'✦ ':''}${t.nome} <span style="color:var(--mu);font-weight:400">${t.jovens}j</span></div>
+        ${multiSala?`<div style="font-size:9px;color:var(--mu)">${salaT}</div>`:''}
+      </div>
     </div>`;
     const leftIni=pos(j.inicio1),widthIni=Math.max(PX_DIA,pos(j.fim1)-leftIni+PX_DIA);
     const leftFim=pos(j.inicio2),widthFim=Math.max(PX_DIA,pos(j.fim2)-leftFim+PX_DIA);
     const excedeIni=(_ocupacaoJanela(j.inicio1,j.fim1,t.nome,salaT)+t.jovens)>SALA_HIBRIDO.capacidade;
     const excedeFim=(_ocupacaoJanela(j.inicio2,j.fim2,t.nome,salaT)+t.jovens)>SALA_HIBRIDO.capacidade;
-    const barraStyle=(excede)=>`position:absolute;top:8px;height:20px;background:${cor.bg};border:${excede?'2px solid #dc2626':'1px solid '+cor.border};border-radius:5px;cursor:pointer`;
+    // Mesma linguagem visual do chip-turma do Presencial: tracejado enquanto é só simulação,
+    // contorno sólido assim que a turma é real (sincronizada com o backoffice via Directus).
+    const barraStyle=(excede)=>`position:absolute;top:8px;height:20px;background:${isSim?cor.light:cor.bg};border:${excede?'2px solid #dc2626':isSim?`1.5px dashed ${cor.border}`:`1px solid ${cor.border}`};border-radius:5px;cursor:pointer`;
     linhas+=`<div style="position:relative;height:${ALTURA_LINHA}px;border-bottom:1px solid var(--br)">
       <div style="position:absolute;left:${leftIni+widthIni}px;top:17px;width:${Math.max(0,leftFim-(leftIni+widthIni))}px;height:2px;background:${cor.border};opacity:.4"></div>
       <div onclick="abrirDetalhe('${t.nome}','${t.dia}','${t.sala}','${t.unidade}')" title="Imersão inicial: ${fmtDataCurta(j.inicio1)}–${fmtDataCurta(j.fim1)}" style="${barraStyle(excedeIni)};left:${leftIni}px;width:${widthIni}px"></div>
