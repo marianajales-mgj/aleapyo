@@ -241,6 +241,24 @@
           "modalidade": "hibrida"
         }
       ]
+    },
+    {
+      "id": "e1789581620775",
+      "data": "2026-10-19",
+      "empresas": [
+        {
+          "id": "emp1789581620775ofj3pmr7dve",
+          "nome": "Teste",
+          "jovens": 70,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null,
+          "pl": null,
+          "modalidade": null
+        }
+      ]
     }
   ],
   "pls": [
