@@ -880,7 +880,8 @@ function abrirDetalhe(nomeTurma,dia,sala,unidade){
       <button onclick="confirmarTurma('${nomeTurma}','${dia}','${sala}','${unidade}');fecharModalTurma();" style="flex:1;height:36px;background:var(--green);color:#054a36;border:none;border-radius:var(--rs);font-size:11px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif">✓ Confirmar</button>
     </div>`;
   }
-  // Botão de editar sala/PL para turmas do Directus (não se aplica à Sala Híbrido dedicada)
+  // Ajuste manual: sala/PL/unidade pra turmas do Directus; só PL por fase pra turmas híbridas
+  // (sala/unidade da Sala Híbrido são escolhidas automaticamente, não faz sentido editar aqui).
   if(t.modalidade!=='hibrida'){
     // Calcular instância pelo índice no grupo de mesma turma+dia
     const grupoTotal=TURMAS_FIXAS.filter(x=>x.nome===t.nome&&x.dia===t.dia);
@@ -905,6 +906,17 @@ function abrirDetalhe(nomeTurma,dia,sala,unidade){
       </div>
 <button onclick="salvarOverrideTurma('${nomeTurma}','${dia}',${instancia});fecharModalTurma();" style="width:100%;height:32px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:11px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif;margin-bottom:4px">💾 Salvar ajuste</button>
       ${t.jovens>16&&!t._split?'<button onclick="splitTurma(\''+nomeTurma+'\',\''+dia+'\','+instancia+');fecharModalTurma();" style="width:100%;height:32px;background:#fff;color:var(--blue);border:1px solid var(--blue);border-radius:var(--rs);font-size:11px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif">✂ Dividir em 2 salas</button>':''}
+    </div>`;
+  } else {
+    h+=`<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--br)">
+      <div style="font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase;margin-bottom:6px">Ajuste manual — PL por fase</div>
+      ${HIB_PL_FASES.map(f=>`
+        <div style="font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase;margin-bottom:3px">${f.label}</div>
+        <select id="ovh-${f.campo}" style="width:100%;height:32px;border:1px solid var(--br);border-radius:var(--rs);font-size:11px;padding:0 6px;font-family:'Montserrat',sans-serif;margin-bottom:6px">
+          <option value="">— PL —</option>
+          ${plsState.map(p=>`<option value="${p.nome}" ${p.nome===(t[f.campo]||t.pl)?'selected':''}>${p.nome}</option>`).join('')}
+        </select>`).join('')}
+      <button onclick="salvarAjusteHibrido('${nomeTurma}','${dia}');fecharModalTurma();" style="width:100%;height:32px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:11px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif">💾 Salvar ajuste</button>
     </div>`;
   }
 
@@ -935,6 +947,22 @@ async function salvarOverrideTurma(nome,dia,instancia){
   }));
   renderGrade();renderGradeMini();renderGradeMiniHib();renderHibrido();
   await saveSalaOverrides();
+  await saveEstado();
+}
+// Ajuste manual de PL por fase pra turma híbrida — direto nas empresas de entradasHibrido
+// (não precisa de salaOverrides, já que o dado vive no próprio estado, não vem do Directus).
+async function salvarAjusteHibrido(nome,dia){
+  const valores={};
+  HIB_PL_FASES.forEach(f=>{valores[f.campo]=document.getElementById(`ovh-${f.campo}`)?.value||null;});
+  const sufixo=nome.replace('Turma ','');
+  entradasHibrido.forEach(en=>en.empresas.forEach(emp=>{
+    if(emp.turma===sufixo&&emp.dia===dia){
+      emp.plInicio=valores.plInicio;
+      emp.plOnline=valores.plOnline;
+      emp.plFim=valores.plFim;
+    }
+  }));
+  renderGrade();renderGradeMini();renderGradeMiniHib();renderEmpresasHibrido();renderHibrido();
   await saveEstado();
 }
 function confirmarTurma(nome,dia,sala,unidade){
