@@ -567,23 +567,48 @@ function picoJovensHibrido(turmasHib){
 
 function ocupacaoSala(dia,sala,unidade){
   unidade=unidade||'Freguesia do Ó';
+  // A coluna "Curso Híbrido" na Grade de Salas é UMA SÓ, mesmo que a turma tenha sido dividida
+  // em "Sala Híbrido 2", "3" etc. por causa da capacidade física durante a imersão — pro Cenário
+  // atual isso é uma turma só, com um único PL (a divisão em salas físicas só importa pro Gantt).
+  const ehColunaHibrida=sala===SALA_HIBRIDO.nome&&unidade===SALA_HIBRIDO.unidade;
+  function bate(t){
+    if(t.dia!==dia)return false;
+    if(ehColunaHibrida)return t.modalidade==='hibrida'&&(t.sala||'').startsWith(SALA_HIBRIDO.nome);
+    return t.sala===sala&&(t.unidade||'Freguesia do Ó')===unidade;
+  }
   let ts=[];
   TURMAS_FIXAS.forEach(t=>{
     if(t._sem_sala)return;
-    if(t.dia===dia&&t.sala===sala&&(t.unidade||'Freguesia do Ó')===unidade){
-      if(t.modalidade==='hibrida'&&!apareceNaGradeHibrido(t))return; // fase online: não aparece
-      ts.push({...t});
-    }
+    if(!bate(t))return;
+    if(t.modalidade==='hibrida'&&!apareceNaGradeHibrido(t))return; // fase online: não aparece
+    ts.push({...t});
   });
   turmasSim.forEach(t=>{
-    if(t.dia===dia&&t.sala===sala&&(t.unidade||'Freguesia do Ó')===unidade){
-      if(t.modalidade==='hibrida'&&!apareceNaGradeHibrido(t))return;
-      ts.push({...t});
-    }
+    if(!bate(t))return;
+    if(t.modalidade==='hibrida'&&!apareceNaGradeHibrido(t))return;
+    ts.push({...t});
   });
+  if(ehColunaHibrida&&ts.length){
+    const porNome={};
+    ts.forEach(t=>{
+      if(!porNome[t.nome]){porNome[t.nome]={...t};return;}
+      const m=porNome[t.nome];
+      m.jovens+=t.jovens;
+      m.plInicio=m.plInicio||t.plInicio;
+      m.plOnline=m.plOnline||t.plOnline;
+      m.plFim=m.plFim||t.plFim;
+      m.pl=m.plOnline||m.pl;
+      if(t.status==='simulada')m.status='simulada';
+    });
+    ts=Object.values(porNome);
+  }
   const hibridas=ts.filter(t=>t.modalidade==='hibrida');
-  const j=hibridas.length?picoJovensHibrido(hibridas):ts.reduce((s,t)=>s+t.jovens,0);
-  const cap=unidades.find(u=>u.nome===unidade)?.capacidade||32;
+  const pico=hibridas.length?picoJovensHibrido(hibridas):0;
+  const j=hibridas.length?pico:ts.reduce((s,t)=>s+t.jovens,0);
+  const capBase=ehColunaHibrida?SALA_HIBRIDO.capacidade:(unidades.find(u=>u.nome===unidade)?.capacidade||32);
+  // Fora da imersão física, o Curso Híbrido pode "juntar" mais de uma sala num único PL — a
+  // capacidade exibida acompanha quantas salas de 50j de fato foram precisas.
+  const cap=ehColunaHibrida?Math.max(capBase,Math.ceil(pico/capBase)*capBase):capBase;
   return {jovens:j,turmas:ts,livre:cap-j,capacidade:cap};
 }
 
@@ -619,15 +644,14 @@ function turmasSimAtivas(){
       mapa[chave].empresas.push({nome:emp.nome,jovens:emp.jovens});
     });
   });
-  // Resolve o PL efetivo das turmas híbridas de acordo com a fase atual (início/online/fim).
-  // Nunca pega o PL de OUTRA fase como fallback — se a fase atual não tem PL definido, mostra
-  // "PL a definir" (compat: empresas antigas com um único emp.pl ainda usam esse valor uma vez).
+  // O PL "geral" da turma híbrida (usado na Grade de Salas / Cenário atual, e como label do
+  // Gantt) é SEMPRE o PL do Curso Híbrido — fase online — nunca o de outra fase, e nunca muda
+  // conforme a fase atual passa. As imersões (início/fim) têm cada uma o seu próprio PL, mostrado
+  // só no Gantt e no detalhe da turma (ver plInicio/plFim), nunca aqui.
   Object.values(mapa).forEach(m=>{
     if(m.modalidade!=='hibrida')return;
     const fallback=m.pl; // compat com empresas antigas que só tinham um único emp.pl
-    const fase=faseHibrido({modalidade:'hibrida',entrada:m.entrada});
-    const porFase=fase==='presencial-fim'?m.plFim:fase==='online'?m.plOnline:m.plInicio;
-    m.pl=porFase||fallback||'PL a definir';
+    m.pl=m.plOnline||fallback||'PL a definir';
   });
   return Object.values(mapa);
 }
@@ -692,20 +716,18 @@ function buildGradeHTML(tblId,compact,incluirHibrido,legId,alertasId,apenasHibri
       `<span style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--mu)"><span style="width:9px;height:9px;border-radius:99px;background:${cor.bg};display:inline-block"></span>${pl}</span>`
     ).join('')+`<span style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--mu)"><span style="width:11px;height:11px;border-radius:3px;border:1.5px dashed #373afd;display:inline-block"></span>Simulação</span>`;
   }
-  const salasHib=salasHibridoEmUso();
-  const labelCursoHibrido=nomeSala=>nomeSala.replace(SALA_HIBRIDO.nome,'Curso Híbrido');
   let h='';
   if(apenasHibrido){
-    h+=`<thead><tr><th class="dia-col">Dia</th>${salasHib.map(s=>`<th style="text-align:center;background:#fff7ed;color:#92400e;font-size:10px;font-weight:700;border-bottom:2px solid #fdba74">${labelCursoHibrido(s)}</th>`).join('')}</tr></thead><tbody>`;
+    h+=`<thead><tr><th class="dia-col">Dia</th><th style="text-align:center;background:#fff7ed;color:#92400e;font-size:10px;font-weight:700;border-bottom:2px solid #fdba74">Curso Híbrido</th></tr></thead><tbody>`;
   } else {
     h+=`<thead><tr><th class="dia-col" rowspan="2">Dia</th>`;
     unidades.forEach(u=>{const headerColor=u.nome==='Polo Liberdade'?{bg:'#35dcb225',tx:'#054a36',bd:'#35dcb2'}:{bg:'#373afd18',tx:'#373afd',bd:'#373afd'};
-      const colspanExtra=(incluirHibrido&&u.nome==='Polo Liberdade')?salasHib.length:0;
+      const colspanExtra=(incluirHibrido&&u.nome==='Polo Liberdade')?1:0;
       h+=`<th colspan="${u.salas.length+colspanExtra}" style="text-align:center;background:${headerColor.bg};color:${headerColor.tx};font-size:10px;font-weight:700;border-bottom:2px solid ${headerColor.bd}">${u.nome}</th>`;});
     h+=`</tr><tr>`;
     unidades.forEach(u=>{
       u.salas.forEach(s=>{h+=`<th style="font-size:10px">${s}</th>`;});
-      if(incluirHibrido&&u.nome==='Polo Liberdade')salasHib.forEach(s=>{h+=`<th style="font-size:10px;background:#fff7ed;color:#92400e">${s}</th>`;});
+      if(incluirHibrido&&u.nome==='Polo Liberdade')h+=`<th style="font-size:10px;background:#fff7ed;color:#92400e">Sala Híbrido</th>`;
     });
     h+=`</tr></thead><tbody>`;
   }
@@ -766,11 +788,11 @@ function buildGradeHTML(tblId,compact,incluirHibrido,legId,alertasId,apenasHibri
   DIAS.forEach(dia=>{
     h+=`<tr><td class="dia-cell">${dia.charAt(0).toUpperCase()+dia.slice(1)}</td>`;
     if(apenasHibrido){
-      salasHib.forEach(s=>{h+=celulaSalaHTML(dia,s,'Polo Liberdade',true);});
+      h+=celulaSalaHTML(dia,SALA_HIBRIDO.nome,'Polo Liberdade',true);
     } else {
       unidades.forEach(u=>{
         u.salas.forEach(sala=>{h+=celulaSalaHTML(dia,sala,u.nome,false);});
-        if(incluirHibrido&&u.nome==='Polo Liberdade')salasHib.forEach(s=>{h+=celulaSalaHTML(dia,s,'Polo Liberdade',true);});
+        if(incluirHibrido&&u.nome==='Polo Liberdade')h+=celulaSalaHTML(dia,SALA_HIBRIDO.nome,'Polo Liberdade',true);
       });
     }
     h+=`</tr>`;
@@ -1771,7 +1793,9 @@ function buildGanttHibrido(){
   let labels=`<div style="height:${alturaEixo}px"></div>`;
   let linhas='';
   itens.forEach(({t,j})=>{
-    const cor=corPL(t.pl);
+    const cor=corPL(t.pl); // PL do Curso Híbrido (online) — usado no label geral da linha
+    const corIni=corPL(t.plInicio||'PL a definir'); // cor própria da imersão inicial
+    const corFim=corPL(t.plFim||'PL a definir'); // cor própria da imersão final
     const isSim=t.status==='simulada';
     const salaT=t.sala||SALA_HIBRIDO.nome;
     labels+=`<div style="height:${ALTURA_LINHA}px;display:flex;flex-direction:column;justify-content:center;gap:2px;border-bottom:1px solid var(--br);padding:2px 6px 2px 0;overflow:hidden">
@@ -1786,12 +1810,13 @@ function buildGanttHibrido(){
     const excedeFim=(_ocupacaoJanela(j.inicio2,j.fim2,t.nome,salaT)+t.jovens)>SALA_HIBRIDO.capacidade;
     // Mesma linguagem visual do chip-turma do Presencial: fundo clarinho (cor.light) sempre,
     // tracejado enquanto é só simulação, contorno sólido (com transparência, igual ao chip) assim
-    // que a turma é real — e o mesmo texto (jovens) dentro, pra não parecer uma caixa vazia.
-    const barraStyle=(excede)=>`position:absolute;top:8px;height:20px;display:flex;align-items:center;justify-content:center;overflow:hidden;white-space:nowrap;background:${cor.light};color:${cor.text};font-size:9px;font-weight:700;border:${excede?'2px solid #dc2626':isSim?`1.5px dashed ${cor.border}`:`1px solid ${cor.border}55`};border-radius:5px;cursor:pointer`;
+    // que a turma é real — e o mesmo texto (jovens) dentro, pra não parecer uma caixa vazia. Cada
+    // barra usa a cor do PL DAQUELA fase especificamente (nunca a do PL geral/online).
+    const barraStyle=(corFase,excede)=>`position:absolute;top:8px;height:20px;display:flex;align-items:center;justify-content:center;overflow:hidden;white-space:nowrap;background:${corFase.light};color:${corFase.text};font-size:9px;font-weight:700;border:${excede?'2px solid #dc2626':isSim?`1.5px dashed ${corFase.border}`:`1px solid ${corFase.border}55`};border-radius:5px;cursor:pointer`;
     linhas+=`<div style="position:relative;height:${ALTURA_LINHA}px;border-bottom:1px solid var(--br)">
       <div style="position:absolute;left:${leftIni+widthIni}px;top:17px;width:${Math.max(0,leftFim-(leftIni+widthIni))}px;height:2px;background:${cor.border};opacity:.4"></div>
-      <div onclick="abrirDetalhe('${t.nome}','${t.dia}','${t.sala}','${t.unidade}')" title="Imersão inicial: ${fmtDataCurta(j.inicio1)}–${fmtDataCurta(j.fim1)}" style="${barraStyle(excedeIni)};left:${leftIni}px;width:${widthIni}px">${t.jovens}j</div>
-      <div onclick="abrirDetalhe('${t.nome}','${t.dia}','${t.sala}','${t.unidade}')" title="Imersão final: ${fmtDataCurta(j.inicio2)}–${fmtDataCurta(j.fim2)}" style="${barraStyle(excedeFim)};left:${leftFim}px;width:${widthFim}px">${t.jovens}j</div>
+      <div onclick="abrirDetalhe('${t.nome}','${t.dia}','${t.sala}','${t.unidade}')" title="Imersão inicial: ${fmtDataCurta(j.inicio1)}–${fmtDataCurta(j.fim1)}" style="${barraStyle(corIni,excedeIni)};left:${leftIni}px;width:${widthIni}px">${t.jovens}j</div>
+      <div onclick="abrirDetalhe('${t.nome}','${t.dia}','${t.sala}','${t.unidade}')" title="Imersão final: ${fmtDataCurta(j.inicio2)}–${fmtDataCurta(j.fim2)}" style="${barraStyle(corFim,excedeFim)};left:${leftFim}px;width:${widthFim}px">${t.jovens}j</div>
     </div>`;
   });
   const hojeLinha=`<div style="position:absolute;left:${pos(hoje)}px;top:${alturaEixo}px;bottom:0;width:1px;background:#fc5959;z-index:2"></div>`;
