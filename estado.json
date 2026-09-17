@@ -246,7 +246,10 @@
           "sala": "Sala Híbrido",
           "unidade": "Polo Liberdade",
           "pl": "Guilherme",
-          "modalidade": "hibrida"
+          "modalidade": "hibrida",
+          "plInicio": "Guilherme",
+          "plOnline": "Guilherme",
+          "plFim": "Manu"
         }
       ]
     },
