@@ -165,17 +165,6 @@
       "data": "2026-10-19",
       "empresas": [
         {
-          "id": "emp1786538300837vkb49bhm00b",
-          "nome": "Ifood",
-          "jovens": 50,
-          "status": "Em aberto",
-          "turma": "EM12",
-          "dia": "sexta",
-          "sala": "Sala 2",
-          "unidade": "Polo Liberdade",
-          "pl": "Marialice"
-        },
-        {
           "id": "emp1789409421402",
           "nome": "Nubank",
           "jovens": 50,
@@ -222,6 +211,17 @@
           "dia": null,
           "sala": null,
           "unidade": null
+        },
+        {
+          "id": "emp1789647599800",
+          "nome": "Ifood",
+          "jovens": 50,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null,
+          "pl": null
         }
       ]
     },
