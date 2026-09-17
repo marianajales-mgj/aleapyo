@@ -364,6 +364,16 @@
         "Qui",
         "Sex"
       ]
+    },
+    {
+      "nome": "Novo(a) PL",
+      "alocados": [
+        "Seg",
+        "Ter",
+        "Qua",
+        "Qui",
+        "Sex"
+      ]
     }
   ],
   "unidades": [
