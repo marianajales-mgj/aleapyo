@@ -350,43 +350,19 @@
   "pls": [
     {
       "nome": "Marialice",
-      "alocados": [
-        "Seg",
-        "Ter",
-        "Qua",
-        "Qui",
-        "Sex"
-      ]
+      "alocados": []
     },
     {
       "nome": "Guilherme",
-      "alocados": [
-        "Seg",
-        "Ter",
-        "Qua",
-        "Qui",
-        "Sex"
-      ]
+      "alocados": []
     },
     {
       "nome": "Novo(a) PL",
-      "alocados": [
-        "Seg",
-        "Ter",
-        "Qua",
-        "Qui",
-        "Sex"
-      ]
+      "alocados": []
     },
     {
       "nome": "Novo(a) PL 2",
-      "alocados": [
-        "Seg",
-        "Ter",
-        "Qua",
-        "Qui",
-        "Sex"
-      ]
+      "alocados": []
     }
   ],
   "unidades": [
