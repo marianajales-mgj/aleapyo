@@ -255,6 +255,13 @@ let unidades=[
 const DIAS=['segunda','terça','quarta','quinta','sexta'];
 const DABR={segunda:'Seg',terça:'Ter',quarta:'Qua',quinta:'Qui',sexta:'Sex'};
 const LETRA={segunda:'A',terça:'B',quarta:'C',quinta:'D',sexta:'E'};
+// Disponibilidade cadastrada do PL (pl.alocados = dias em que ele NÃO está disponível pra ser
+// escalado — marcado no cadastro, na aba Program Leads). Independe de conflito de agenda.
+function plDisponivelNoDia(nomePL,diaCompleto){
+  const pl=plsState.find(p=>p.nome===nomePL);
+  if(!pl)return true;
+  return !pl.alocados.includes(DABR[diaCompleto]);
+}
 const TURNO='M';
 const normDia=d=>({'terca':'terça','segunda-feira':'segunda','terca-feira':'terça','quinta-feira':'quinta','sexta-feira':'sexta'})[d?.toLowerCase()]||d?.toLowerCase()||d;
 
@@ -613,12 +620,14 @@ function turmasSimAtivas(){
     });
   });
   // Resolve o PL efetivo das turmas híbridas de acordo com a fase atual (início/online/fim).
+  // Nunca pega o PL de OUTRA fase como fallback — se a fase atual não tem PL definido, mostra
+  // "PL a definir" (compat: empresas antigas com um único emp.pl ainda usam esse valor uma vez).
   Object.values(mapa).forEach(m=>{
     if(m.modalidade!=='hibrida')return;
     const fallback=m.pl; // compat com empresas antigas que só tinham um único emp.pl
     const fase=faseHibrido({modalidade:'hibrida',entrada:m.entrada});
     const porFase=fase==='presencial-fim'?m.plFim:fase==='online'?m.plOnline:m.plInicio;
-    m.pl=porFase||fallback||null;
+    m.pl=porFase||fallback||'PL a definir';
   });
   return Object.values(mapa);
 }
@@ -645,8 +654,8 @@ function atribuirPLs(){
     if(t.pl){usado[k]=t.pl;return;}
     if(usado[k]){t.pl=usado[k];return;}
     const usadosDia=new Set(Object.entries(usado).filter(([kk])=>kk.startsWith(t.dia+'|')).map(([,v])=>v));
-    const livre=plsState.find(p=>!usadosDia.has(p.nome));
-    t.pl=livre?livre.nome:'(sem PL)';
+    const livre=plsState.find(p=>!usadosDia.has(p.nome)&&plDisponivelNoDia(p.nome,t.dia));
+    t.pl=livre?livre.nome:'PL a definir';
     usado[k]=t.pl;
   });
 }
@@ -842,9 +851,9 @@ function abrirDetalhe(nomeTurma,dia,sala,unidade){
       ${ferIni.length?`<div style="color:#92400e;margin-bottom:4px">⚠ Feriado/emenda na imersão inicial: ${ferIni.join(', ')} (não estende a janela, só não tem aula nesse dia)</div>`:''}
       ${ferFim.length?`<div style="color:#92400e;margin-bottom:4px">⚠ Feriado/emenda na imersão final: ${ferFim.join(', ')} (não estende a janela, só não tem aula nesse dia)</div>`:''}
       <div style="display:flex;flex-direction:column;gap:2px">
-        <div><b>PL Imersão início:</b> ${t.plInicio||t.pl||'—'}${faseAtual==='presencial-inicio'?' (atual)':''}</div>
-        <div><b>PL Curso Híbrido (online):</b> ${t.plOnline||t.pl||'—'}${faseAtual==='online'?' (atual)':''}</div>
-        <div><b>PL Imersão final:</b> ${t.plFim||t.pl||'—'}${faseAtual==='presencial-fim'?' (atual)':''}</div>
+        <div><b>PL Imersão início:</b> ${t.plInicio||'PL a definir'}${faseAtual==='presencial-inicio'?' (atual)':''}</div>
+        <div><b>PL Curso Híbrido (online):</b> ${t.plOnline||'PL a definir'}${faseAtual==='online'?' (atual)':''}</div>
+        <div><b>PL Imersão final:</b> ${t.plFim||'PL a definir'}${faseAtual==='presencial-fim'?' (atual)':''}</div>
       </div>
     </div>`;
   }
@@ -898,7 +907,11 @@ function abrirDetalhe(nomeTurma,dia,sala,unidade){
           ${(unidades.find(u=>u.nome===t.unidade)||{salas:['Sala 1','Sala 2']}).salas.map(s=>`<option value="${s}" ${s===t.sala?'selected':''}>${s}</option>`).join('')}
         </select>
         <select id="ov-pl" style="flex:1;height:32px;border:1px solid var(--br);border-radius:var(--rs);font-size:11px;padding:0 6px;font-family:'Montserrat',sans-serif">
-          ${plsState.map(p=>`<option value="${p.nome}" ${p.nome===t.pl?'selected':''}>${p.nome}</option>`).join('')}
+          <option value="">PL a definir</option>
+          ${(()=>{
+            const ocupados=new Set([...TURMAS_FIXAS,...turmasSim].filter(x=>x.dia===t.dia&&(x.sala!==t.sala||(x.unidade||'Freguesia do Ó')!==(t.unidade||'Freguesia do Ó'))&&x.pl!==t.pl).map(x=>x.pl).filter(Boolean));
+            return plsState.filter(p=>p.nome===t.pl||(!ocupados.has(p.nome)&&plDisponivelNoDia(p.nome,t.dia))).map(p=>`<option value="${p.nome}" ${p.nome===t.pl?'selected':''}>${p.nome}</option>`).join('');
+          })()}
         </select>
         <select id="ov-unidade" style="flex:1;height:32px;border:1px solid var(--br);border-radius:var(--rs);font-size:11px;padding:0 6px;font-family:'Montserrat',sans-serif">
           ${unidades.map(u=>`<option value="${u.nome}" ${u.nome===(t.unidade||'Freguesia do Ó')?'selected':''}>${u.nome}</option>`).join('')}
@@ -910,12 +923,15 @@ function abrirDetalhe(nomeTurma,dia,sala,unidade){
   } else {
     h+=`<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--br)">
       <div style="font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase;margin-bottom:6px">Ajuste manual — PL por fase</div>
-      ${HIB_PL_FASES.map(f=>`
-        <div style="font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase;margin-bottom:3px">${f.label}</div>
+      ${HIB_PL_FASES.map(f=>{
+        const plAtual=t[f.campo]||t.pl;
+        const plsOcupados=new Set([...TURMAS_FIXAS,...turmasSim].filter(x=>x.dia===dia&&x.pl!==plAtual&&(!jH||_hibridoConflitaNoDia(x,jH,f.campo))).map(x=>x.pl).filter(Boolean));
+        return `<div style="font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase;margin-bottom:3px">${f.label}</div>
         <select id="ovh-${f.campo}" style="width:100%;height:32px;border:1px solid var(--br);border-radius:var(--rs);font-size:11px;padding:0 6px;font-family:'Montserrat',sans-serif;margin-bottom:6px">
-          <option value="">— PL —</option>
-          ${plsState.map(p=>`<option value="${p.nome}" ${p.nome===(t[f.campo]||t.pl)?'selected':''}>${p.nome}</option>`).join('')}
-        </select>`).join('')}
+          <option value="">PL a definir</option>
+          ${plsState.filter(p=>p.nome===plAtual||(!plsOcupados.has(p.nome)&&plDisponivelNoDia(p.nome,dia))).map(p=>`<option value="${p.nome}" ${p.nome===plAtual?'selected':''}>${p.nome}</option>`).join('')}
+        </select>`;
+      }).join('')}
       <button onclick="salvarAjusteHibrido('${nomeTurma}','${dia}');fecharModalTurma();" style="width:100%;height:32px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:11px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif">💾 Salvar ajuste</button>
     </div>`;
   }
@@ -1413,7 +1429,7 @@ function abrirMover(eid,empid){if(bloquearSeNaoAutenticado(()=>abrirMover(eid,em
       const cronDistanteModal=!salaAindaDisponivel(dia,sala,u.nome,entrada?.data);
       // PLs já ocupados neste dia (turmas fixas + simuladas)
       const plsOcupadosDia=new Set([...TURMAS_FIXAS,...turmasSim].filter(t=>t.dia===dia&&(t.sala!==sala||(t.unidade||'Freguesia do Ó')!==u.nome)).map(t=>t.pl).filter(Boolean));
-      const plsDisponiveisSala=plsState.filter(p=>!plsOcupadosDia.has(p.nome));
+      const plsDisponiveisSala=plsState.filter(p=>!plsOcupadosDia.has(p.nome)&&plDisponivelNoDia(p.nome,dia));
       const plOpts=plsDisponiveisSala.map(p=>`<option value="${p.nome}">${p.nome}</option>`).join('');
       const salaIndisponivel=cronDistanteModal||(ocp.livre<=0);
       const motivoIndisponivel=cronDistanteModal?'Cronograma distante demais para novas entradas':ocp.livre<=0?'Sem vagas disponíveis':'';
@@ -1422,7 +1438,7 @@ function abrirMover(eid,empid){if(bloquearSeNaoAutenticado(()=>abrirMover(eid,em
           <div style="font-size:12px;font-weight:700">${u.nome} — ${sala}</div>
           <div style="font-size:10px;color:var(--mu)">${ocp.jovens}/${cap}j · <b style="color:${corBar}">${livre}j livres</b>${ocp.turmas.length?' · '+ocp.turmas.map(t=>t.nome).join(', '):''}</div>
           <select id="${plId}" style="margin-top:5px;width:100%;height:26px;border:1px solid var(--br);border-radius:5px;font-size:10px;padding:0 4px;font-family:'Montserrat',sans-serif;display:none">
-            <option value="">— PL —</option>
+            <option value="">PL a definir</option>
             ${plOpts}
           </select>
         </div>
@@ -1552,7 +1568,7 @@ function abrirAlocarHibrido(eid,empid){
   HIB_PL_FASES.forEach(f=>{
     h+=`<div style="font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;margin-bottom:4px">${f.label}</div>
     <select id="${f.id}" onchange="hibPlSelectChanged(this)" style="width:100%;height:32px;border:1px solid var(--br);border-radius:var(--rs);font-size:12px;padding:0 8px;font-family:'Montserrat',sans-serif;margin-bottom:10px">
-      <option value="">${emp.dia?'— PL —':'— selecione o dia primeiro —'}</option>
+      <option value="">${emp.dia?'PL a definir':'— selecione o dia primeiro —'}</option>
     </select>`;
   });
   h+=`<button onclick="confirmarAlocarHibrido()" style="width:100%;height:38px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:12px;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif;margin-top:4px">✓ Confirmar alocação híbrida</button>`;
@@ -1585,8 +1601,8 @@ function atualizarPLsHibridoModal(){
     const plsOcupados=new Set([...TURMAS_FIXAS,...turmasSim]
       .filter(t=>t.dia===dia&&t.pl!==plAtual&&(!jCand||_hibridoConflitaNoDia(t,jCand,f.campo)))
       .map(t=>t.pl).filter(Boolean));
-    sel.innerHTML='<option value="">— PL —</option>'+
-      plsState.filter(p=>p.nome===plAtual||!plsOcupados.has(p.nome)).map(p=>`<option value="${p.nome}" ${p.nome===plAtual?'selected':''}>${p.nome}</option>`).join('')+
+    sel.innerHTML='<option value="">PL a definir</option>'+
+      plsState.filter(p=>p.nome===plAtual||(!plsOcupados.has(p.nome)&&plDisponivelNoDia(p.nome,dia))).map(p=>`<option value="${p.nome}" ${p.nome===plAtual?'selected':''}>${p.nome}</option>`).join('')+
       '<option value="__novo__">+ Novo PL</option>';
   });
 }
@@ -1687,7 +1703,7 @@ function renderEcossistema(){
     h+=`<div style="margin-bottom:20px">
       <div style="font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">${DIAS_LABEL[dia]||dia}</div>`;
     porDia[dia].forEach(t=>{
-      const pl=t.pl||'—';
+      const pl=t.pl||'PL a definir';
       const plLabel=t.nome==='Turma CM3'?'Tutor Ecossistema':(pl==='Guilherme'?'Guilherme':pl);
       const corPl=t.nome==='Turma CM3'?{bg:'#a78bfa',light:'#a78bfa18',border:'#a78bfa'}:corPL('Guilherme');
       const empList=t.empresas&&t.empresas.length?t.empresas.map(e=>`<span style="font-size:10px;background:#f5f5f2;padding:1px 6px;border-radius:99px;margin-right:4px">${e.nome} (${e.jovens}j)</span>`).join(''):'<span style="font-size:10px;color:var(--mu)">—</span>';
@@ -1819,7 +1835,7 @@ function renderHibrido(){
       h+=`<div style="background:var(--sf);border:1px solid var(--br);border-radius:var(--rs);padding:12px 14px;margin-bottom:8px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:6px">
           <div><b style="font-size:14px">${t.nome}</b> <span style="font-size:11px;color:var(--mu);margin-left:6px">${t.jovens}j · ${t.dia||'—'}</span></div>
-          <span style="font-size:11px;font-weight:600;color:var(--blue);background:#eeefff;border:1px solid #b4b6fd;border-radius:99px;padding:2px 10px">${t.pl||'—'}</span>
+          <span style="font-size:11px;font-weight:600;color:var(--blue);background:#eeefff;border:1px solid #b4b6fd;border-radius:99px;padding:2px 10px">${t.pl||'PL a definir'}</span>
         </div>
         <div style="font-size:11px;color:var(--mu);margin-bottom:4px">${localTxt}</div>
         <div style="font-size:10px;color:var(--mu);margin-bottom:6px">${janelaTxt}</div>
@@ -1898,21 +1914,34 @@ function confirmarMoverEntrada(eid, empid){
 function renderPLs(){
   document.getElementById('pls-wrap').innerHTML=plsState.map((pl,pi)=>`
     <div class="pl-card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <div style="font-weight:700;font-size:14px">${pl.nome}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:99px;background:${corPL(pl.nome).bg};display:inline-block"></span><div style="font-weight:700;font-size:14px">${pl.nome}</div></div>
         <button onclick="excluirPL(${pi})" style="font-size:10px;color:#dc2626;background:#fef2f2;border:1px solid #fca5a5;border-radius:5px;padding:2px 8px;cursor:pointer;font-family:'Montserrat',sans-serif">✕ Excluir</button>
       </div>
-      <div>${['Seg','Ter','Qua','Qui','Sex'].map(d=>{
+      <div style="font-size:10px;color:var(--mu);margin-bottom:6px">Disponibilidade — clique num dia pra marcar como indisponível pra alocação (presencial e híbrido)</div>
+      <div>${DIAS.map(dia=>{
+        const d=DABR[dia];
         const al=pl.alocados.includes(d);
-        return `<span class="dia-pill" style="background:${al?'#fef2f2':'#e8fff9'};color:${al?'#dc2626':'#0a7a60'};border:${al?'1px solid #fca5a5':'1px solid #35dcb255'}">${d}</span>`;
+        return `<span class="dia-pill" onclick="togglePLDia('${pl.nome}','${d}')" style="cursor:pointer;background:${al?'#fef2f2':'#e8fff9'};color:${al?'#dc2626':'#0a7a60'};border:${al?'1px solid #fca5a5':'1px solid #35dcb255'}" title="${al?'Indisponível — clique pra liberar':'Disponível — clique pra marcar indisponível'}">${d}</span>`;
       }).join('')}</div>
     </div>`).join('');
 }
-function excluirPL(pi){if(!confirm('Excluir PL?'))return;delete plCores[plsState[pi].nome];plsState.splice(pi,1);renderPLs();renderGrade();renderGradeMini();}
+function togglePLDia(nome,diaAbrev){
+  if(bloquearSeNaoAutenticado(()=>togglePLDia(nome,diaAbrev)))return;
+  const pl=plsState.find(p=>p.nome===nome);
+  if(!pl)return;
+  const idx=pl.alocados.indexOf(diaAbrev);
+  if(idx>=0)pl.alocados.splice(idx,1);
+  else pl.alocados.push(diaAbrev);
+  renderPLs();renderGrade();renderGradeMini();renderGradeMiniHib();
+  saveEstado();
+}
+function excluirPL(pi){if(!confirm('Excluir PL?'))return;delete plCores[plsState[pi].nome];plsState.splice(pi,1);renderPLs();renderGrade();renderGradeMini();saveEstado();}
 function novoPL(){
+  if(bloquearSeNaoAutenticado(novoPL))return;
   const nome=prompt('Nome do PL:');if(!nome)return;
-  const dias=prompt('Dias alocados (ex: Ter,Qua,Sex):')?.split(',').map(d=>d.trim())||[];
-  plsState.push({nome,alocados:dias,livres:[],simDias:[]});
+  if(plsState.find(p=>p.nome===nome)){alert('Já existe um PL com esse nome.');return;}
+  plsState.push({nome,alocados:[],livres:[],simDias:[]});
   const cores=['#a78bfa','#fb923c','#38bdf8','#f472b6'];
   const cor=cores[plsState.length%4];
   plCores[nome]={bg:cor,light:cor+'18',text:'#1d0328',border:cor};
@@ -2153,7 +2182,7 @@ async function carregarDoDirectus(){
         const pl=normPL(t.program_lead?.first_name,t.program_lead?.last_name);
         // Override de PL por turma (ex: AM7 → Marialice mesmo com PL errado no backoffice)
         const PL_OVERRIDE={'Turma AM7':'Marialice'};
-        const plFinal=PL_OVERRIDE[nomeCompleto]||pl||'—';
+        const plFinal=PL_OVERRIDE[nomeCompleto]||pl||'PL a definir';
         const jovensCount=turmaCounts[t.id]||0;
         const empMap=turmaEmpresas[t.id]||{};
         // Agrupar por nome (mesma empresa pode ter IDs distintos se entrou em datas diferentes)
@@ -2164,7 +2193,7 @@ const empresas=Object.entries(empresasAgrup).map(([nome,jovens])=>({nome,jovens}
 
         // Adicionar PLs reconhecidos ao estado
         const PL_CORES={'Manu':'#35dcb2','Carol':'#f2cf6b','Marialice':'#a78bfa','Guilherme':'#60a5fa'};
-        if(plFinal&&plFinal!=='—'&&PL_CORES[plFinal]&&!plsState.find(p=>p.nome===plFinal)){
+        if(plFinal&&plFinal!=='PL a definir'&&PL_CORES[plFinal]&&!plsState.find(p=>p.nome===plFinal)){
           plsState.push({nome:plFinal,alocados:[],livres:[],simDias:[]});
           const cor=PL_CORES[plFinal];
           plCores[plFinal]={bg:cor,light:cor+'18',text:'#1d0328',border:cor};
