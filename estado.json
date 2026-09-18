@@ -41,7 +41,7 @@
           "id": "emp1789409658362",
           "nome": "CorPay",
           "jovens": 4,
-          "status": "Em aberto",
+          "status": "Confirmado",
           "turma": "DM13",
           "dia": "quinta",
           "sala": "Sala 1",
@@ -53,8 +53,8 @@
           "nome": "UOL",
           "jovens": 1,
           "status": "Em aberto",
-          "turma": "DM13",
-          "dia": "quinta",
+          "turma": "BM9",
+          "dia": "terça",
           "sala": "Sala 1",
           "unidade": "Polo Liberdade",
           "pl": "Marialice"
@@ -149,13 +149,14 @@
         },
         {
           "id": "emp1789732476703",
-          "nome": "Nova empresa",
+          "nome": "Reclame Aqui",
           "jovens": 1,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "DM13",
+          "dia": "quinta",
+          "sala": "Sala 1",
+          "unidade": "Polo Liberdade",
+          "pl": "Marialice"
         }
       ]
     },
