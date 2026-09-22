@@ -149,13 +149,14 @@
         },
         {
           "id": "emp1790107492310",
-          "nome": "Nova empresa",
+          "nome": "CorPay",
           "jovens": 1,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "BM9",
+          "dia": "terça",
+          "sala": "Sala 1",
+          "unidade": "Polo Liberdade",
+          "pl": "Marialice"
         }
       ]
     },
