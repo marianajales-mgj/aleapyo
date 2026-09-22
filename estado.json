@@ -49,17 +49,6 @@
           "pl": "Marialice"
         },
         {
-          "id": "emp1789409665380",
-          "nome": "UOL",
-          "jovens": 1,
-          "status": "Em aberto",
-          "turma": "BM9",
-          "dia": "terça",
-          "sala": "Sala 1",
-          "unidade": "Polo Liberdade",
-          "pl": "Marialice"
-        },
-        {
           "id": "emp1789409673102",
           "nome": "Flash",
           "jovens": 2,
@@ -185,6 +174,17 @@
           "sala": "Sala 2",
           "unidade": "Polo Liberdade",
           "pl": "Novo(a) PL"
+        },
+        {
+          "id": "emp1790086412712",
+          "nome": "UOL",
+          "jovens": 1,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null,
+          "pl": null
         }
       ]
     },
