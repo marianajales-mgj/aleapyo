@@ -191,11 +191,11 @@
           "nome": "Ifood",
           "jovens": 50,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null,
-          "pl": null
+          "turma": "EM11",
+          "dia": "sexta",
+          "sala": "Sala 1",
+          "unidade": "Polo Liberdade",
+          "pl": "Marialice"
         }
       ]
     },
