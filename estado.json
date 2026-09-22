@@ -167,7 +167,7 @@
         {
           "id": "emp1789409429412",
           "nome": "Nubank",
-          "jovens": 21,
+          "jovens": 22,
           "status": "Em aberto",
           "turma": "DM14",
           "dia": "quinta",
@@ -185,6 +185,17 @@
           "sala": "Sala 1",
           "unidade": "Polo Liberdade",
           "pl": "Marialice"
+        },
+        {
+          "id": "emp1790098942243",
+          "nome": "Ifood",
+          "jovens": 50,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null,
+          "pl": null
         }
       ]
     },
@@ -211,17 +222,6 @@
           "dia": null,
           "sala": null,
           "unidade": null
-        },
-        {
-          "id": "emp1789647599800",
-          "nome": "Ifood",
-          "jovens": 50,
-          "status": "Em aberto",
-          "turma": "EM11",
-          "dia": "sexta",
-          "sala": "Sala 2",
-          "unidade": "Polo Liberdade",
-          "pl": "Novo(a) PL"
         }
       ]
     },
