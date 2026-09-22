@@ -167,7 +167,7 @@
         {
           "id": "emp1789409429412",
           "nome": "Nubank",
-          "jovens": 16,
+          "jovens": 18,
           "status": "Em aberto",
           "turma": "DM14",
           "dia": "quinta",
@@ -180,11 +180,11 @@
           "nome": "UOL",
           "jovens": 1,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null,
-          "pl": null
+          "turma": "BM11",
+          "dia": "terça",
+          "sala": "Sala 1",
+          "unidade": "Polo Liberdade",
+          "pl": "Marialice"
         }
       ]
     },
