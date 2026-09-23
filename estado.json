@@ -150,7 +150,7 @@
         {
           "id": "emp1790107492310",
           "nome": "CorPay",
-          "jovens": 1,
+          "jovens": 2,
           "status": "Em aberto",
           "turma": "BM9",
           "dia": "terça",
@@ -178,7 +178,7 @@
         {
           "id": "emp1789409429412",
           "nome": "Nubank",
-          "jovens": 23,
+          "jovens": 25,
           "status": "Em aberto",
           "turma": "DM14",
           "dia": "quinta",
