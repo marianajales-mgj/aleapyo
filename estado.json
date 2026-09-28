@@ -27,17 +27,6 @@
           "pl": "Marialice"
         },
         {
-          "id": "emp1789409648056",
-          "nome": "Track&Field",
-          "jovens": 7,
-          "status": "Em aberto",
-          "turma": "DM13",
-          "dia": "quinta",
-          "sala": "Sala 1",
-          "unidade": "Polo Liberdade",
-          "pl": "Marialice"
-        },
-        {
           "id": "emp1789409658362",
           "nome": "CorPay",
           "jovens": 4,
@@ -163,11 +152,11 @@
           "nome": "Gimma",
           "jovens": 2,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null,
-          "pl": null
+          "turma": "AM13",
+          "dia": "segunda",
+          "sala": "Sala 1",
+          "unidade": "Freguesia do Ó",
+          "pl": "Manu"
         }
       ]
     },
@@ -218,6 +207,17 @@
           "sala": "Sala 1",
           "unidade": "Polo Liberdade",
           "pl": "Marialice"
+        },
+        {
+          "id": "emp1790632875986",
+          "nome": "Track&Field",
+          "jovens": 7,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null,
+          "pl": null
         }
       ]
     },
