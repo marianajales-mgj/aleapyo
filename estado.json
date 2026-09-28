@@ -149,13 +149,25 @@
         },
         {
           "id": "emp1790616875078",
-          "nome": "Nova empresa",
+          "nome": "Eletromídia",
           "jovens": 1,
+          "status": "Em aberto",
+          "turma": "BM9",
+          "dia": "terça",
+          "sala": "Sala 1",
+          "unidade": "Polo Liberdade",
+          "pl": "Marialice"
+        },
+        {
+          "id": "emp1790617209566",
+          "nome": "Gimma",
+          "jovens": 2,
           "status": "Em aberto",
           "turma": null,
           "dia": null,
           "sala": null,
-          "unidade": null
+          "unidade": null,
+          "pl": null
         }
       ]
     },
@@ -206,17 +218,6 @@
           "sala": "Sala 1",
           "unidade": "Polo Liberdade",
           "pl": "Marialice"
-        },
-        {
-          "id": "emp1790255833923",
-          "nome": "Gimma",
-          "jovens": 2,
-          "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null,
-          "pl": null
         }
       ]
     },
