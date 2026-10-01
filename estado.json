@@ -407,25 +407,5 @@
       ],
       "capacidade": 50
     }
-  ],
-  "cronTurmas": [
-    {
-      "id": "turma1790685435700",
-      "nome": "BM8",
-      "turma_id": "",
-      "modalidade": "presencial"
-    },
-    {
-      "id": "turma1790685435700a",
-      "nome": "",
-      "turma_id": "",
-      "modalidade": "presencial"
-    },
-    {
-      "id": "turma1790685435700b",
-      "nome": "",
-      "turma_id": "",
-      "modalidade": "presencial"
-    }
   ]
 }
