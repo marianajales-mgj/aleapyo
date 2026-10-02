@@ -7,6 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Aleapyo — Simulador de Alocação Leapy</title>
 <link href="https://fonts.googleapis.com/css2?family=Krona+One&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--blue:#373afd;--green:#35dcb2;--red:#fc5959;--yellow:#f2cf6b;--dark:#1d0328;--bg:#f5f5f2;--sf:#fff;--br:#e8e8e3;--tx:#1d0328;--mu:#888;--r:10px;--rs:7px}
@@ -118,6 +119,7 @@ input[type=text],input[type=number],input[type=date]{height:30px;border:1px soli
   <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center;justify-content:space-between">
     <div id="grade-leg" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"></div>
     <button onclick="gerenciarUnidades()" style="height:28px;padding:0 10px;background:#f5f5f2;color:var(--mu);border:1px solid var(--br);border-radius:var(--rs);font-size:11px;cursor:pointer;font-family:'Montserrat',sans-serif">⚙ Unidades</button>
+    <button onclick="renumerarTudoComConfirmacao()" style="height:28px;padding:0 10px;background:#f5f5f2;color:var(--mu);border:1px solid var(--br);border-radius:var(--rs);font-size:11px;cursor:pointer;font-family:'Montserrat',sans-serif" title="Corrige o número das turmas ainda não reais pra ficar em ordem de data de entrada">🔢 Renumerar turmas</button>
   </div>
   <div class="grade-wrap"><table class="grade" id="grade-tbl"></table></div>
   <div id="grade-alertas"></div>
@@ -140,17 +142,7 @@ input[type=text],input[type=number],input[type=date]{height:30px;border:1px soli
 
 <!-- TAB CRONOGRAMAS -->
 <div id="tab-cronogramas" class="sec" style="display:none">
-  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;text-align:center;gap:16px">
-    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.5" style="opacity:.4"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-    <div style="font-size:16px;font-weight:700;color:var(--tx)">Cronogramas</div>
-    <div style="font-size:13px;color:var(--mu);max-width:400px;line-height:1.6">
-      Em breve você poderá visualizar o cronograma de cada turma, verificar qual módulo cai no 1º presencial e comparar cronogramas entre turmas para decidir quando alocar novas entradas.
-    </div>
-    <div style="display:flex;align-items:center;gap:8px;background:#eeefff;border-radius:var(--rs);padding:10px 18px;font-size:12px;font-weight:600;color:var(--blue)">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1.2s linear infinite;flex-shrink:0"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-      Em desenvolvimento
-    </div>
-  </div>
+  <div id="cron-wrap"></div>
 </div>
 
 <!-- TAB MUDANÇA DE TURMA -->
@@ -400,6 +392,7 @@ async function loadEstado(){
           }
         });
       }
+      if(saved.cronTurmas)cronTurmas=saved.cronTurmas.map(t=>({...t,planoAulaTexto:'',planoAulaNome:''}));
     }
   }catch(e){console.warn('Estado não carregado:',e.message);}
 }
@@ -407,7 +400,8 @@ async function loadEstado(){
 async function saveEstado(){
   try{
     const plsExtras=plsState.filter(p=>p.nome!=='Manu'&&p.nome!=='Carol').map(p=>({nome:p.nome,alocados:p.alocados}));
-    const conteudo=btoa(unescape(encodeURIComponent(JSON.stringify({entradas,entradasHibrido,pls:plsExtras,unidades},null,2))));
+    const cronTurmasSalvar=cronTurmas.map(t=>({id:t.id,nome:t.nome,turma_id:t.turma_id,modalidade:t.modalidade}));
+    const conteudo=btoa(unescape(encodeURIComponent(JSON.stringify({entradas,entradasHibrido,pls:plsExtras,unidades,cronTurmas:cronTurmasSalvar},null,2))));
     const body={message:'estado: entradas atualizadas',content:conteudo,branch:'main'};
     if(_estadoSha)body.sha=_estadoSha;
     const r=await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${ESTADO_FILE}`,{
@@ -448,6 +442,13 @@ let filtroAtivoHib='todos';
 let neEmpresas=[];
 let neEmpresasHib=[];
 let _moverEid=null,_moverEmpid=null;
+
+// ── GERADOR DE CRONOGRAMAS ──
+// cronTurmas: config persistida (nome + ID do Directus). O plano de aula (CSV com as datas já
+// prontas) é reenviado a cada geração, não persiste — só o texto cru fica em memória.
+let cronTurmas=[]; // [{id,nome,turma_id,planoAulaTexto,planoAulaNome}]
+let cronResultado=null; // resultado da última geração (não persiste)
+let cronImportado=null; // {linhas,naoResolvidos,nomeArquivo,turmaIds:{nome:turma_id}} — cronograma pronto importado (não persiste)
 
 // ── OCUPAÇÃO ──
 const DURACAO_CONTRATO_MESES=15;
@@ -1555,6 +1556,7 @@ function _alocarHibrido(emp,entrada,dia,plInicio,plOnline,plFim){
   // Turma híbrida usa a MESMA sequência de nomes do presencial (AM1, BM2...) — pedido da Mariana,
   // não tem numeração própria "H" separada.
   emp.turma=proximoNomeTurma(dia);
+  renumerarTurmasPendentesPorEntrada(LETRA[dia]||'A');
 }
 
 // ── MODAL ALOCAR HÍBRIDO (dedicado, aberto a partir da aba Simulação Híbrido) ──
@@ -1684,6 +1686,71 @@ function proximoNomeTurma(dia){
   console.log('[Aleapyo] próxima turma de',dia,'→ letra='+letra+' max='+max+' próxima='+letra+'M'+(max+1));
   return letra+TURNO+(max+1);
 }
+// Corrige a numeração de turmas AINDA NÃO reais (nunca renomeia o que já está no Directus/TURMAS_FIXAS)
+// pra ficar sempre em ordem de DATA DE ENTRADA, não da ordem em que foram simuladas/alocadas.
+// Sem isso, alocar fora de ordem (ex: simular a entrada de 19/10 antes da de 05/10) deixa a turma
+// mais nova com um número menor que uma mais antiga — bug real encontrado em 2026-09-29 na letra B.
+// Desempate na mesma data: presencial antes de híbrido; dentro do presencial, por nome de sala.
+function renumerarTurmasPendentesPorEntrada(letra){
+  let maxReal=0;
+  if(window._maxHistoricoTurma&&window._maxHistoricoTurma[letra])maxReal=window._maxHistoricoTurma[letra];
+  TURMAS_FIXAS.forEach(t=>{
+    const m=t.nome.match(/([A-E])[MT](\d+)/);
+    if(m&&m[1]===letra)maxReal=Math.max(maxReal,parseInt(m[2]));
+  });
+  const vistos={};
+  function coletar(lista,origem){
+    lista.forEach(en=>en.empresas.forEach(e=>{
+      if(!e.turma)return;
+      const m=String(e.turma).match(/([A-E])[MT](\d+)/);
+      if(!m||m[1]!==letra)return;
+      const ehReal=TURMAS_FIXAS.some(t=>t.nome==='Turma '+e.turma);
+      if(ehReal)return;
+      if(!vistos[e.turma])vistos[e.turma]={nomeAtual:e.turma,data:en.data,origem,empresas:[]};
+      vistos[e.turma].empresas.push(e);
+    }));
+  }
+  coletar(entradas,'presencial');
+  coletar(entradasHibrido,'hibrido');
+  const lista=Object.values(vistos);
+  lista.sort((a,b)=>{
+    if(a.data!==b.data)return a.data<b.data?-1:1;
+    if(a.origem!==b.origem)return a.origem==='presencial'?-1:1;
+    if(a.origem==='presencial'){
+      const salaA=a.empresas[0].sala||'',salaB=b.empresas[0].sala||'';
+      if(salaA!==salaB)return salaA<salaB?-1:1;
+    }
+    return 0;
+  });
+  const renomeacoes={};
+  lista.forEach((t,i)=>{
+    const novoNome=letra+TURNO+(maxReal+1+i);
+    if(novoNome!==t.nomeAtual)renomeacoes[t.nomeAtual]=novoNome;
+  });
+  lista.forEach(t=>{
+    const novo=renomeacoes[t.nomeAtual];
+    if(!novo)return;
+    t.empresas.forEach(e=>{e.turma=novo;});
+  });
+  return renomeacoes;
+}
+function renumerarTodasAsLetras(){
+  const todas={};
+  ['A','B','C','D','E'].forEach(letra=>{
+    const r=renumerarTurmasPendentesPorEntrada(letra);
+    Object.assign(todas,r);
+  });
+  return todas;
+}
+function renumerarTudoComConfirmacao(){
+  if(bloquearSeNaoAutenticado(renumerarTudoComConfirmacao))return;
+  const renomeacoes=renumerarTodasAsLetras();
+  const pares=Object.entries(renomeacoes);
+  if(!pares.length){alert('Nenhuma turma fora de ordem — não precisa renomear nada.');return;}
+  alert('Renomeado(s):\n'+pares.map(([de,para])=>`${de} → ${para}`).join('\n'));
+  renderGrade();renderGradeMini();renderGradeMiniHib();renderEmpresas();renderEmpresasHibrido();
+  saveEstado();
+}
 
 function _alocar(emp,entrada,dia,sala,unidade,jovens,pl){
   emp.unidade=unidade;emp.sala=sala;emp.dia=dia;
@@ -1698,6 +1765,7 @@ function _alocar(emp,entrada,dia,sala,unidade,jovens,pl){
   );
   if(companheiraMesmaSala){emp.turma=companheiraMesmaSala.turma;return;}
   emp.turma=proximoNomeTurma(dia);
+  renumerarTurmasPendentesPorEntrada(LETRA[dia]||'A');
 }
 
 function fecharModal(){document.getElementById('modal-bg').style.display='none';}
@@ -1984,6 +2052,724 @@ function gerenciarUnidades(){
   saveEstado();
 }
 
+// ── GERADOR DE CRONOGRAMAS — MOTOR ──
+// Datas neste módulo estão sempre em DD/MM/YYYY (padrão do backoffice e das planilhas de admissão).
+// Modelo: as datas de cada turma (imersão início/fim, aulas semanais, feriados, emendas, recesso)
+// já vêm PRONTAS na planilha "Calendário de Formação" que a Mariana sobe pra cada turma — o Aleapyo
+// não calcula data nenhuma, só encaixa o módulo certo (da calendarização pedagógica, fixa abaixo)
+// em cada linha dessa planilha, na ordem, e gera os dois formatos de saída.
+function cronParseData(s){
+  const [d,m,y]=s.split('/').map(Number);
+  return new Date(y,m-1,d,12,0,0);
+}
+function cronFormatData(d){
+  const dd=String(d.getDate()).padStart(2,'0');
+  const mm=String(d.getMonth()+1).padStart(2,'0');
+  return `${dd}/${mm}/${d.getFullYear()}`;
+}
+function cronDetectarSeparador(text){
+  const primeiraLinha=text.split(/\r?\n/)[0]||'';
+  const candidatos=[',',';','\t'];
+  const contagem=sep=>(primeiraLinha.match(new RegExp('\\'+sep,'g'))||[]).length;
+  return candidatos.reduce((a,b)=>contagem(b)>contagem(a)?b:a);
+}
+function cronParseCSVGenerico(text){
+  const sep=cronDetectarSeparador(text);
+  const linhas=text.replace(/\r\n/g,'\n').split('\n').filter(l=>l.length);
+  return linhas.map(linha=>{
+    const campos=[];let atual='';let dentroAspas=false;
+    for(let i=0;i<linha.length;i++){
+      const c=linha[i];
+      if(c==='"'){
+        if(dentroAspas&&linha[i+1]==='"'){atual+='"';i++;}
+        else dentroAspas=!dentroAspas;
+      } else if(c===sep&&!dentroAspas){campos.push(atual);atual='';}
+      else atual+=c;
+    }
+    campos.push(atual);
+    return campos;
+  });
+}
+// Calendarização pedagógica fixa (trilha padrão "Aprendizagem Leapy — Base para o Salto").
+// Muda raramente — quando mudar, atualizar este CSV embutido (não é upload).
+const CRON_CALENDARIZACAO_PADRAO_CSV=`# Aulas,Classificação dia,Tipo,Arco,Trilha,ID,Tema
+1,Imersão,Atividade,,Base para o Salto,338,Integração e Pertencimento
+2,Imersão,Atividade,,Base para o Salto,339,Autoconhecimento e Responsabilidade Coletiva
+3,Imersão,Módulo,,Base para o Salto,98,Aprendendo a aprender
+4,Imersão,Módulo,Microsoft,Base para o Salto,326,Ferramentas básicas de trabalho - Microsoft
+4,Imersão,Módulo,Google,Base para o Salto,327,Ferramentas básicas de trabalho - Google
+5,Imersão,Módulo,,Base para o Salto,17,Direito trabalhistas + Lei do Jovem aprendiz
+6,Imersão,Módulo,,Base para o Salto,54,Meus primeiros 90 dias
+7,Imersão,Atividade,,Base para o Salto,340,Consolidação e Transição
+8,Aula Semanal,Módulo,,Protagonismo em Ação,97,Construção de hábitos
+9,Aula Semanal,Atividade,,Protagonismo em Ação,-,Atividade prática - Construção de hábitos
+10,Aula Semanal,Módulo,,Protagonismo em Ação,311,Protagonismo e autoliderança
+11,Aula Semanal,Módulo,,Protagonismo em Ação,36,Gestão de tempo e produtividade
+12,Aula Semanal,Módulo,,Protagonismo em Ação,11,Planejamento de carreira
+13,Aula Semanal,Módulo,,Protagonismo em Ação,101,Pensamento sistêmico
+14,Aula Semanal,Módulo,,A Soma de Todos,310,Gestão emocional
+15,Aula Semanal,Módulo,,A Soma de Todos,249,Comunicação
+16,Aula Semanal,Módulo,,A Soma de Todos,21,Relacionamentos interpessoais
+17,Aula Semanal,Módulo,,A Soma de Todos,58,Feedback assertivo
+18,Aula Semanal,Módulo,,A Soma de Todos,337,"Diversidade, equidade e inclusão"
+19,Aula Semanal,Módulo,,Salto Digital,343,Fundamentos de IA para o Dia a Dia
+20,Aula Semanal,Módulo,,Salto Digital,10,Privacidade de Dados
+21,Aula Semanal,Módulo,,Salto Digital,42,Resolução de Problemas
+21,Aula Semanal,Módulo,Google,Salto Digital,329,Google Sheets - Parte 1
+22,Aula Semanal,Módulo,Microsoft,Salto Digital,330,Excel - Parte 1
+22,Aula Semanal,Módulo,Google,Salto Digital,331,Google Sheets - Parte 2
+23,Aula Semanal,Módulo,Microsoft,Salto Digital,332,Excel - Parte 2
+23,Aula Semanal,Módulo,Google,Salto Digital,333,Google Sheets - Parte 3
+24,Aula Semanal,Módulo,Microsoft,Salto Digital,335,Excel - Parte 3
+24,Aula Semanal,Módulo,Google,Salto Digital,334,Google Sheets - Parte 4
+25,Aula Semanal,Módulo,Microsoft,Salto Digital,336,Excel - Parte 4
+26,Aula Semanal,Atividade,,Impulso Extra,-,Semana de Atividades Variadas + Recuperação de Módulo
+27,Aula Semanal,Módulo,,Arquitetando Soluções,34,Raciocínio analítico
+28,Aula Semanal,Módulo,,Arquitetando Soluções,34,Raciocínio analítico
+29,Aula Semanal,Módulo,,Arquitetando Soluções,34,Raciocínio analítico
+30,Aula Semanal,Módulo,,Arquitetando Soluções,8,Lógica de programação
+31,Aula Semanal,Módulo,,Arquitetando Soluções,8,Lógica de programação
+32,Aula Semanal,Módulo,,Arquitetando Soluções,8,Lógica de programação
+33,Aula Semanal,Módulo,,Arquitetando Soluções,8,Lógica de programação
+34,Aula Semanal,Módulo,,Tem que Parar de Pé,20,Introdução a Adm
+35,Aula Semanal,Módulo,,Tem que Parar de Pé,32,Planejamento de um negócio
+36,Aula Semanal,Módulo,,Tem que Parar de Pé,5,Marketing
+37,Aula Semanal,Módulo,,Obcecados por Crescer,6,Empreendedor 1 a 1
+38,Aula Semanal,Módulo,,Obcecados por Crescer,319,Projeto Empreendedor - Entrega 1
+39,Aula Semanal,Módulo,,Tem que Parar de Pé,24,Finanças corporativas
+40,Aula Semanal,Módulo,,Tem que Parar de Pé,328,Recursos Humanos
+41,Aula Semanal,Módulo,,Tem que Parar de Pé,341,Gestão de Projetos
+42,Aula Semanal,Módulo,,Tem que Parar de Pé,94,Métodos Ágeis
+43,Aula Semanal,Módulo,,Obcecados por Crescer,320,Projeto Empreendedor - Entrega 2
+44,Aula Semanal,Atividade,,Obcecados por Crescer,-,Atividade prática - Fundamentos e base de estatísticas ligado ao Projeto Empreendedor
+45,Aula Semanal,Módulo,,Obcecados por Crescer,321,Projeto Empreendedor - Entrega 3
+46,Aula Semanal,Módulo,,Decisões que Escalam,38,Introdução a estatística
+47,Aula Semanal,Módulo,,Decisões que Escalam,50,Fundamentos e base de estatísticas
+48,Aula Semanal,Módulo,,Decisões que Escalam,50,Fundamentos e base de estatísticas
+49,Aula Semanal,Módulo,,Decisões que Escalam,50,Fundamentos e base de estatísticas
+50,Aula Semanal,Atividade,,Impulso Extra,-,Semana de Atividades Variadas + Recuperação de Módulo
+51,Aula Semanal,Módulo,,Obcecados por Crescer,322,Projeto Empreendedor - Entrega 4
+52,Aula Semanal,Módulo,,Obcecados por Crescer,323,Projeto Empreendedor - Entrega 5
+53,Aula Semanal,Módulo,,Decisões que Escalam,312,Análise de Dados com SQL - Parte 1/4
+54,Aula Semanal,Módulo,,Decisões que Escalam,314,Análise de Dados com SQL - Parte 2/4
+55,Aula Semanal,Módulo,,Decisões que Escalam,316,Análise de Dados com SQL - Parte 3/4
+56,Aula Semanal,Módulo,,Decisões que Escalam,317,Análise de Dados com SQL - Parte 4/4
+57,Aula Semanal,Atividade,,Impulso Extra,-,Semana de Atividades Variadas + Recuperação de Módulo
+58,Aula Semanal,Atividade,,Obcecados por Crescer,-,Apresentação Final Projeto Empreendedor
+59,Aula Semanal,Módulo,,Decisões que Escalam,313,Visualização de dados - Parte 1/4
+60,Aula Semanal,Módulo,,Decisões que Escalam,315,Visualização de dados - Parte 2/4
+61,Aula Semanal,Atividade,,Impulso Extra,-,Semana de Atividades Variadas + Recuperação de Módulo
+62,Aula Semanal,Módulo,,O Jogo Profissional,25,Ética
+63,Aula Semanal,Módulo,,O Jogo Profissional,251,Negociação e comunicação empresarial
+64,Aula Semanal,Módulo,,O Jogo Profissional,31,Inovação no dia a dia do trabalho
+65,Aula Semanal,Módulo,,O Jogo Profissional,33,Saúde no trabalho
+66,Aula Semanal,Módulo,,O Jogo Profissional,40,Planejamento financeiro
+67,Aula Semanal,Módulo,,O Jogo Profissional,7,Projeto de vida`;
+function cronParseCalendarizacaoCSV(text){
+  const linhas=cronParseCSVGenerico(text);
+  if(!linhas.length)return [];
+  const header=linhas[0].map(h=>h.trim().toLowerCase());
+  const idx=nomeParcial=>header.findIndex(h=>h.includes(nomeParcial));
+  const iOrdem=idx('aula'),iFase=idx('classifica'),iTipo=header.findIndex(h=>h==='tipo'),
+        iArco=idx('arco'),iTrilha=idx('trilha'),iId=header.findIndex(h=>h==='id'),iTema=idx('tema');
+  return linhas.slice(1).filter(l=>l.some(c=>c&&c.trim())).map(l=>({
+    ordem:(l[iOrdem]||'').trim(),fase:(l[iFase]||'').trim().replace(/\*$/,''),
+    tipoConteudo:(l[iTipo]||'').trim(),arco:(l[iArco]||'').trim(),trilha:(l[iTrilha]||'').trim(),
+    id:(l[iId]||'').trim(),tema:(l[iTema]||'').trim()
+  }));
+}
+// ── IMPORTAR CRONOGRAMA SINCRONIZADO JÁ PRONTO (turmas continuando sala em andamento) ──
+// Quando uma sala já tem turma real rodando (ex: AM12), o cronograma de quem entra depois (AM13, AM14)
+// é decidido à mão numa planilha (o "sincronizado"), não recalculado do zero pelo Aleapyo. Aqui só
+// resolvemos o ID de cada módulo pelo NOME e geramos o CSV do backoffice — sem inventar sequência.
+// Apelidos conhecidos: nome usado no cronograma de uma turma mais antiga -> nome atual na calendarização.
+const CRON_ALIAS_TEMA={
+  'IA e o impacto no mercado do trabalho':'Fundamentos de IA para o Dia a Dia',
+};
+function cronBaseTema(t){
+  return t.replace(/\s*-\s*Parte\s*\d+(\/\d+)?\s*$/i,'').replace(/\s*Parte\s*\d+\/\d+\s*$/i,'').trim();
+}
+function construirLookupTema(calendarizacao){
+  const map={};
+  calendarizacao.forEach(l=>{if(l.tema)map[l.tema.trim()]=l.id;});
+  return map;
+}
+function resolverIdPorTema(tema,lookup){
+  const t=(tema||'').trim();
+  if(CRON_ALIAS_TEMA[t]&&lookup[CRON_ALIAS_TEMA[t]]!=null)return lookup[CRON_ALIAS_TEMA[t]];
+  if(lookup[t]!=null)return lookup[t];
+  const base=cronBaseTema(t);
+  if(lookup[base]!=null)return lookup[base];
+  return null;
+}
+function cronParseSincronizadoCSV(text,lookup){
+  const linhas=cronParseCSVGenerico(text);
+  if(!linhas.length)return {linhas:[],naoResolvidos:[]};
+  const header=linhas[0].map(h=>h.trim().toLowerCase());
+  const iIni=header.findIndex(h=>h.includes('início')),iFim=header.findIndex(h=>h.includes('encerr')),
+        iDia=header.findIndex(h=>h.includes('dia')),iTipo=header.findIndex(h=>h==='tipo'),
+        iTurmas=header.findIndex(h=>h.includes('turmas')),iTema=header.findIndex(h=>h.includes('tema'));
+  const naoResolvidos=new Set();
+  const out=linhas.slice(1).filter(l=>l.some(c=>c&&c.trim())).map(l=>{
+    const tema=(l[iTema]||'').trim();
+    const id=tema?resolverIdPorTema(tema,lookup):null;
+    if(tema&&id==null)naoResolvidos.add(tema);
+    return {
+      dataInicio:cronParseData((l[iIni]||'').trim()),dataFim:cronParseData((l[iFim]||'').trim()),
+      diaSemana:(l[iDia]||'').trim(),tipo:(l[iTipo]||'').trim(),
+      turmasPresentes:(l[iTurmas]||'').split('+').map(s=>s.trim()).filter(Boolean),
+      tema,id
+    };
+  });
+  return {linhas:out,naoResolvidos:[...naoResolvidos]};
+}
+
+// Agrupa só por "# Aulas" compartilhado — itens simultâneos no mesmo dia (ex: Ferramentas MS+Google)
+function cronAgruparBlocosPorOrdem(linhas){
+  const blocos=[];let i=0;
+  while(i<linhas.length){
+    let j=i+1;
+    while(j<linhas.length&&linhas[j].ordem&&linhas[j].ordem===linhas[i].ordem)j++;
+    blocos.push(linhas.slice(i,j));
+    i=j;
+  }
+  return blocos;
+}
+function cronParsePlanoAulaCSV(text){
+  const linhas=cronParseCSVGenerico(text);
+  if(!linhas.length)return [];
+  const header=linhas[0].map(h=>h.trim().toLowerCase());
+  const iData=header.findIndex(h=>h.includes('data'));
+  const iDia=header.findIndex(h=>h.includes('dia'));
+  const iTipo=header.findIndex(h=>h.includes('tipo'));
+  return linhas.slice(1).filter(l=>l.some(c=>c&&c.trim())).map(l=>({
+    data:cronParseData((l[iData]||'').trim()),
+    diaSemana:(l[iDia]||'').trim(),
+    tipo:(l[iTipo]||'').trim()
+  }));
+}
+// ── SINCRONIZAÇÃO DE UMA SALA (todas as turmas que compartilham o dia de aula) ──
+// Regras (Mariana, 2026-10-02):
+//  - Cada turma faz a PRÓPRIA imersão (módulos de Imersão da calendarização, um por dia do plano).
+//  - Depois da imersão cada turma entra no ritmo semanal da sala. Enquanto nem todas as turmas
+//    entraram (pré-sincronização), as que já estão presentes recebem, em ordem da calendarização,
+//    módulos INÉDITOS pra todas as presentes.
+//  - Quando todas já entraram, o currículo compartilhado pega o primeiro módulo que NENHUMA turma da
+//    sala viu ainda. Módulo que alguma turma já viu é pulado (essa turma não vê de novo).
+//  - Os módulos pulados ficam pendentes: só são dados DEPOIS que o currículo compartilhado acaba, às
+//    turmas que ainda não viram e continuam no contrato (turma que sai deixa de receber).
+//  - Nunca repetir um módulo pra mesma turma. "Turmas presentes" = turmas dentro do contrato naquela semana.
+function cronChaveItem(item,idxUnidade){
+  return item.id&&item.id!=='-'?item.id:'~'+idxUnidade+'|'+item.tema;
+}
+// Blocos consecutivos de 1 item com MESMO id e tema (Fundamentos ×4, Raciocínio ×N...) viram uma
+// unidade acumulativa que ocupa N semanas seguidas, com um único encerramento.
+function cronAgruparUnidades(blocos){
+  const unidades=[];
+  blocos.forEach((bloco,idx)=>{
+    const ult=unidades[unidades.length-1];
+    const it=bloco[0];
+    const base=ult&&ult.blocos[0];
+    const mesmo=base&&bloco.length===1&&base.length===1&&it.id&&it.id!=='-'&&base[0].id===it.id&&base[0].tema===it.tema;
+    if(mesmo){ult.blocos.push(bloco);return;}
+    unidades.push({blocos:[bloco],chaves:new Set(),idx});
+  });
+  unidades.forEach(u=>u.blocos.forEach(b=>b.forEach(item=>u.chaves.add(cronChaveItem(item,u.idx)))));
+  return unidades;
+}
+// Imersão de UMA turma: um bloco da calendarização por dia de imersão do plano; fim fixo = último dia da janela.
+function cronLinhasImersaoTurma(plano,blocosImersao,turmaNome){
+  const linhas=[],vistos=new Set();
+  let cursorInicial=0,cursorFinal=0;
+  const primeiroAula=plano.findIndex(r=>r.tipo==='Aula Semanal');
+  let ultimoAula=-1;
+  for(let i=plano.length-1;i>=0;i--)if(plano[i].tipo==='Aula Semanal'){ultimoAula=i;break;}
+  const ultimaImersao=(ini,fim)=>{for(let i=fim;i>=ini;i--)if(/^Imers/i.test(plano[i].tipo))return plano[i].data;return null;};
+  const fimInicial=ultimaImersao(0,(primeiroAula<0?plano.length:primeiroAula)-1);
+  const fimFinal=ultimoAula>=0?ultimaImersao(ultimoAula+1,plano.length-1):null;
+  plano.forEach((row,idx)=>{
+    if(!/^Imers/i.test(row.tipo))return;
+    const ehFinal=ultimoAula>=0&&idx>ultimoAula;
+    const fimFixo=(ehFinal?fimFinal:fimInicial)||row.data;
+    const bloco=ehFinal?blocosImersao[cursorFinal++]:blocosImersao[cursorInicial++];
+    const tipo=ehFinal?'Imersão final':'Imersão inicial';
+    if(bloco)bloco.forEach(item=>{
+      vistos.add(cronChaveItem(item,'i'));
+      linhas.push({dataInicio:row.data,dataFim:fimFixo,diaSemana:row.diaSemana,tipo,turmasPresentes:[turmaNome],tema:item.tema,id:item.id});
+    });
+    else linhas.push({dataInicio:row.data,dataFim:fimFixo,diaSemana:row.diaSemana,tipo:'Imersão (sem conteúdo definido)',turmasPresentes:[turmaNome],tema:'A DEFINIR — calendarização de imersão esgotada',id:null});
+  });
+  return {linhas,vistos};
+}
+function cronGerarSala(turmas,blocosImersao,blocosAulaSemanal){
+  const unidades=cronAgruparUnidades(blocosAulaSemanal);
+  const alertas=[];
+  let linhas=[];
+  const estado=turmas.map(t=>{
+    const im=cronLinhasImersaoTurma(t.plano,blocosImersao,t.nome);
+    linhas=linhas.concat(im.linhas);
+    const aulas=t.plano.filter(r=>r.tipo==='Aula Semanal').map(r=>r.data.getTime());
+    if(!aulas.length)alertas.push(`${t.nome}: o plano de aula não tem nenhuma "Aula Semanal" — nada pra sincronizar.`);
+    return {nome:t.nome,plano:t.plano,vistos:im.vistos,
+      primeira:aulas.length?Math.min(...aulas):null,ultima:aulas.length?Math.max(...aulas):null};
+  });
+  const comAula=estado.filter(t=>t.primeira!=null);
+  const diasAula=new Set();
+  estado.forEach(t=>t.plano.forEach(r=>{if(r.tipo==='Aula Semanal')diasAula.add(r.diaSemana);}));
+  if(diasAula.size>1)alertas.push(`As turmas têm dias de aula diferentes (${[...diasAula].join(', ')}) — a sincronização só faz sentido pra turmas da mesma sala/dia.`);
+
+  const slotsSet=new Set(),calSet=new Set(),diaPorMs={};
+  estado.forEach(t=>t.plano.forEach(r=>{
+    const ms=r.data.getTime();
+    if(r.tipo==='Aula Semanal'){slotsSet.add(ms);calSet.add(ms);diaPorMs[ms]=r.diaSemana;}
+    else if(/^Recesso/i.test(r.tipo))calSet.add(ms);
+  }));
+  const slots=[...slotsSet].sort((a,b)=>a-b);
+  const cal=[...calSet].sort((a,b)=>a-b);
+  // Fim de um módulo = próxima data de aula ou recesso (feriado/emenda não conta: o módulo "ganha +1 semana").
+  const fimDe=ms=>{const n=cal.find(x=>x>ms);return new Date(n!=null?n:ms);};
+  const presentesEm=ms=>comAula.filter(t=>ms>=t.primeira&&ms<=t.ultima);
+  const inedita=(u,grupo)=>grupo.every(t=>[...u.chaves].every(k=>!t.vistos.has(k)));
+
+  let i=0;
+  while(i<slots.length){
+    const ms=slots[i];
+    const pres=presentesEm(ms);
+    if(!pres.length){i++;continue;}
+    const todosEntraram=comAula.every(t=>t.primeira<=ms);
+    let alvo=null;
+    if(todosEntraram){
+      alvo=unidades.find(u=>inedita(u,comAula));          // currículo compartilhado
+      if(!alvo)alvo=unidades.find(u=>inedita(u,pres));     // pendentes (módulos pulados)
+    } else alvo=unidades.find(u=>inedita(u,pres));          // pré-sincronização
+    if(!alvo){
+      linhas.push({dataInicio:new Date(ms),dataFim:fimDe(ms),diaSemana:diaPorMs[ms],tipo:'Aula Semanal (sem conteúdo definido)',turmasPresentes:pres.map(t=>t.nome),tema:'A DEFINIR — currículo completo já concluído',id:null});
+      i++;continue;
+    }
+    const n=alvo.blocos.length;
+    const disponiveis=Math.min(n,slots.length-i);
+    if(disponiveis<n)alertas.push(`"${alvo.blocos[0][0].tema}" precisa de ${n} semanas mas só restam ${disponiveis} no plano de aula.`);
+    const fimGrupo=n>1?fimDe(slots[i+disponiveis-1]):null;
+    const presUnidade=new Set();
+    for(let k=0;k<disponiveis;k++){
+      const msK=slots[i+k],presK=presentesEm(msK);
+      presK.forEach(t=>presUnidade.add(t));
+      alvo.blocos[k].forEach(item=>linhas.push({dataInicio:new Date(msK),dataFim:n>1?fimGrupo:fimDe(msK),diaSemana:diaPorMs[msK],tipo:'Aula Semanal',turmasPresentes:presK.map(t=>t.nome),tema:item.tema,id:item.id}));
+    }
+    presUnidade.forEach(t=>alvo.chaves.forEach(c=>t.vistos.add(c)));
+    i+=disponiveis;
+  }
+
+  // Linhas sem módulo (feriado, emenda, recesso): mantidas, uma por data+tipo, com as turmas que as têm no plano.
+  const semModulo={};
+  estado.forEach(t=>t.plano.forEach(r=>{
+    if(/^Imers/i.test(r.tipo)||r.tipo==='Aula Semanal')return;
+    const k=r.data.getTime()+'|'+r.tipo;
+    if(!semModulo[k])semModulo[k]={dataInicio:r.data,dataFim:fimDe(r.data.getTime()),diaSemana:r.diaSemana,tipo:r.tipo,turmasPresentes:[],tema:'',id:null};
+    semModulo[k].turmasPresentes.push(t.nome);
+  }));
+  linhas=linhas.concat(Object.values(semModulo));
+
+  // Imersões idênticas de turmas diferentes na mesma data viram uma linha só.
+  const porChave={};
+  linhas.forEach(l=>{
+    const k=l.dataInicio.getTime()+'|'+l.tipo+'|'+l.tema+'|'+(l.tipo.startsWith('Aula')?l.turmasPresentes.join('+'):'');
+    if(!porChave[k])porChave[k]={...l,turmasPresentes:[...l.turmasPresentes]};
+    else l.turmasPresentes.forEach(n=>{if(!porChave[k].turmasPresentes.includes(n))porChave[k].turmasPresentes.push(n);});
+  });
+  linhas=Object.values(porChave).sort((a,b)=>a.dataInicio-b.dataInicio);
+
+  // Relatório: módulos que cada turma não verá — esperado, é o contrato (duração fixa) que limita.
+  comAula.forEach(t=>{
+    const naoVistos=unidades.filter(u=>![...u.chaves].some(c=>t.vistos.has(c))&&u.blocos[0][0].id&&u.blocos[0][0].id!=='-').map(u=>u.blocos[0][0].tema);
+    if(naoVistos.length)alertas.push(`${t.nome}: ${naoVistos.length} módulo(s) da calendarização não cabem no contrato dessa turma (esperado, contrato tem duração fixa): ${naoVistos.join(', ')}.`);
+  });
+  // Validação: módulos de ordem obrigatória nunca podem aparecer fora de ordem pra mesma turma.
+  comAula.forEach(t=>{
+    let anterior=null;
+    CRON_ORDEM_FIXA.forEach(nome=>{
+      const datas=linhas.filter(l=>l.tema===nome&&l.tipo==='Aula Semanal'&&l.turmasPresentes.includes(t.nome)).map(l=>l.dataInicio.getTime());
+      if(!datas.length)return;
+      const primeira=Math.min(...datas);
+      if(anterior&&primeira<anterior.ms)alertas.push(`⛔ ${t.nome}: "${nome}" (${cronFormatData(new Date(primeira))}) aparece ANTES de "${anterior.nome}" (${cronFormatData(new Date(anterior.ms))}) — ordem obrigatória violada, confira manualmente.`);
+      if(!anterior||primeira>=anterior.ms)anterior={nome,ms:primeira};
+    });
+  });
+  return {linhas,alertas};
+}
+// Módulos que não podem trocar de ordem entre si (definido pela Mariana em 2026-10-02).
+const CRON_ORDEM_FIXA=[
+  'Google Sheets - Parte 1','Excel - Parte 1','Google Sheets - Parte 2','Excel - Parte 2',
+  'Google Sheets - Parte 3','Excel - Parte 3','Google Sheets - Parte 4','Excel - Parte 4',
+  'Raciocínio analítico','Lógica de programação',
+  'Projeto Empreendedor - Entrega 1','Projeto Empreendedor - Entrega 2','Projeto Empreendedor - Entrega 3',
+  'Introdução a estatística','Fundamentos e base de estatísticas',
+  'Projeto Empreendedor - Entrega 4','Projeto Empreendedor - Entrega 5',
+  'Análise de Dados com SQL - Parte 1/4','Análise de Dados com SQL - Parte 2/4','Análise de Dados com SQL - Parte 3/4','Análise de Dados com SQL - Parte 4/4',
+  'Apresentação Final Projeto Empreendedor','Visualização de dados - Parte 1/4','Visualização de dados - Parte 2/4'
+];
+function cronCSVEscape(v){
+  v=String(v==null?'':v);
+  if(v.includes(',')||v.includes('"')||v.includes('\n'))return '"'+v.replace(/"/g,'""')+'"';
+  return v;
+}
+function cronGerarCSVSincronizado(linhas){
+  const header=['Data de início','Data de encerramento','Dia da semana','Tipo','Turmas presentes','ID do módulo','Tema'];
+  const rows=linhas.map(l=>[cronFormatData(l.dataInicio),cronFormatData(l.dataFim),l.diaSemana,l.tipo,l.turmasPresentes.join(' + '),l.id||'',l.tema].map(cronCSVEscape).join(','));
+  return [header.join(','),...rows].join('\n');
+}
+// Champion_id conhecidos, puxados direto do Directus (Modulos_Champions) em 2026-10-01 — snapshot,
+// não atualiza sozinho; se um módulo novo ganhar champion lá, precisa atualizar aqui também.
+const CRON_CHAMPION_POR_MODULO={
+  23:28,29:7,11:12,18:32,14:16,28:1,47:7,43:18,27:14,17:17,3:13,6:2,35:26,37:19,46:19,24:34,36:35,
+  4:10,50:7,49:6,15:27,31:6,48:23,20:5,38:28,41:3,8:10,5:9,16:7,39:19,40:30,32:5,30:11,10:20,2:1,
+  7:24,12:8,26:22,34:7,44:31,19:25,21:15,42:21,33:4,1:29,45:7,9:39,22:38,25:38,13:38,58:39,63:26
+};
+function cronCalcularLinhasBackoffice(linhas,turmaNome,turmaId){
+  const rowsPorId={};
+  const semId=[];
+  linhas.forEach(l=>{
+    if(!l.turmasPresentes.includes(turmaNome))return;
+    if(!l.id||l.id==='-'){
+      // Atividade sem ID (Semana de Atividades, Atividade prática, Apresentação Final...): entra com
+      // modulo_id em branco, sem deduplicar — o Directus precisa saber que a semana existe pra não
+      // ficar gap; o ID é preenchido depois, quando for criado lá. Feriado/recesso (sem tema) e
+      // placeholders "A DEFINIR" não entram.
+      if(l.tema&&!/sem conteúdo/i.test(l.tipo))semId.push({modulo_id:'',turma_id:turmaId,dataInicio:l.dataInicio,dataFim:l.dataFim,championId:'',referencia:l.tema});
+      return;
+    }
+    if(!rowsPorId[l.id])rowsPorId[l.id]={modulo_id:l.id,turma_id:turmaId,dataInicio:l.dataInicio,dataFim:l.dataFim,championId:CRON_CHAMPION_POR_MODULO[l.id]||'',referencia:''};
+    else{
+      const r=rowsPorId[l.id];
+      if(l.dataInicio<r.dataInicio)r.dataInicio=l.dataInicio;
+      if(l.dataFim>r.dataFim)r.dataFim=l.dataFim;
+    }
+  });
+  return [...Object.values(rowsPorId),...semId].sort((a,b)=>a.dataInicio-b.dataInicio);
+}
+function cronGerarCSVBackoffice(linhas,turmaNome,turmaId){
+  const linhasFinal=cronCalcularLinhasBackoffice(linhas,turmaNome,turmaId);
+  const header=['modulo_id','turma_id','Data de início','Data de encerramento','champion_id','Status','tipo'];
+  const rows=linhasFinal.map(r=>[r.modulo_id,r.turma_id,cronFormatData(r.dataInicio),cronFormatData(r.dataFim),r.championId,'nao_iniciado','modulo'].map(cronCSVEscape).join(','));
+  return [header.join(','),...rows].join('\n');
+}
+function cronRenderTabelaBackoffice(linhas,turmaNome,turmaId){
+  const rows=cronCalcularLinhasBackoffice(linhas,turmaNome,turmaId);
+  if(!rows.length)return '<div style="font-size:11px;color:var(--mu);padding:6px 0">Nenhum módulo com ID reconhecido pra essa turma.</div>';
+  return `<div style="max-height:260px;overflow:auto;border:1px solid var(--br);border-radius:6px;margin-top:6px">
+    <table style="width:100%;border-collapse:collapse;font-size:11px">
+      <thead><tr style="text-align:left;color:var(--mu);position:sticky;top:0;background:#fff">
+        <th style="padding:4px 8px">modulo_id</th><th style="padding:4px 8px">turma_id</th><th style="padding:4px 8px">Início</th><th style="padding:4px 8px">Fim</th><th style="padding:4px 8px">champion_id</th><th style="padding:4px 8px">Status</th><th style="padding:4px 8px">tipo</th><th style="padding:4px 8px;font-weight:400">(só na prévia)</th>
+      </tr></thead>
+      <tbody>${rows.map(r=>`<tr style="border-top:1px solid var(--br)">
+        <td style="padding:4px 8px">${r.modulo_id}</td><td style="padding:4px 8px">${r.turma_id||''}</td>
+        <td style="padding:4px 8px">${cronFormatData(r.dataInicio)}</td><td style="padding:4px 8px">${cronFormatData(r.dataFim)}</td>
+        <td style="padding:4px 8px">${r.championId}</td><td style="padding:4px 8px">nao_iniciado</td><td style="padding:4px 8px">modulo</td>
+        <td style="padding:4px 8px;color:var(--mu)">${r.referencia?'sem ID: '+r.referencia:''}</td>
+      </tr>`).join('')}</tbody>
+    </table>
+  </div>`;
+}
+let cronPreviaAberta=new Set(); // chaves de prévia de backoffice expandidas (não persiste)
+function cronTogglePreviaBackoffice(chave){
+  if(cronPreviaAberta.has(chave))cronPreviaAberta.delete(chave);else cronPreviaAberta.add(chave);
+  renderCronogramas();
+}
+function cronBaixarArquivo(nomeArquivo,conteudo){
+  const blob=new Blob(['﻿'+conteudo],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=nomeArquivo;document.body.appendChild(a);a.click();
+  document.body.removeChild(a);URL.revokeObjectURL(url);
+}
+// Converte a aba exportada do Sheets (sincronizado) pra CSV — aqui a tabela já começa na linha 1,
+// sem bloco de resumo antes (diferente do plano de aula do Gerador de Calendário).
+function cronXlsxSincronizadoParaCSV(arrayBuffer){
+  const wb=XLSX.read(arrayBuffer,{type:'array'});
+  const ws=wb.Sheets[wb.SheetNames[0]];
+  return XLSX.utils.sheet_to_csv(ws);
+}
+function cronCarregarSincronizado(input){
+  const file=input.files[0];if(!file)return;
+  const ehXlsx=/\.xlsx?$/i.test(file.name);
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const texto=ehXlsx?cronXlsxSincronizadoParaCSV(e.target.result):e.target.result;
+      const calendarizacao=cronParseCalendarizacaoCSV(CRON_CALENDARIZACAO_PADRAO_CSV);
+      const lookup=construirLookupTema(calendarizacao);
+      const {linhas,naoResolvidos}=cronParseSincronizadoCSV(texto,lookup);
+      const turmaIds={};
+      linhas.forEach(l=>l.turmasPresentes.forEach(t=>{if(turmaIds[t]===undefined)turmaIds[t]='';}));
+      cronImportado={linhas,naoResolvidos,nomeArquivo:file.name,turmaIds};
+    }catch(err){alert('Erro ao ler o arquivo: '+err.message);return;}
+    renderCronogramas();
+  };
+  if(ehXlsx)reader.readAsArrayBuffer(file);else reader.readAsText(file,'utf-8');
+}
+function cronAtualizarTurmaIdImportado(nome,valor){
+  if(!cronImportado)return;
+  cronImportado.turmaIds[nome]=valor;
+}
+function cronBaixarBackofficeImportado(nome){
+  if(!cronImportado)return;
+  // ID do Directus é opcional aqui — só existe de verdade no momento da importação; fica em branco
+  // e ela preenche depois, se ainda não tiver.
+  const turmaId=cronImportado.turmaIds[nome]||'';
+  cronBaixarArquivo(`backoffice-${nome.replace(/\s+/g,'_')}.csv`,cronGerarCSVBackoffice(cronImportado.linhas,nome,turmaId));
+}
+
+// ── GERADOR DE CRONOGRAMAS — UI ──
+// As abas de simulação (Presencial/Híbrido) já sabem nome, dia, sala e modalidade de cada turma —
+// o gerador lê isso direto em vez de pedir de novo. Modalidade decide a lista de módulos: toda turma
+// da Simulação Presencial usa a lista 1 (Técnico ADM/RH, Assistente Administrativo); toda turma da
+// Simulação Híbrido usa a lista 2 (Gestão de Dados, ainda não configurada).
+function cronTurmasDisponiveis(){
+  const porNome={};
+  entradas.forEach(e=>e.empresas.forEach(emp=>{
+    if(!emp.turma)return;
+    const k=emp.turma;
+    if(!porNome[k])porNome[k]={nome:emp.turma,dia:emp.dia,sala:emp.sala,unidade:emp.unidade,modalidade:'presencial',entrada:e.data,jovens:0};
+    porNome[k].jovens+=emp.jovens;
+  }));
+  entradasHibrido.forEach(e=>e.empresas.forEach(emp=>{
+    if(!emp.turma)return;
+    const k=emp.turma;
+    if(!porNome[k])porNome[k]={nome:emp.turma,dia:emp.dia,sala:emp.sala,unidade:emp.unidade,modalidade:'hibrido',entrada:e.data,jovens:0};
+    porNome[k].jovens+=emp.jovens;
+  }));
+  return Object.values(porNome);
+}
+// Ao escolher a primeira turma de uma sala, já traz as 2 PRÓXIMAS turmas da Simulação que entram na
+// mesma sala (mesmo dia, unidade e sala, entrada depois), pra ela anexar os 3 planos de aula e conferir
+// a sincronização antes de confirmar. Se a simulação tiver menos de 2, o resto fica como slot vazio.
+function cronAdicionarSlotsPrevia(primeira){
+  if(cronTurmas.length!==1)return;
+  const prox=primeira?cronTurmasDisponiveis()
+    .filter(t=>t.nome!==primeira.nome&&t.modalidade===primeira.modalidade&&t.dia===primeira.dia&&t.unidade===primeira.unidade&&t.sala===primeira.sala&&t.entrada>primeira.entrada)
+    .sort((a,b)=>a.entrada<b.entrada?-1:a.entrada>b.entrada?1:0).slice(0,2):[];
+  for(let k=0;k<2;k++){
+    const s=prox[k];
+    cronTurmas.push({id:'turma'+Date.now()+'p'+k,nome:s?s.nome:'',turma_id:'',modalidade:cronTurmas[0].modalidade,entrada:s?s.entrada:'',planoAulaTexto:'',planoAulaNome:'',previa:true});
+  }
+}
+function cronUsarTurmaSimulada(nome){
+  const disp=cronTurmasDisponiveis().find(t=>t.nome===nome);if(!disp)return;
+  if(cronTurmas.find(t=>t.nome===nome))return;
+  cronTurmas.push({id:'turma'+Date.now(),nome:disp.nome,turma_id:'',modalidade:disp.modalidade,entrada:disp.entrada,planoAulaTexto:'',planoAulaNome:''});
+  cronAdicionarSlotsPrevia(disp);
+  renderCronogramas();saveEstado();
+}
+function cronAddTurma(){
+  cronTurmas.push({id:'turma'+Date.now(),nome:'',turma_id:'',modalidade:'presencial',planoAulaTexto:'',planoAulaNome:''});
+  cronAdicionarSlotsPrevia();
+  renderCronogramas();saveEstado();
+}
+function cronRemoverTurma(id){
+  cronTurmas=cronTurmas.filter(t=>t.id!==id);
+  renderCronogramas();saveEstado();
+}
+function cronAtualizarTurma(id,campo,valor){
+  const t=cronTurmas.find(x=>x.id===id);if(!t)return;
+  t[campo]=valor;
+  renderCronogramas();saveEstado();
+}
+// Aceita .xlsx direto (formato do Gerador de Calendário) além de .csv — converte a planilha
+// "Calendário de Formação" pro mesmo formato Data,Dia da Semana,Tipo usado internamente.
+function cronXlsxParaCSV(arrayBuffer){
+  const wb=XLSX.read(arrayBuffer,{type:'array',cellDates:true});
+  const ws=wb.Sheets[wb.SheetNames[0]];
+  const rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:''});
+  let headerIdx=-1;
+  for(let i=0;i<rows.length;i++){
+    if(String(rows[i][0]||'').trim()==='Data'){headerIdx=i;break;}
+  }
+  if(headerIdx<0)throw new Error('Não encontrei a tabela de datas (coluna "Data") nesse arquivo.');
+  // XLSX com cellDates:true devolve a data como meia-noite UTC — ler com getters locais erra o dia
+  // em qualquer fuso negativo (ex: Brasil, UTC-3 vira o dia anterior). Sempre ler em UTC aqui.
+  const linhas=['Data,Dia da Semana,Tipo'];
+  for(let i=headerIdx+1;i<rows.length;i++){
+    const r=rows[i];
+    if(!r[0])continue;
+    let data;
+    if(r[0]instanceof Date){
+      const dd=String(r[0].getUTCDate()).padStart(2,'0');
+      const mm=String(r[0].getUTCMonth()+1).padStart(2,'0');
+      data=`${dd}/${mm}/${r[0].getUTCFullYear()}`;
+    } else data=String(r[0]);
+    linhas.push([data,r[1]||'',r[2]||''].map(cronCSVEscape).join(','));
+  }
+  return linhas.join('\n');
+}
+function cronCarregarPlanoAula(id,input){
+  const file=input.files[0];if(!file)return;
+  const t=cronTurmas.find(x=>x.id===id);if(!t)return;
+  const ehXlsx=/\.xlsx?$/i.test(file.name);
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      t.planoAulaTexto=ehXlsx?cronXlsxParaCSV(e.target.result):e.target.result;
+      t.planoAulaNome=file.name;
+    }catch(err){alert('Erro ao ler o arquivo: '+err.message);return;}
+    renderCronogramas();
+  };
+  if(ehXlsx)reader.readAsArrayBuffer(file);else reader.readAsText(file,'utf-8');
+}
+function cronGerar(){
+  // ID do Directus só existe no momento da importação real — fica em branco aqui, ela preenche depois.
+  const turmasValidas=cronTurmas.filter(t=>t.nome&&t.planoAulaTexto);
+  if(!turmasValidas.length){alert('Preencha nome e o plano de aula de pelo menos uma turma.');return;}
+  const semLista2=turmasValidas.filter(t=>t.modalidade==='hibrido');
+  if(semLista2.length){alert(`A lista de módulos do Híbrido (Gestão de Dados) ainda não foi configurada — não dá pra gerar cronograma pra: ${semLista2.map(t=>t.nome).join(', ')}.`);return;}
+  const calendarizacao=cronParseCalendarizacaoCSV(CRON_CALENDARIZACAO_PADRAO_CSV);
+  const blocosImersao=cronAgruparBlocosPorOrdem(calendarizacao.filter(l=>l.fase==='Imersão'));
+  const blocosAulaSemanal=cronAgruparBlocosPorOrdem(calendarizacao.filter(l=>l.fase==='Aula Semanal'));
+  const turmasSala=turmasValidas.map(t=>({nome:t.nome,plano:cronParsePlanoAulaCSV(t.planoAulaTexto)}));
+  const {linhas,alertas}=cronGerarSala(turmasSala,blocosImersao,blocosAulaSemanal);
+  cronResultado={linhas,alertas,turmas:turmasValidas};
+  renderCronogramas();
+}
+function cronBaixarSincronizado(){
+  if(!cronResultado)return;
+  cronBaixarArquivo('cronograma-sincronizado.csv',cronGerarCSVSincronizado(cronResultado.linhas));
+}
+function cronBaixarBackoffice(turmaNome,turmaId){
+  if(!cronResultado)return;
+  cronBaixarArquivo(`backoffice-${turmaNome.replace(/\s+/g,'_')}.csv`,cronGerarCSVBackoffice(cronResultado.linhas,turmaNome,turmaId));
+}
+function cronRenderTabelaCalendarizacao(csv){
+  const linhas=cronParseCalendarizacaoCSV(csv);
+  return `<div style="max-height:280px;overflow:auto;border:1px solid var(--br);border-radius:6px;margin-top:8px">
+    <table style="width:100%;border-collapse:collapse;font-size:11px">
+      <thead><tr style="text-align:left;color:var(--mu);position:sticky;top:0;background:#fff"><th style="padding:4px 8px">Fase</th><th style="padding:4px 8px">Tipo</th><th style="padding:4px 8px">Arco</th><th style="padding:4px 8px">Trilha</th><th style="padding:4px 8px">ID</th><th style="padding:4px 8px">Tema</th></tr></thead>
+      <tbody>${linhas.map(l=>`<tr style="border-top:1px solid var(--br)">
+        <td style="padding:4px 8px">${l.fase}</td><td style="padding:4px 8px">${l.tipoConteudo}</td><td style="padding:4px 8px">${l.arco}</td>
+        <td style="padding:4px 8px">${l.trilha}</td><td style="padding:4px 8px">${l.id}</td><td style="padding:4px 8px">${l.tema}</td>
+      </tr>`).join('')}</tbody>
+    </table>
+  </div>`;
+}
+function renderCronogramas(){
+  const wrap=document.getElementById('cron-wrap');if(!wrap)return;
+  let h=`<div style="margin-bottom:16px">
+    <div style="font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Gerador de Cronogramas</div>
+    <div style="font-size:12px;color:var(--mu)">Pra cada turma, suba o plano de aula do Gerador de Calendário (.xlsx ou .csv, com as datas de imersão/aulas/feriados já prontas). O Aleapyo encaixa os módulos da calendarização e gera o cronograma pra PL e o CSV de importação do backoffice.</div>
+  </div>`;
+
+  h+=`<details style="margin-bottom:16px">
+    <summary style="cursor:pointer;font-weight:700;font-size:13px;padding:8px 0">📖 Ver calendarização (lista de módulos) — só pra consulta</summary>
+    <div style="padding:8px 0 0">
+      <div style="font-size:12px;font-weight:600;margin-bottom:2px">Lista 1 — Presencial</div>
+      <div style="font-size:11px;color:var(--mu);margin-bottom:4px">Serve para: Técnico em Administração, Técnico em RH, Jovem Aprendiz Assistente Administrativo</div>
+      ${cronRenderTabelaCalendarizacao(CRON_CALENDARIZACAO_PADRAO_CSV)}
+      <div style="font-size:12px;font-weight:600;margin:14px 0 2px">Lista 2 — Híbrido</div>
+      <div style="font-size:11px;color:var(--mu)">Serve para: Assistente de Gestão de Dados - Economia 4.0 — <b>ainda não configurada no Aleapyo</b>.</div>
+    </div>
+  </details>`;
+
+  h+=`<div class="pl-card" style="margin-bottom:16px;background:#f4f4f8">
+    <div style="font-weight:700;font-size:13px;margin-bottom:4px">Turma entrando numa sala já em andamento?</div>
+    <div style="font-size:11px;color:var(--mu);margin-bottom:8px">Se a sala já tem turma real rodando (ex: AM13 continuando a AM12), o cronograma é decidido à mão numa planilha (o "sincronizado"), não recalculado do zero. Suba essa planilha pronta aqui (.xlsx do Sheets ou .csv) — o Aleapyo só resolve o ID de cada módulo pelo nome e gera o CSV do backoffice, sem inventar sequência.</div>
+    <input type="file" accept=".csv,.xlsx,.xls" onchange="cronCarregarSincronizado(this)"/>
+    ${cronImportado?`
+      <div style="font-size:11px;color:#0a7a60;margin-top:8px">✓ ${cronImportado.nomeArquivo} — ${cronImportado.linhas.length} linhas</div>
+      ${cronImportado.naoResolvidos.length?`<div style="font-size:11px;color:#92400e;margin-top:4px">⚠ ${cronImportado.naoResolvidos.length} módulo(s) sem ID reconhecido (falta na calendarização ou nome diferente): ${cronImportado.naoResolvidos.join(', ')}</div>`:''}
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">
+        ${Object.keys(cronImportado.turmaIds).map(nome=>{
+          const chave='import:'+nome;
+          return `<div>
+            <div style="display:flex;align-items:center;gap:4px;background:#fff;border:1px solid var(--br);border-radius:6px;padding:4px 8px">
+              <span style="font-size:11px;font-weight:600">${nome}</span>
+              <input type="text" placeholder="ID Directus (opcional)" title="Só existe de verdade no momento da importação — pode deixar em branco e preencher depois" value="${cronImportado.turmaIds[nome]}" onchange="cronAtualizarTurmaIdImportado('${nome}',this.value)" style="width:120px;font-size:11px"/>
+              <button onclick="cronTogglePreviaBackoffice('${chave}')" style="font-size:11px;background:#f4f4f8;color:var(--tx);border:none;border-radius:5px;padding:3px 8px;cursor:pointer;font-family:'Montserrat',sans-serif">👁 ${cronPreviaAberta.has(chave)?'Esconder':'Ver'} prévia</button>
+              <button onclick="cronBaixarBackofficeImportado('${nome}')" style="font-size:11px;background:#eeefff;color:var(--blue);border:none;border-radius:5px;padding:3px 8px;cursor:pointer;font-family:'Montserrat',sans-serif">⬇ Backoffice</button>
+            </div>
+            ${cronPreviaAberta.has(chave)?cronRenderTabelaBackoffice(cronImportado.linhas,nome,cronImportado.turmaIds[nome]):''}
+          </div>`;
+        }).join('')}
+      </div>`:''}
+  </div>`;
+
+  h+=`<div style="font-weight:700;font-size:13px;margin-bottom:4px">Sala nova — gerar do zero</div>
+  <div style="font-size:11px;color:var(--mu);margin-bottom:10px">Pra turma que abre uma sala nova (primeira turma), o Aleapyo monta o cronograma sozinho a partir do plano de aula.</div>`;
+
+  const disponiveis=cronTurmasDisponiveis().filter(d=>!cronTurmas.find(t=>t.nome===d.nome));
+  if(disponiveis.length){
+    h+=`<div style="font-size:11px;color:var(--mu);margin-bottom:6px">Turmas já simuladas na Simulação Presencial/Híbrido — clique pra usar:</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
+      ${disponiveis.map(d=>`<button onclick="cronUsarTurmaSimulada('${d.nome}')" style="font-size:11px;background:${d.modalidade==='hibrido'?'#fff7ed':'#e8fff9'};color:${d.modalidade==='hibrido'?'#92400e':'#0a7a60'};border:1px solid ${d.modalidade==='hibrido'?'#fdba74':'#35dcb255'};border-radius:5px;padding:4px 10px;cursor:pointer;font-family:'Montserrat',sans-serif">+ ${d.nome} (${d.dia}, ${d.modalidade})</button>`).join('')}
+    </div>`;
+  }
+
+  h+=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+    <div style="font-weight:700;font-size:13px">Turmas desta geração</div>
+    <button onclick="cronAddTurma()" style="font-size:11px;background:var(--blue);color:#fff;border:none;border-radius:5px;padding:5px 12px;cursor:pointer;font-family:'Montserrat',sans-serif">+ Adicionar turma manualmente</button>
+  </div>`;
+
+  cronTurmas.forEach(t=>{
+    h+=`<div class="pl-card" style="margin-bottom:12px;${t.previa?'border:1.5px dashed var(--blue)':''}">
+      ${t.previa?`<div style="font-size:10px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">🔮 Próxima entrada da sala${t.entrada?` — entrada ${t.entrada.split('-').reverse().join('/')} (vem da Simulação)`:' (opcional)'} · anexe o plano de aula pra conferir a sincronização</div>`:''}
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+        <input type="text" value="${t.nome}" placeholder="Nome da turma (AM12)" onchange="cronAtualizarTurma('${t.id}','nome',this.value)" style="width:140px"/>
+        <input type="text" value="${t.turma_id}" placeholder="ID no Directus (opcional)" title="Só existe de verdade no momento da importação — pode deixar em branco e preencher depois" onchange="cronAtualizarTurma('${t.id}','turma_id',this.value)" style="width:170px"/>
+        <select onchange="cronAtualizarTurma('${t.id}','modalidade',this.value)" style="font-size:11px">
+          <option value="presencial" ${t.modalidade==='presencial'?'selected':''}>Presencial (Técnico ADM/RH, Assistente Administrativo)</option>
+          <option value="hibrido" ${t.modalidade==='hibrido'?'selected':''}>Híbrido (Gestão de Dados)</option>
+        </select>
+        <button onclick="cronRemoverTurma('${t.id}')" style="font-size:10px;color:#dc2626;background:#fef2f2;border:1px solid #fca5a5;border-radius:5px;padding:2px 8px;cursor:pointer;font-family:'Montserrat',sans-serif">✕</button>
+      </div>
+      <label style="font-size:11px;color:var(--mu);display:block;margin-bottom:4px">Plano de aula (Excel do Gerador de Calendário ou CSV com Data/Dia da Semana/Tipo):</label>
+      <input type="file" accept=".csv,.xlsx,.xls" onchange="cronCarregarPlanoAula('${t.id}',this)"/>
+      <div style="font-size:11px;color:${t.planoAulaTexto?'#0a7a60':'var(--mu)'};margin-top:4px">${t.planoAulaTexto?`✓ ${t.planoAulaNome} carregado`:'Nenhum plano de aula carregado ainda.'}</div>
+    </div>`;
+  });
+  if(!cronTurmas.length)h+=`<div style="font-size:12px;color:var(--mu);padding:8px 0 16px">Nenhuma turma adicionada ainda.</div>`;
+
+  h+=`<button onclick="cronGerar()" style="font-size:12px;font-weight:700;background:var(--blue);color:#fff;border:none;border-radius:6px;padding:8px 16px;cursor:pointer;font-family:'Montserrat',sans-serif;margin:8px 0 16px">▶ Gerar cronograma</button>`;
+
+  if(cronResultado){
+    const r=cronResultado;
+    if(r.alertas.length){
+      h+=`<div style="background:#fff7ed;border:1px solid #fdba74;border-radius:6px;padding:8px 12px;font-size:11px;color:#92400e;margin-bottom:10px">${r.alertas.map(a=>`⚠ ${a}`).join('<br>')}</div>`;
+    }
+    const semConteudo=r.linhas.filter(l=>l.tipo.includes('sem conteúdo'));
+    if(semConteudo.length){
+      h+=`<div style="background:#fff7ed;border:1px solid #fdba74;border-radius:6px;padding:8px 12px;font-size:11px;color:#92400e;margin-bottom:10px">⚠ ${semConteudo.length} linha(s) sem conteúdo definido na calendarização (a partir de ${cronFormatData(semConteudo[0].dataInicio)}) — confira manualmente.</div>`;
+    }
+    h+=`<div style="margin-bottom:10px">
+      <button onclick="cronBaixarSincronizado()" style="font-size:11px;background:#e8fff9;color:#0a7a60;border:1px solid #35dcb255;border-radius:5px;padding:5px 10px;cursor:pointer;font-family:'Montserrat',sans-serif">⬇ CSV sincronizado (PLs)</button>
+    </div>
+    <div style="max-height:320px;overflow:auto;border:1px solid var(--br);border-radius:6px;margin-bottom:14px">
+      <table style="width:100%;border-collapse:collapse;font-size:11px">
+        <thead><tr style="text-align:left;color:var(--mu);position:sticky;top:0;background:#fff"><th style="padding:4px 8px">Início</th><th style="padding:4px 8px">Fim</th><th style="padding:4px 8px">Tipo</th><th style="padding:4px 8px">Turmas</th><th style="padding:4px 8px">ID</th><th style="padding:4px 8px">Tema</th></tr></thead>
+        <tbody>${r.linhas.map(l=>`<tr style="border-top:1px solid var(--br)">
+          <td style="padding:4px 8px">${cronFormatData(l.dataInicio)}</td>
+          <td style="padding:4px 8px">${cronFormatData(l.dataFim)}</td>
+          <td style="padding:4px 8px">${l.tipo}</td>
+          <td style="padding:4px 8px">${l.turmasPresentes.join(' + ')}</td>
+          <td style="padding:4px 8px">${l.id||''}</td>
+          <td style="padding:4px 8px">${l.tema}</td>
+        </tr>`).join('')}</tbody>
+      </table>
+    </div>
+    <div style="font-weight:700;font-size:12px;margin-bottom:8px">Cronogramas pro backoffice</div>
+    ${r.turmas.map(t=>{
+      const chave='zero:'+t.nome;
+      return `<div style="margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:12px;font-weight:600">${t.nome}</span>
+          <button onclick="cronTogglePreviaBackoffice('${chave}')" style="font-size:11px;background:#f4f4f8;color:var(--tx);border:none;border-radius:5px;padding:4px 10px;cursor:pointer;font-family:'Montserrat',sans-serif">👁 ${cronPreviaAberta.has(chave)?'Esconder':'Ver'} prévia</button>
+          <button onclick="cronBaixarBackoffice('${t.nome}','${t.turma_id}')" style="font-size:11px;background:#eeefff;color:var(--blue);border:none;border-radius:5px;padding:4px 10px;cursor:pointer;font-family:'Montserrat',sans-serif">⬇ Backoffice ${t.nome}</button>
+        </div>
+        ${cronPreviaAberta.has(chave)?cronRenderTabelaBackoffice(r.linhas,t.nome,t.turma_id):''}
+      </div>`;
+    }).join('')}`;
+  }
+
+  wrap.innerHTML=h;
+}
+
+
 // ── NAVEGAÇÃO ──
 function setTab(t,btn){
   ['empresas','grade','pls','cronogramas','ecossistema','mudancaturma','hibrido'].forEach(k=>document.getElementById('tab-'+k).style.display=k===t?'block':'none');
@@ -1994,6 +2780,7 @@ function setTab(t,btn){
   if(t==='hibrido'){renderGradeMiniHib();renderHibrido();renderEmpresasHibrido();}
   if(t==='empresas'){renderGradeMini();renderEmpresas();}
   if(t==='pls')renderPLs();
+  if(t==='cronogramas')renderCronogramas();
 }
 function resetarSim(){
   entradas.forEach(en=>en.empresas.forEach(e=>{if(e.status==='Em aberto'){e.turma=null;e.dia=null;e.sala=null;e.unidade=null;}}));
