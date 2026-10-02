@@ -157,7 +157,7 @@
           "id": "emp1789409421402",
           "nome": "Nubank",
           "jovens": 50,
-          "status": "Em aberto",
+          "status": "Confirmado",
           "turma": "BM10",
           "dia": "terça",
           "sala": "Sala 2",
@@ -250,7 +250,7 @@
         {
           "id": "emp1790958327901",
           "nome": "KFC",
-          "jovens": 2,
+          "jovens": 4,
           "status": "Em aberto",
           "turma": null,
           "dia": null,
