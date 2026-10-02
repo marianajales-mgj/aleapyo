@@ -232,10 +232,11 @@
           "nome": "Shopee",
           "jovens": 6,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "AM15",
+          "dia": "segunda",
+          "sala": "Sala 1",
+          "unidade": "Freguesia do Ó",
+          "pl": "Manu"
         },
         {
           "id": "emp1790958320925",
@@ -343,7 +344,7 @@
           "nome": "Teste",
           "jovens": 50,
           "status": "Em aberto",
-          "turma": "AM15",
+          "turma": "AM16",
           "dia": "segunda",
           "sala": "Sala Híbrido",
           "unidade": "Polo Liberdade",
