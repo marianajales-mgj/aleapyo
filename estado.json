@@ -51,8 +51,8 @@
         {
           "id": "emp1789409765184",
           "nome": "KFC",
-          "jovens": 4,
-          "status": "Em aberto",
+          "jovens": 1,
+          "status": "Confirmado",
           "turma": "DM13",
           "dia": "quinta",
           "sala": "Sala 1",
