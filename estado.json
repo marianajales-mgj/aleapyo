@@ -169,7 +169,7 @@
           "nome": "Nubank",
           "jovens": 25,
           "status": "Em aberto",
-          "turma": "DM14",
+          "turma": "DM15",
           "dia": "quinta",
           "sala": "Sala 2",
           "unidade": "Polo Liberdade",
@@ -243,10 +243,11 @@
           "nome": "Shopee",
           "jovens": 12,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "DM14",
+          "dia": "quinta",
+          "sala": "Sala 1",
+          "unidade": "Polo Liberdade",
+          "pl": "Marialice"
         },
         {
           "id": "emp1790958327901",
