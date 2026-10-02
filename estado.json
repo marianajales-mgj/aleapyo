@@ -476,12 +476,6 @@
   ],
   "cronTurmas": [
     {
-      "id": "turma1790886829674",
-      "nome": "BM8",
-      "turma_id": "",
-      "modalidade": "presencial"
-    },
-    {
       "id": "turma1790942751769",
       "nome": "BM9",
       "turma_id": "",
