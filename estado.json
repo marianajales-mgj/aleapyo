@@ -250,7 +250,7 @@
         {
           "id": "emp1790958327901",
           "nome": "KFC",
-          "jovens": 1,
+          "jovens": 2,
           "status": "Em aberto",
           "turma": null,
           "dia": null,
@@ -259,7 +259,7 @@
         },
         {
           "id": "emp1790958334485",
-          "nome": "Nova empresa",
+          "nome": "Wellhub",
           "jovens": 1,
           "status": "Em aberto",
           "turma": null,
