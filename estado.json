@@ -230,7 +230,17 @@
         {
           "id": "emp1790958311205",
           "nome": "Shopee",
-          "jovens": 2,
+          "jovens": 6,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null
+        },
+        {
+          "id": "emp1790958320925",
+          "nome": "Nova empresa",
+          "jovens": 1,
           "status": "Em aberto",
           "turma": null,
           "dia": null,
