@@ -41,7 +41,7 @@
           "id": "emp1789409673102",
           "nome": "Flash",
           "jovens": 1,
-          "status": "Em aberto",
+          "status": "Confirmado",
           "turma": "DM13",
           "dia": "quinta",
           "sala": "Sala 1",
@@ -51,7 +51,7 @@
         {
           "id": "emp1789409765184",
           "nome": "KFC",
-          "jovens": 5,
+          "jovens": 4,
           "status": "Em aberto",
           "turma": "DM13",
           "dia": "quinta",
