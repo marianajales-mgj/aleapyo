@@ -191,11 +191,11 @@
           "nome": "Track&Field",
           "jovens": 7,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null,
-          "pl": null
+          "turma": "BM9",
+          "dia": "terça",
+          "sala": "Sala 1",
+          "unidade": "Polo Liberdade",
+          "pl": "Marialice"
         },
         {
           "id": "emp1790958286742",
@@ -213,10 +213,11 @@
           "nome": "Arco",
           "jovens": 1,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "BM9",
+          "dia": "terça",
+          "sala": "Sala 1",
+          "unidade": "Polo Liberdade",
+          "pl": "Marialice"
         },
         {
           "id": "emp1790958298525",
