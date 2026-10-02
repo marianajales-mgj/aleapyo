@@ -187,17 +187,6 @@
           "pl": "Marialice"
         },
         {
-          "id": "emp1790098942243",
-          "nome": "Ifood",
-          "jovens": 50,
-          "status": "Em aberto",
-          "turma": "EM11",
-          "dia": "sexta",
-          "sala": "Sala 1",
-          "unidade": "Polo Liberdade",
-          "pl": "Marialice"
-        },
-        {
           "id": "emp1790632875986",
           "nome": "Track&Field",
           "jovens": 7,
@@ -233,6 +222,17 @@
           "dia": null,
           "sala": null,
           "unidade": null
+        },
+        {
+          "id": "emp1790958272485",
+          "nome": "Ifood",
+          "jovens": 50,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null,
+          "pl": null
         }
       ]
     },
