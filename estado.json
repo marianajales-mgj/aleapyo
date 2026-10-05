@@ -1,155 +1,6 @@
 {
   "entradas": [
     {
-      "id": "e1783434927490",
-      "data": "2026-10-05",
-      "empresas": [
-        {
-          "id": "emp17834349274906wnolpti40h",
-          "nome": "Wellhub",
-          "jovens": 16,
-          "status": "Confirmado",
-          "turma": "DM13",
-          "dia": "quinta",
-          "sala": "Sala 1",
-          "unidade": "Polo Liberdade",
-          "pl": "Marialice"
-        },
-        {
-          "id": "emp1789409639548",
-          "nome": "Elo",
-          "jovens": 13,
-          "status": "Confirmado",
-          "turma": "DM13",
-          "dia": "quinta",
-          "sala": "Sala 1",
-          "unidade": "Polo Liberdade",
-          "pl": "Marialice"
-        },
-        {
-          "id": "emp1789409658362",
-          "nome": "CorPay",
-          "jovens": 3,
-          "status": "Confirmado",
-          "turma": "DM13",
-          "dia": "quinta",
-          "sala": "Sala 1",
-          "unidade": "Polo Liberdade",
-          "pl": "Marialice"
-        },
-        {
-          "id": "emp1789409673102",
-          "nome": "Flash",
-          "jovens": 1,
-          "status": "Confirmado",
-          "turma": "DM13",
-          "dia": "quinta",
-          "sala": "Sala 1",
-          "unidade": "Polo Liberdade",
-          "pl": "Marialice"
-        },
-        {
-          "id": "emp1789409765184",
-          "nome": "KFC",
-          "jovens": 1,
-          "status": "Confirmado",
-          "turma": "DM13",
-          "dia": "quinta",
-          "sala": "Sala 1",
-          "unidade": "Polo Liberdade",
-          "pl": "Marialice"
-        },
-        {
-          "id": "emp1789409782493",
-          "nome": "Rappi",
-          "jovens": 7,
-          "status": "Confirmado",
-          "turma": "BM8",
-          "dia": "terça",
-          "sala": "Sala 1",
-          "unidade": "Polo Liberdade",
-          "pl": "Marialice"
-        },
-        {
-          "id": "emp1789409789713",
-          "nome": "Calvin Klein",
-          "jovens": 1,
-          "status": "Confirmado",
-          "turma": "DM13",
-          "dia": "quinta",
-          "sala": "Sala 1",
-          "unidade": "Polo Liberdade",
-          "pl": "Marialice"
-        },
-        {
-          "id": "emp1789409808955",
-          "nome": "Sallve",
-          "jovens": 1,
-          "status": "Confirmado",
-          "turma": "BM8",
-          "dia": "terça",
-          "sala": "Sala 1",
-          "unidade": "Polo Liberdade",
-          "pl": "Marialice"
-        },
-        {
-          "id": "emp1789409819838",
-          "nome": "Shopee",
-          "jovens": 14,
-          "status": "Confirmado",
-          "turma": "AM13",
-          "dia": "segunda",
-          "sala": "Sala 1",
-          "unidade": "Freguesia do Ó",
-          "pl": "Manu"
-        },
-        {
-          "id": "emp1789732476703",
-          "nome": "Reclame Aqui",
-          "jovens": 1,
-          "status": "Confirmado",
-          "turma": "DM13",
-          "dia": "quinta",
-          "sala": "Sala 1",
-          "unidade": "Polo Liberdade",
-          "pl": "Marialice"
-        },
-        {
-          "id": "emp1790107492310",
-          "nome": "CorPay",
-          "jovens": 3,
-          "status": "Confirmado",
-          "turma": "BM8",
-          "dia": "terça",
-          "sala": "Sala 1",
-          "unidade": "Polo Liberdade",
-          "pl": "Marialice"
-        },
-        {
-          "id": "emp1790616875078",
-          "nome": "Eletromídia",
-          "jovens": 1,
-          "status": "Confirmado",
-          "turma": "BM8",
-          "dia": "terça",
-          "sala": "Sala 1",
-          "unidade": "Polo Liberdade",
-          "pl": "Marialice"
-        },
-        {
-          "id": "emp1790617209566",
-          "nome": "Gimma",
-          "jovens": 2,
-          "status": "Confirmado",
-          "turma": "AM13",
-          "dia": "segunda",
-          "sala": "Sala 1",
-          "unidade": "Freguesia do Ó",
-          "pl": "Manu"
-        }
-      ]
-    },
-    {
       "id": "e1786538300837",
       "data": "2026-10-19",
       "empresas": [
@@ -321,27 +172,6 @@
   ],
   "entradasHibrido": [
     {
-      "id": "e1789569136797",
-      "data": "2026-10-05",
-      "empresas": [
-        {
-          "id": "emp17895691367971igudh99rgc",
-          "nome": "Nubank",
-          "jovens": 4,
-          "status": "Em aberto",
-          "turma": "AM14",
-          "dia": "segunda",
-          "sala": "Sala Híbrido",
-          "unidade": "Polo Liberdade",
-          "pl": "Guilherme",
-          "modalidade": "hibrida",
-          "plInicio": "Novo(a) PL 2",
-          "plOnline": "Guilherme",
-          "plFim": null
-        }
-      ]
-    },
-    {
       "id": "e1789581620775",
       "data": "2026-10-19",
       "empresas": [
@@ -391,6 +221,18 @@
           "id": "emp1789598447400",
           "nome": "Nova empresa",
           "jovens": 1,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null,
+          "pl": null,
+          "modalidade": null
+        },
+        {
+          "id": "emp17912073362960.9965781949086868",
+          "nome": "Nubank",
+          "jovens": 4,
           "status": "Em aberto",
           "turma": null,
           "dia": null,
