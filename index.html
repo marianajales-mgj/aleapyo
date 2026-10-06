@@ -115,6 +115,7 @@ input[type=text],input[type=number],input[type=date]{height:30px;border:1px soli
 
 <!-- TAB GRADE -->
 <div id="tab-grade" class="sec">
+  <div id="sync-alertas"></div>
   <div id="grade-totais" style="margin-bottom:10px"></div>
   <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center;justify-content:space-between">
     <div id="grade-leg" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"></div>
@@ -393,7 +394,11 @@ async function loadEstado(){
         });
       }
       if(saved.cronTurmas)cronTurmas=saved.cronTurmas.map(t=>({...t,planoAulaTexto:'',planoAulaNome:''}));
+      if(saved.alocacoesTurmas)alocacoesTurmas=saved.alocacoesTurmas;
     }
+    // Recuperação: a entrada de 05/10/2026 foi apagada (limparEntradasPassadas) antes de existir o registro
+    // de alocações — sala/PL dessas turmas vieram do último estado.json que ainda as tinha (commit b44eea5).
+    Object.entries(ALOCACOES_RECUPERADAS).forEach(([k,v])=>{if(!alocacoesTurmas[k])alocacoesTurmas[k]={...v};});
   }catch(e){console.warn('Estado não carregado:',e.message);}
 }
 
@@ -401,7 +406,8 @@ async function saveEstado(){
   try{
     const plsExtras=plsState.filter(p=>p.nome!=='Manu'&&p.nome!=='Carol').map(p=>({nome:p.nome,alocados:p.alocados}));
     const cronTurmasSalvar=cronTurmas.map(t=>({id:t.id,nome:t.nome,turma_id:t.turma_id,modalidade:t.modalidade}));
-    const conteudo=btoa(unescape(encodeURIComponent(JSON.stringify({entradas,entradasHibrido,pls:plsExtras,unidades,cronTurmas:cronTurmasSalvar},null,2))));
+    registrarAlocacoes();
+    const conteudo=btoa(unescape(encodeURIComponent(JSON.stringify({entradas,entradasHibrido,pls:plsExtras,unidades,cronTurmas:cronTurmasSalvar,alocacoesTurmas},null,2))));
     const body={message:'estado: entradas atualizadas',content:conteudo,branch:'main'};
     if(_estadoSha)body.sha=_estadoSha;
     const r=await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${ESTADO_FILE}`,{
@@ -411,6 +417,37 @@ async function saveEstado(){
     });
     if(r.ok){const d=await r.json();_estadoSha=d.content.sha;}
   }catch(e){console.warn('Erro ao salvar estado:',e.message);}
+}
+
+// ── REGISTRO DE ALOCAÇÕES (sala/unidade/PL da simulação, preservado depois da data de entrada) ──
+// Quando chega a data de entrada a simulação é apagada (limparEntradasPassadas) e a turma passa a vir do
+// backoffice — que NÃO tem sala. Sem este registro o sincronismo chutava unidade/sala. Aqui guardamos,
+// por nome de turma (sem o prefixo "Turma "), onde ela foi simulada. Turmas com entrada futura são
+// reconstruídas a cada salvamento (a numeração pode mudar); as que já entraram ficam congeladas.
+let alocacoesTurmas={};
+// Só turmas que entram a partir daqui devem ter registro — as anteriores (AM5…EM10) já foram acertadas à mão/overrides.
+const ALOCACAO_REGISTRO_DESDE='2026-10-05';
+const ALOCACOES_RECUPERADAS={
+  'DM13':{nome:'DM13',dia:'quinta',sala:'Sala 1',unidade:'Polo Liberdade',modalidade:'presencial',pl:'Marialice',entrada:'2026-10-05',_recuperada:true},
+  'BM8':{nome:'BM8',dia:'terça',sala:'Sala 1',unidade:'Polo Liberdade',modalidade:'presencial',pl:'Marialice',entrada:'2026-10-05',_recuperada:true},
+  'AM13':{nome:'AM13',dia:'segunda',sala:'Sala 1',unidade:'Freguesia do Ó',modalidade:'presencial',pl:'Manu',entrada:'2026-10-05',_recuperada:true},
+  'AM14':{nome:'AM14',dia:'segunda',sala:'Sala Híbrido',unidade:'Polo Liberdade',modalidade:'hibrida',plInicio:'Novo(a) PL 2',plOnline:'Guilherme',plFim:null,entrada:'2026-10-05',_recuperada:true}
+};
+function registrarAlocacoes(){
+  const hoje=new Date().toISOString().slice(0,10);
+  const limite=new Date(Date.now()-20*30*864e5).toISOString().slice(0,10); // contrato (15-16 meses) já acabou
+  Object.keys(alocacoesTurmas).forEach(k=>{
+    const a=alocacoesTurmas[k];
+    if(a.entrada>hoje||a.entrada<limite)delete alocacoesTurmas[k];
+  });
+  const reg=(lista,modalidade)=>lista.forEach(en=>en.empresas.forEach(e=>{
+    if(!e.turma||!e.sala||!e.unidade)return;
+    alocacoesTurmas[e.turma]=modalidade==='hibrida'
+      ?{nome:e.turma,dia:e.dia,sala:e.sala,unidade:e.unidade,modalidade:'hibrida',plInicio:e.plInicio||null,plOnline:e.plOnline||null,plFim:e.plFim||null,entrada:en.data}
+      :{nome:e.turma,dia:e.dia,sala:e.sala,unidade:e.unidade,modalidade:'presencial',pl:e.pl||null,entrada:en.data};
+  }));
+  reg(entradas,'presencial');
+  reg(entradasHibrido,'hibrida');
 }
 
 // ── ENTRADAS ──
@@ -984,6 +1021,14 @@ async function salvarOverrideTurma(nome,dia,instancia){
       if(unidade)emp.unidade=unidade;
     }
   }));
+  // Registro de alocações (turma que já entrou): o que ela ajusta aqui passa a ser a alocação "de verdade"
+  const reg=alocacoesTurmas[sufixo];
+  if(reg&&reg.modalidade!=='hibrida'){
+    if(sala)reg.sala=sala;
+    if(unidade)reg.unidade=unidade;
+    if(pl)reg.pl=pl;
+    delete reg._recuperada;
+  }
   renderGrade();renderGradeMini();renderGradeMiniHib();renderHibrido();
   await saveSalaOverrides();
   await saveEstado();
@@ -2869,7 +2914,79 @@ function normPL(first,last){
   if(nome.includes('carol'))return 'Carol';
   if(nome.includes('guilherme'))return 'Guilherme';
   if(nome.includes('marialice')||nome.includes('maria alice')||nome.includes('mariana'))return 'Marialice';
+  // PL cadastrado no simulador (aba Program Leads) cujo nome aparece no nome do backoffice
+  const norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
+  const alvo=norm(first+last);
+  const achado=plsState.find(p=>norm(p.nome).length>=4&&alvo.includes(norm(p.nome)));
+  if(achado)return achado.nome;
   return null; // PL não reconhecido — não adicionar à grade principal
+}
+// Compara dois nomes de PL ignorando acento, espaço e maiúscula ("Maria Alice" = "Marialice")
+function mesmoPL(a,b){
+  const norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
+  const na=norm(a),nb=norm(b);
+  const vazio=x=>!x||x==='pladefinir';
+  if(vazio(na)&&vazio(nb))return true;
+  return na===nb;
+}
+// PL que a simulação previa pra essa turma. Híbrido tem um PL por fase: usa o da fase em que a turma está hoje.
+function plEsperadoDaSimulacao(sim,entradaISO){
+  if(sim.modalidade==='hibrida'){
+    const fase=faseHibrido({entrada:entradaISO});
+    const campo=fase==='online'?'plOnline':fase==='presencial-fim'?'plFim':'plInicio';
+    return sim[campo]||sim.plInicio||sim.plOnline||sim.plFim||null;
+  }
+  return sim.pl&&sim.pl!=='PL a definir'?sim.pl:null;
+}
+// Acha onde a turma foi simulada: (1) registro por nome; (2) simulação ainda viva; (3) mesma data+dia, se for
+// o único candidato E a única turma real sem registro naquele dia/data (nome diferente — avisa).
+function buscarAlocacaoSimulada(nomeCompleto,dia,entradaISO,reais,alertas){
+  const nome=nomeCompleto.replace(/^Turma /,'');
+  if(alocacoesTurmas[nome])return alocacoesTurmas[nome];
+  const viva=(lista,modalidade)=>{
+    for(const en of lista)for(const e of en.empresas){
+      if(e.turma===nome&&e.sala&&e.unidade)return modalidade==='hibrida'
+        ?{nome,dia:e.dia,sala:e.sala,unidade:e.unidade,modalidade:'hibrida',plInicio:e.plInicio||null,plOnline:e.plOnline||null,plFim:e.plFim||null,entrada:en.data}
+        :{nome,dia:e.dia,sala:e.sala,unidade:e.unidade,modalidade:'presencial',pl:e.pl||null,entrada:en.data};
+    }
+    return null;
+  };
+  const v=viva(entradas,'presencial')||viva(entradasHibrido,'hibrida');
+  if(v)return v;
+  const nomesReais=new Set(reais.map(r=>r.Name.replace(/^Turma /,'')));
+  const candidatos=Object.values(alocacoesTurmas).filter(a=>a.entrada===entradaISO&&a.dia===dia&&a.modalidade!=='hibrida'&&!nomesReais.has(a.nome)); // híbrida não vem do backoffice: nunca casar por data
+  const reaisSemRegistro=reais.filter(r=>(r.data_de_inicio||'').slice(0,10)===entradaISO&&r.dia_de_curso===dia&&!alocacoesTurmas[r.Name.replace(/^Turma /,'')]);
+  if(candidatos.length===1&&reaisSemRegistro.length===1){
+    alertas.push({tipo:'nome',turma:nomeCompleto,simulada:candidatos[0].nome});
+    return candidatos[0];
+  }
+  return null;
+}
+function renderAlertasSync(){
+  const el=document.getElementById('sync-alertas');if(!el)return;
+  const al=window._alertasSync||[];
+  if(!al.length){el.innerHTML='';return;}
+  const linhas=al.map(a=>{
+    if(a.tipo==='pl')return `<div style="margin-bottom:4px">⚠ <b>${a.turma}</b>: PL no backoffice é <b>${a.backoffice}</b>${a.naoReconhecido?' (não existe no cadastro de PLs do simulador)':''}, mas a simulação previa <b>${a.simulado}</b>. <button onclick="aceitarPLBackoffice('${a.turma}')" style="font-size:10px;margin-left:6px;background:#fff;border:1px solid #fdba74;border-radius:5px;padding:1px 8px;cursor:pointer;font-family:'Montserrat',sans-serif">Aceitar o do backoffice</button></div>`;
+    if(a.tipo==='sala')return `<div style="margin-bottom:4px">⚠ <b>${a.turma}</b>: o backoffice não tem sala e não achei essa turma na simulação — assumi <b>${a.unidade} · ${a.sala}</b>. Corrija em "Ajuste manual" no detalhe da turma.</div>`;
+    if(a.tipo==='nome')return `<div style="margin-bottom:4px">ℹ <b>${a.turma}</b> (backoffice) foi ligada à turma simulada <b>${a.simulada}</b> pelo dia e data de entrada — nome diferente, confira se é a mesma.</div>`;
+    return '';
+  }).join('');
+  el.innerHTML=`<div style="background:#fff7ed;border:1px solid #fdba74;border-radius:8px;padding:10px 14px;font-size:12px;color:#92400e;margin-bottom:12px"><div style="font-weight:700;margin-bottom:6px">Conferir com o backoffice</div>${linhas}</div>`;
+}
+function aceitarPLBackoffice(nomeCompleto){
+  if(bloquearSeNaoAutenticado(()=>aceitarPLBackoffice(nomeCompleto)))return;
+  const nome=nomeCompleto.replace(/^Turma /,'');
+  const a=alocacoesTurmas[nome];
+  const t=TURMAS_FIXAS.find(x=>x.nome===nomeCompleto);
+  if(!a||!t)return;
+  if(a.modalidade==='hibrida'){
+    const fase=faseHibrido({entrada:a.entrada});
+    a[fase==='online'?'plOnline':fase==='presencial-fim'?'plFim':'plInicio']=t.pl;
+  } else a.pl=t.pl;
+  window._alertasSync=(window._alertasSync||[]).filter(x=>!(x.tipo==='pl'&&x.turma===nomeCompleto));
+  renderAlertasSync();
+  saveEstado();
 }
 
 // Normalizar nome da turma
@@ -2966,6 +3083,7 @@ async function carregarDoDirectus(){
     TURMAS_FIXAS.length=0;
     const hoje=new Date().toISOString().slice(0,10);
     let adicionadas=0;
+    const alertasSync=[];
 
     // Mapear sala por turma: usar o mesmo dia para agrupar turmas e distribuir por sala
     // Estratégia: ordenar por data_de_inicio e distribuir em salas disponíveis
@@ -2992,6 +3110,7 @@ async function carregarDoDirectus(){
       turmasDia.forEach(t=>{
         const nomeCompleto=t.Name;
         const pl=normPL(t.program_lead?.first_name,t.program_lead?.last_name);
+        const plBackRaw=t.program_lead?((t.program_lead.first_name||'')+' '+(t.program_lead.last_name||'')).trim():'';
         // Override de PL por turma (ex: AM7 → Marialice mesmo com PL errado no backoffice)
         const PL_OVERRIDE={'Turma AM7':'Marialice'};
         const plFinal=PL_OVERRIDE[nomeCompleto]||pl||'PL a definir';
@@ -3016,16 +3135,12 @@ const empresas=Object.entries(empresasAgrup).map(([nome,jovens])=>({nome,jovens}
         let unidade='Freguesia do Ó';
         let sala='Sala 1';
 
-        // Verificar se a turma tem mapeamento de unidade nas entradas existentes
-        let encontrou=false;
-        for(const entrada of entradas){
-          for(const emp of entrada.empresas){
-            if(emp.turma&&('Turma '+emp.turma)===nomeCompleto&&emp.sala&&emp.unidade){
-              unidade=emp.unidade;sala=emp.sala;encontrou=true;break;
-            }
-          }
-          if(encontrou)break;
-        }
+        // Sala/unidade NÃO existem no backoffice: vêm da simulação (registro de alocações, que sobrevive
+        // à data de entrada), nunca de chute. Só chuta — e avisa — se a turma nunca foi simulada.
+        const entradaISO=t.data_de_inicio?t.data_de_inicio.slice(0,10):null;
+        const sim=buscarAlocacaoSimulada(nomeCompleto,dia,entradaISO,turmasLeapy,alertasSync);
+        let encontrou=!!sim;
+        if(sim){unidade=sim.unidade;sala=sim.sala;}
 
         if(!encontrou){
           // Sala determinada pelo PL: Manu → Sala 1, Carol → Sala 2
@@ -3054,6 +3169,16 @@ const empresas=Object.entries(empresasAgrup).map(([nome,jovens])=>({nome,jovens}
           sala=TURMA_OVERRIDE[nomeCompleto].sala;
         }
 
+        // Avisos pra Mariana conferir: sala chutada (turma nunca simulada) e PL diferente do simulado
+        const temOverrideManual=!!(salaOverrides[nomeCompleto+'|'+dia+'|0']&&salaOverrides[nomeCompleto+'|'+dia+'|0'].sala);
+        if(!sim&&entradaISO&&entradaISO>=ALOCACAO_REGISTRO_DESDE&&!TURMA_OVERRIDE[nomeCompleto]&&!temOverrideManual&&!TURMAS_SEM_SALA.includes(nomeCompleto))alertasSync.push({tipo:'sala',turma:nomeCompleto,unidade,sala});
+        if(sim){
+          const esperado=plEsperadoDaSimulacao(sim,entradaISO);
+          if(esperado&&!mesmoPL(esperado,plFinal)&&!PL_OVERRIDE[nomeCompleto]){
+            alertasSync.push({tipo:'pl',turma:nomeCompleto,backoffice:plBackRaw||'sem PL no backoffice',simulado:esperado,naoReconhecido:!!plBackRaw&&!pl});
+          }
+        }
+
         const _semSala=TURMAS_SEM_SALA.includes(nomeCompleto);
         TURMAS_FIXAS.push({
           nome:nomeCompleto,
@@ -3064,7 +3189,9 @@ const empresas=Object.entries(empresasAgrup).map(([nome,jovens])=>({nome,jovens}
           status:'ativa',
           empresas,
           _do_directus:true,
-          _sem_sala:_semSala
+          _sem_sala:_semSala,
+          _alocSim:!!sim,
+          ...(sim&&sim.modalidade==='hibrida'?{modalidade:'hibrida',plInicio:sim.plInicio,plOnline:sim.plOnline,plFim:sim.plFim}:{})
         });
         adicionadas++;
       });
@@ -3090,9 +3217,14 @@ const empresas=Object.entries(empresasAgrup).map(([nome,jovens])=>({nome,jovens}
         }));
         return;
       }
-      if(ov.sala)t.sala=ov.sala;
-      if(ov.pl)t.pl=ov.pl;
-      if(ov.unidade)t.unidade=ov.unidade;
+      // Turma com registro de alocação: sala/unidade vêm da simulação (ou do último Ajuste manual, que
+      // atualiza o registro) e o PL do backoffice; um ajuste antigo por NOME (ex: uma BM8 de agosto)
+      // não pode sobrescrever uma turma nova que herdou o mesmo nome.
+      if(!t._alocSim){
+        if(ov.sala)t.sala=ov.sala;
+        if(ov.pl)t.pl=ov.pl;
+        if(ov.unidade)t.unidade=ov.unidade;
+      }
       if(ov.jovens_override)t.jovens=ov.jovens_override;
       if(ov.modalidade)t.modalidade=ov.modalidade;
     });
@@ -3113,6 +3245,8 @@ const empresas=Object.entries(empresasAgrup).map(([nome,jovens])=>({nome,jovens}
       statusEl.textContent=msg;statusEl.style.color='#0a7a60';
       setTimeout(()=>{if(statusEl)statusEl.textContent='';},5000);
     }
+    window._alertasSync=alertasSync;
+    renderAlertasSync();
     renderGrade();renderGradeMini();renderGradeMiniHib();renderEmpresas();renderEmpresasHibrido();renderHibrido();
   }catch(e){
     console.warn('Directus indisponível:',e.message,e);
@@ -3142,6 +3276,8 @@ Promise.all([loadEstado(), loadOverrides()]).then(()=>{
 
 function limparEntradasPassadas(){
   const hoje=new Date().toISOString().slice(0,10);
+  // Antes de apagar a simulação, guarda onde cada turma foi alocada (sala/unidade/PL) — o backoffice não tem sala.
+  registrarAlocacoes();
   const passadas=entradas.filter(e=>e.data<=hoje);
   if(!passadas.length)return;
   // Próxima entrada (primeira com data > hoje)
