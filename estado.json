@@ -86,7 +86,7 @@
           "nome": "Shopee",
           "jovens": 6,
           "status": "Em aberto",
-          "turma": "AM15",
+          "turma": "AM14",
           "dia": "segunda",
           "sala": "Sala 1",
           "unidade": "Freguesia do Ó",
@@ -180,7 +180,7 @@
           "nome": "Teste",
           "jovens": 50,
           "status": "Em aberto",
-          "turma": "AM16",
+          "turma": "AM15",
           "dia": "segunda",
           "sala": "Sala Híbrido",
           "unidade": "Polo Liberdade",
@@ -364,14 +364,11 @@
     "AM14": {
       "nome": "AM14",
       "dia": "segunda",
-      "sala": "Sala Híbrido",
-      "unidade": "Polo Liberdade",
-      "modalidade": "hibrida",
-      "plInicio": "Novo(a) PL 2",
-      "plOnline": "Guilherme",
-      "plFim": null,
-      "entrada": "2026-10-05",
-      "_recuperada": true
+      "sala": "Sala 1",
+      "unidade": "Freguesia do Ó",
+      "modalidade": "presencial",
+      "pl": "Manu",
+      "entrada": "2026-10-19"
     },
     "BM10": {
       "nome": "BM10",
@@ -409,15 +406,6 @@
       "pl": "Marialice",
       "entrada": "2026-10-19"
     },
-    "AM15": {
-      "nome": "AM15",
-      "dia": "segunda",
-      "sala": "Sala 1",
-      "unidade": "Freguesia do Ó",
-      "modalidade": "presencial",
-      "pl": "Manu",
-      "entrada": "2026-10-19"
-    },
     "EM11": {
       "nome": "EM11",
       "dia": "sexta",
@@ -427,8 +415,8 @@
       "pl": "Marialice",
       "entrada": "2026-11-03"
     },
-    "AM16": {
-      "nome": "AM16",
+    "AM15": {
+      "nome": "AM15",
       "dia": "segunda",
       "sala": "Sala Híbrido",
       "unidade": "Polo Liberdade",
