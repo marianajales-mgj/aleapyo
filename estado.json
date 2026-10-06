@@ -156,11 +156,11 @@
           "nome": "Ifood",
           "jovens": 50,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null,
-          "pl": null
+          "turma": "EM11",
+          "dia": "sexta",
+          "sala": "Sala 1",
+          "unidade": "Polo Liberdade",
+          "pl": "Marialice"
         }
       ]
     },
@@ -329,5 +329,125 @@
       "turma_id": "",
       "modalidade": "presencial"
     }
-  ]
+  ],
+  "alocacoesTurmas": {
+    "DM13": {
+      "nome": "DM13",
+      "dia": "quinta",
+      "sala": "Sala 1",
+      "unidade": "Polo Liberdade",
+      "modalidade": "presencial",
+      "pl": "Marialice",
+      "entrada": "2026-10-05",
+      "_recuperada": true
+    },
+    "BM8": {
+      "nome": "BM8",
+      "dia": "terça",
+      "sala": "Sala 1",
+      "unidade": "Polo Liberdade",
+      "modalidade": "presencial",
+      "pl": "Marialice",
+      "entrada": "2026-10-05",
+      "_recuperada": true
+    },
+    "AM13": {
+      "nome": "AM13",
+      "dia": "segunda",
+      "sala": "Sala 1",
+      "unidade": "Freguesia do Ó",
+      "modalidade": "presencial",
+      "pl": "Manu",
+      "entrada": "2026-10-05",
+      "_recuperada": true
+    },
+    "AM14": {
+      "nome": "AM14",
+      "dia": "segunda",
+      "sala": "Sala Híbrido",
+      "unidade": "Polo Liberdade",
+      "modalidade": "hibrida",
+      "plInicio": "Novo(a) PL 2",
+      "plOnline": "Guilherme",
+      "plFim": null,
+      "entrada": "2026-10-05",
+      "_recuperada": true
+    },
+    "BM10": {
+      "nome": "BM10",
+      "dia": "terça",
+      "sala": "Sala 2",
+      "unidade": "Polo Liberdade",
+      "modalidade": "presencial",
+      "pl": "Novo(a) PL",
+      "entrada": "2026-10-19"
+    },
+    "DM15": {
+      "nome": "DM15",
+      "dia": "quinta",
+      "sala": "Sala 2",
+      "unidade": "Polo Liberdade",
+      "modalidade": "presencial",
+      "pl": "Novo(a) PL",
+      "entrada": "2026-10-19"
+    },
+    "BM9": {
+      "nome": "BM9",
+      "dia": "terça",
+      "sala": "Sala 1",
+      "unidade": "Polo Liberdade",
+      "modalidade": "presencial",
+      "pl": "Marialice",
+      "entrada": "2026-10-19"
+    },
+    "DM14": {
+      "nome": "DM14",
+      "dia": "quinta",
+      "sala": "Sala 1",
+      "unidade": "Polo Liberdade",
+      "modalidade": "presencial",
+      "pl": "Marialice",
+      "entrada": "2026-10-19"
+    },
+    "AM15": {
+      "nome": "AM15",
+      "dia": "segunda",
+      "sala": "Sala 1",
+      "unidade": "Freguesia do Ó",
+      "modalidade": "presencial",
+      "pl": "Manu",
+      "entrada": "2026-10-19"
+    },
+    "EM11": {
+      "nome": "EM11",
+      "dia": "sexta",
+      "sala": "Sala 1",
+      "unidade": "Polo Liberdade",
+      "modalidade": "presencial",
+      "pl": "Marialice",
+      "entrada": "2026-11-03"
+    },
+    "AM16": {
+      "nome": "AM16",
+      "dia": "segunda",
+      "sala": "Sala Híbrido",
+      "unidade": "Polo Liberdade",
+      "modalidade": "hibrida",
+      "plInicio": null,
+      "plOnline": null,
+      "plFim": null,
+      "entrada": "2026-10-19"
+    },
+    "BM11": {
+      "nome": "BM11",
+      "dia": "terça",
+      "sala": "Sala Híbrido 2",
+      "unidade": "Polo Liberdade",
+      "modalidade": "hibrida",
+      "plInicio": null,
+      "plOnline": "Guilherme",
+      "plFim": null,
+      "entrada": "2026-10-19"
+    }
+  }
 }
