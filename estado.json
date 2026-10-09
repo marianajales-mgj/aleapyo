@@ -53,8 +53,8 @@
           "nome": "Alice",
           "jovens": 2,
           "status": "Em aberto",
-          "turma": "DM14",
-          "dia": "quinta",
+          "turma": "BM9",
+          "dia": "terça",
           "sala": "Sala 1",
           "unidade": "Polo Liberdade",
           "pl": "Marialice"
@@ -361,15 +361,6 @@
       "entrada": "2026-10-05",
       "_recuperada": true
     },
-    "AM14": {
-      "nome": "AM14",
-      "dia": "segunda",
-      "sala": "Sala 1",
-      "unidade": "Freguesia do Ó",
-      "modalidade": "presencial",
-      "pl": "Manu",
-      "entrada": "2026-10-19"
-    },
     "BM10": {
       "nome": "BM10",
       "dia": "terça",
@@ -395,6 +386,15 @@
       "unidade": "Polo Liberdade",
       "modalidade": "presencial",
       "pl": "Marialice",
+      "entrada": "2026-10-19"
+    },
+    "AM14": {
+      "nome": "AM14",
+      "dia": "segunda",
+      "sala": "Sala 1",
+      "unidade": "Freguesia do Ó",
+      "modalidade": "presencial",
+      "pl": "Manu",
       "entrada": "2026-10-19"
     },
     "DM14": {
