@@ -52,7 +52,7 @@
           "id": "emp1790958286742",
           "nome": "Alice",
           "jovens": 2,
-          "status": "Em aberto",
+          "status": "Confirmado",
           "turma": "BM9",
           "dia": "terça",
           "sala": "Sala 1",
@@ -127,7 +127,7 @@
         },
         {
           "id": "emp1791543320808",
-          "nome": "Nova empresa",
+          "nome": "Corpay",
           "jovens": 1,
           "status": "Em aberto",
           "turma": null,
