@@ -49,17 +49,6 @@
           "pl": "Marialice"
         },
         {
-          "id": "emp1790958294341",
-          "nome": "Arco",
-          "jovens": 1,
-          "status": "Em aberto",
-          "turma": "BM9",
-          "dia": "terça",
-          "sala": "Sala 1",
-          "unidade": "Polo Liberdade",
-          "pl": "Marialice"
-        },
-        {
           "id": "emp1790958298525",
           "nome": "Calvin Klein",
           "jovens": 3,
@@ -84,7 +73,7 @@
         {
           "id": "emp1790958320925",
           "nome": "Shopee",
-          "jovens": 11,
+          "jovens": 10,
           "status": "Em aberto",
           "turma": "DM14",
           "dia": "quinta",
@@ -166,6 +155,17 @@
           "id": "emp1791543955072",
           "nome": "Track&Field",
           "jovens": 7,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null,
+          "pl": null
+        },
+        {
+          "id": "emp1791544291088",
+          "nome": "Arco",
+          "jovens": 1,
           "status": "Em aberto",
           "turma": null,
           "dia": null,
