@@ -104,23 +104,12 @@
           "pl": "Marialice"
         },
         {
-          "id": "emp1790958327901",
-          "nome": "KFC",
-          "jovens": 4,
-          "status": "Em aberto",
-          "turma": "BM9",
-          "dia": "terça",
-          "sala": "Sala 1",
-          "unidade": "Polo Liberdade",
-          "pl": "Marialice"
-        },
-        {
           "id": "emp1790958334485",
           "nome": "Wellhub",
           "jovens": 1,
           "status": "Confirmado",
-          "turma": "BM9",
-          "dia": "terça",
+          "turma": "DM14",
+          "dia": "quinta",
           "sala": "Sala 1",
           "unidade": "Polo Liberdade",
           "pl": "Marialice"
@@ -172,6 +161,17 @@
           "sala": "Sala 1",
           "unidade": "Polo Liberdade",
           "pl": "Marialice"
+        },
+        {
+          "id": "emp1791543943280",
+          "nome": "KFC",
+          "jovens": 4,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null,
+          "pl": null
         }
       ]
     },
