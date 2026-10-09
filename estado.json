@@ -38,17 +38,6 @@
           "pl": "Marialice"
         },
         {
-          "id": "emp1790632875986",
-          "nome": "Track&Field",
-          "jovens": 7,
-          "status": "Em aberto",
-          "turma": "BM9",
-          "dia": "terça",
-          "sala": "Sala 1",
-          "unidade": "Polo Liberdade",
-          "pl": "Marialice"
-        },
-        {
           "id": "emp1790958286742",
           "nome": "Alice",
           "jovens": 2,
@@ -166,6 +155,17 @@
           "id": "emp1791543943280",
           "nome": "KFC",
           "jovens": 4,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null,
+          "pl": null
+        },
+        {
+          "id": "emp1791543955072",
+          "nome": "Track&Field",
+          "jovens": 7,
           "status": "Em aberto",
           "turma": null,
           "dia": null,
