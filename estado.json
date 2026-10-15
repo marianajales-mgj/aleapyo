@@ -241,12 +241,15 @@
           "nome": "teste",
           "jovens": 50,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null,
+          "turma": "EM11",
+          "dia": "sexta",
+          "sala": "Sala Híbrido",
+          "unidade": "Polo Liberdade",
           "pl": null,
-          "modalidade": null
+          "modalidade": "hibrida",
+          "plInicio": null,
+          "plOnline": null,
+          "plFim": null
         }
       ]
     },
@@ -416,6 +419,17 @@
       "plOnline": "Guilherme",
       "plFim": null,
       "entrada": "2026-10-19"
+    },
+    "EM11": {
+      "nome": "EM11",
+      "dia": "sexta",
+      "sala": "Sala Híbrido",
+      "unidade": "Polo Liberdade",
+      "modalidade": "hibrida",
+      "plInicio": null,
+      "plOnline": null,
+      "plFim": null,
+      "entrada": "2026-11-03"
     }
   }
 }
