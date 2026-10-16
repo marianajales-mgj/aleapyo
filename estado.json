@@ -320,6 +320,12 @@
       "nome": "",
       "turma_id": "",
       "modalidade": "presencial"
+    },
+    {
+      "id": "turma1792150477770",
+      "nome": "DM15",
+      "turma_id": "",
+      "modalidade": "presencial"
     }
   ],
   "alocacoesTurmas": {
