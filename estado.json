@@ -310,12 +310,6 @@
   ],
   "cronTurmas": [
     {
-      "id": "turma1792149767481",
-      "nome": "BM10",
-      "turma_id": "",
-      "modalidade": "presencial"
-    },
-    {
       "id": "turma1792149767481p0",
       "nome": "",
       "turma_id": "",
