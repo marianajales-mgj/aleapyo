@@ -308,14 +308,7 @@
       "capacidade": 50
     }
   ],
-  "cronTurmas": [
-    {
-      "id": "turma1790968253149",
-      "nome": "DM13",
-      "turma_id": "",
-      "modalidade": "presencial"
-    }
-  ],
+  "cronTurmas": [],
   "alocacoesTurmas": {
     "DM13": {
       "nome": "DM13",
