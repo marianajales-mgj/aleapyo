@@ -97,18 +97,6 @@
           "plFim": null
         },
         {
-          "id": "emp17924104595330.6713154956877478",
-          "nome": "Nova empresa",
-          "jovens": 1,
-          "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null,
-          "pl": null,
-          "modalidade": null
-        },
-        {
           "id": "emp17924104595330.8788345512267192",
           "nome": "Nubank",
           "jovens": 4,
