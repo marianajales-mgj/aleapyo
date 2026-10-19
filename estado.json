@@ -9,20 +9,22 @@
           "nome": "Shopee",
           "jovens": 14,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "BM11",
+          "dia": "terça",
+          "sala": "Sala 1",
+          "unidade": "Polo Liberdade",
+          "pl": "Marialice"
         },
         {
           "id": "emp1789476904284",
           "nome": "Wellhub",
           "jovens": 2,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "BM11",
+          "dia": "terça",
+          "sala": "Sala 1",
+          "unidade": "Polo Liberdade",
+          "pl": "Marialice"
         },
         {
           "id": "emp1791543943280",
@@ -49,7 +51,7 @@
         {
           "id": "emp1791544294433",
           "nome": "Calvin Klein",
-          "jovens": 2,
+          "jovens": 1,
           "status": "Em aberto",
           "turma": null,
           "dia": null,
@@ -239,13 +241,11 @@
     "BM11": {
       "nome": "BM11",
       "dia": "terça",
-      "sala": "Sala Híbrido 2",
+      "sala": "Sala 1",
       "unidade": "Polo Liberdade",
-      "modalidade": "hibrida",
-      "plInicio": null,
-      "plOnline": "Guilherme",
-      "plFim": null,
-      "entrada": "2026-10-19"
+      "modalidade": "presencial",
+      "pl": "Marialice",
+      "entrada": "2026-11-03"
     },
     "EM11": {
       "nome": "EM11",
