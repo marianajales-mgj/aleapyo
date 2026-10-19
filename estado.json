@@ -83,7 +83,7 @@
       "empresas": [
         {
           "id": "emp1789598465547f9y256hufww",
-          "nome": "teste",
+          "nome": "Ifood",
           "jovens": 50,
           "status": "Em aberto",
           "turma": "EM11",
@@ -95,18 +95,6 @@
           "plInicio": null,
           "plOnline": null,
           "plFim": null
-        },
-        {
-          "id": "emp17924104595320.27241453848071207",
-          "nome": "Teste",
-          "jovens": 50,
-          "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null,
-          "pl": null,
-          "modalidade": null
         },
         {
           "id": "emp17924104595320.2977611350967323",
