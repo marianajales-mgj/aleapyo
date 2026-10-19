@@ -101,20 +101,7 @@
     {
       "id": "e1789600250541",
       "data": "2026-11-16",
-      "empresas": [
-        {
-          "id": "emp1789600250541",
-          "nome": "teste hibr",
-          "jovens": 1,
-          "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null,
-          "pl": null,
-          "modalidade": null
-        }
-      ]
+      "empresas": []
     }
   ],
   "pls": [
