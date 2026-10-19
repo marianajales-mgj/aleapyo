@@ -97,18 +97,6 @@
           "plFim": null
         },
         {
-          "id": "emp17924104595320.2977611350967323",
-          "nome": "Teste",
-          "jovens": 20,
-          "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null,
-          "pl": null,
-          "modalidade": null
-        },
-        {
           "id": "emp17924104595330.7820398860246646",
           "nome": "Nova empresa",
           "jovens": 1,
