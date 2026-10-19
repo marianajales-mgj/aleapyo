@@ -1,89 +1,6 @@
 {
   "entradas": [
     {
-      "id": "e1786538300837",
-      "data": "2026-10-19",
-      "empresas": [
-        {
-          "id": "emp1789409421402",
-          "nome": "Nubank",
-          "jovens": 50,
-          "status": "Confirmado",
-          "turma": "BM10",
-          "dia": "terça",
-          "sala": "Sala 2",
-          "unidade": "Polo Liberdade",
-          "pl": "Novo(a) PL"
-        },
-        {
-          "id": "emp1789409429412",
-          "nome": "Nubank",
-          "jovens": 26,
-          "status": "Confirmado",
-          "turma": "DM15",
-          "dia": "quinta",
-          "sala": "Sala 2",
-          "unidade": "Polo Liberdade",
-          "pl": "Novo(a) PL"
-        },
-        {
-          "id": "emp1790086412712",
-          "nome": "UOL",
-          "jovens": 1,
-          "status": "Confirmado",
-          "turma": "BM9",
-          "dia": "terça",
-          "sala": "Sala 1",
-          "unidade": "Polo Liberdade",
-          "pl": "Marialice"
-        },
-        {
-          "id": "emp1790958286742",
-          "nome": "Alice",
-          "jovens": 2,
-          "status": "Confirmado",
-          "turma": "BM9",
-          "dia": "terça",
-          "sala": "Sala 1",
-          "unidade": "Polo Liberdade",
-          "pl": "Marialice"
-        },
-        {
-          "id": "emp1790958311205",
-          "nome": "Shopee",
-          "jovens": 1,
-          "status": "Confirmado",
-          "turma": "AM14",
-          "dia": "segunda",
-          "sala": "Sala 1",
-          "unidade": "Freguesia do Ó",
-          "pl": "Manu"
-        },
-        {
-          "id": "emp1790958334485",
-          "nome": "Wellhub",
-          "jovens": 1,
-          "status": "Confirmado",
-          "turma": "DM14",
-          "dia": "quinta",
-          "sala": "Sala 1",
-          "unidade": "Polo Liberdade",
-          "pl": "Marialice"
-        },
-        {
-          "id": "emp1791543320808",
-          "nome": "Corpay",
-          "jovens": 1,
-          "status": "Confirmado",
-          "turma": "DM14",
-          "dia": "quinta",
-          "sala": "Sala 1",
-          "unidade": "Polo Liberdade",
-          "pl": "Marialice"
-        }
-      ]
-    },
-    {
       "id": "e1787849650718",
       "data": "2026-11-03",
       "empresas": [
@@ -161,78 +78,6 @@
   ],
   "entradasHibrido": [
     {
-      "id": "e1789581620775",
-      "data": "2026-10-19",
-      "empresas": [
-        {
-          "id": "emp1789581620775ofj3pmr7dve",
-          "nome": "Teste",
-          "jovens": 50,
-          "status": "Em aberto",
-          "turma": "AM15",
-          "dia": "segunda",
-          "sala": "Sala Híbrido",
-          "unidade": "Polo Liberdade",
-          "pl": null,
-          "modalidade": "hibrida",
-          "plInicio": null,
-          "plOnline": null,
-          "plFim": null
-        },
-        {
-          "id": "emp1789581649109",
-          "nome": "Teste",
-          "jovens": 20,
-          "status": "Em aberto",
-          "turma": "BM11",
-          "dia": "terça",
-          "sala": "Sala Híbrido 2",
-          "unidade": "Polo Liberdade",
-          "pl": null,
-          "modalidade": "hibrida",
-          "plInicio": null,
-          "plOnline": "Guilherme",
-          "plFim": null
-        },
-        {
-          "id": "emp1789598318716",
-          "nome": "Nova empresa",
-          "jovens": 1,
-          "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null,
-          "pl": null,
-          "modalidade": null
-        },
-        {
-          "id": "emp1789598447400",
-          "nome": "Nova empresa",
-          "jovens": 1,
-          "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null,
-          "pl": null,
-          "modalidade": null
-        },
-        {
-          "id": "emp17912073362960.9965781949086868",
-          "nome": "Nubank",
-          "jovens": 4,
-          "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null,
-          "pl": null,
-          "modalidade": null
-        }
-      ]
-    },
-    {
       "id": "e1789598465547",
       "data": "2026-11-03",
       "empresas": [
@@ -250,6 +95,66 @@
           "plInicio": null,
           "plOnline": null,
           "plFim": null
+        },
+        {
+          "id": "emp17924104595320.27241453848071207",
+          "nome": "Teste",
+          "jovens": 50,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null,
+          "pl": null,
+          "modalidade": null
+        },
+        {
+          "id": "emp17924104595320.2977611350967323",
+          "nome": "Teste",
+          "jovens": 20,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null,
+          "pl": null,
+          "modalidade": null
+        },
+        {
+          "id": "emp17924104595330.7820398860246646",
+          "nome": "Nova empresa",
+          "jovens": 1,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null,
+          "pl": null,
+          "modalidade": null
+        },
+        {
+          "id": "emp17924104595330.6713154956877478",
+          "nome": "Nova empresa",
+          "jovens": 1,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null,
+          "pl": null,
+          "modalidade": null
+        },
+        {
+          "id": "emp17924104595330.8788345512267192",
+          "nome": "Nubank",
+          "jovens": 4,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null,
+          "pl": null,
+          "modalidade": null
         }
       ]
     },
