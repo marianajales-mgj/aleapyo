@@ -53,11 +53,11 @@
           "nome": "Calvin Klein",
           "jovens": 1,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null,
-          "pl": null
+          "turma": "BM11",
+          "dia": "terça",
+          "sala": "Sala 1",
+          "unidade": "Polo Liberdade",
+          "pl": "Marialice"
         },
         {
           "id": "emp1792621239372",
@@ -71,7 +71,7 @@
         },
         {
           "id": "emp1792621245293",
-          "nome": "Nova empresa",
+          "nome": "Eletromidia",
           "jovens": 1,
           "status": "Em aberto",
           "turma": null,
