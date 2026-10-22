@@ -94,12 +94,13 @@
         {
           "id": "emp1792674426521",
           "nome": "UOL",
-          "jovens": 4,
+          "jovens": 3,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "BM11",
+          "dia": "terça",
+          "sala": "Sala 1",
+          "unidade": "Polo Liberdade",
+          "pl": "Marialice"
         }
       ]
     },
