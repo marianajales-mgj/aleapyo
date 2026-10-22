@@ -38,17 +38,6 @@
           "pl": "Marialice"
         },
         {
-          "id": "emp1791543955072",
-          "nome": "Track&Field",
-          "jovens": 7,
-          "status": "Em aberto",
-          "turma": "BM11",
-          "dia": "terça",
-          "sala": "Sala 1",
-          "unidade": "Polo Liberdade",
-          "pl": "Marialice"
-        },
-        {
           "id": "emp1791544294433",
           "nome": "Calvin Klein",
           "jovens": 1,
@@ -86,10 +75,11 @@
           "nome": "Flash",
           "jovens": 2,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "BM11",
+          "dia": "terça",
+          "sala": "Sala 1",
+          "unidade": "Polo Liberdade",
+          "pl": "Marialice"
         },
         {
           "id": "emp1792674426521",
@@ -107,7 +97,19 @@
     {
       "id": "e_20261116",
       "data": "2026-11-16",
-      "empresas": []
+      "empresas": [
+        {
+          "id": "emp1792678435475",
+          "nome": "Track&Field",
+          "jovens": 7,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null,
+          "pl": null
+        }
+      ]
     }
   ],
   "entradasHibrido": [
