@@ -330,50 +330,146 @@ const TURMAS_SEM_SALA=['Turma CM3','Turma EM8','Turma DM6','Turma DM9','Turma EM
 let salaOverrides={};
 let _overridesSha=null; // SHA atual do arquivo no GitHub (necessário para PUT)
 
+// ── COR DE PL: nunca repete a de outro PL ──
+// A fórmula antiga ciclava 4 cores pela posição na lista, então o 7º PL (Rodrigo) repetia o rosa da Marialice.
+// Agora um PL novo recebe a primeira cor "longe" de todas as que já estão em uso, e a cor é gravada junto
+// do PL (campo `cor` no estado.json) pra ficar a mesma em toda sessão. PLs antigos sem cor gravada mantêm
+// a que já tinham (fórmula antiga) e passam a ter a cor gravada no próximo salvamento.
+const CORES_PL_EXTRAS=['#84cc16','#ef4444','#0d9488','#a16207','#64748b','#4f46e5','#c026d3','#059669','#e11d48','#0369a1'];
+function _distCor(a,b){
+  const p=x=>[1,3,5].map(i=>parseInt(x.slice(i,i+2),16));
+  const u=p(a),v=p(b);
+  return Math.hypot(u[0]-v[0],u[1]-v[1],u[2]-v[2]);
+}
+function _hslParaHex(hh,s,l){
+  s/=100;l/=100;
+  const k=n=>(n+hh/30)%12,a=s*Math.min(l,1-l);
+  const f=n=>l-a*Math.max(-1,Math.min(k(n)-3,Math.min(9-k(n),1)));
+  return '#'+[f(0),f(8),f(4)].map(x=>Math.round(x*255).toString(16).padStart(2,'0')).join('');
+}
+function corNovaPL(){
+  const usadas=Object.values(plCores).map(c=>c.bg).filter(c=>/^#[0-9a-f]{6}$/i.test(c));
+  const livre=(c,min)=>usadas.every(u=>_distCor(c,u)>=min);
+  const achada=CORES_PL_EXTRAS.find(c=>livre(c,70));
+  if(achada)return achada;
+  // paleta esgotada: varre o círculo de cores, afrouxando a distância mínima até achar uma que não repita
+  for(const min of [70,50,35,20,8]){
+    for(const l of [50,38,62]){
+      for(let g=0;g<360;g+=7){const c=_hslParaHex(g,65,l);if(livre(c,min))return c;}
+    }
+  }
+  return '#64748b';
+}
+function definirCorPL(nome,corSalva,legado){
+  // `legado`: cor da fórmula antiga, só vale se ninguém mais já estiver usando essa cor
+  if(!corSalva&&legado&&!Object.values(plCores).some(c=>c.bg.toLowerCase()===legado.toLowerCase()))corSalva=legado;
+  const cor=(corSalva&&/^#[0-9a-f]{6}$/i.test(corSalva))?corSalva:corNovaPL();
+  plCores[nome]={bg:cor,light:cor+'18',text:'#1d0328',border:cor};
+  return cor;
+}
+const CORES_PL_LEGADO=['#a78bfa','#fb923c','#38bdf8','#f472b6']; // fórmula antiga, só pra PLs sem cor gravada
+
+// ── LEITURA/ESCRITA NO GITHUB ──
+// A API do GitHub devolve cada leitura com "Cache-Control: max-age=60". Sem `no-store` o navegador reaproveitava
+// uma resposta velha (conteúdo E sha) e a gravação seguinte levava 409 — erro que era ignorado em silêncio
+// (foi assim que o PL "Rodrigo" nunca ficou salvo). Agora: leitura sempre fresca, uma gravação por vez, e em
+// conflito o estado atual é relido e mesclado, com aviso na tela, em vez de perder o que foi feito.
+function avisoSalvamento(texto,tipo){
+  try{
+    let el=document.getElementById('aviso-salvamento');
+    if(!el){
+      el=document.createElement('div');
+      el.id='aviso-salvamento';
+      el.style.cssText="position:fixed;right:16px;bottom:16px;z-index:9999;max-width:380px;padding:10px 14px;border-radius:8px;font-size:12px;font-family:'Montserrat',sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.15);line-height:1.45";
+      document.body.appendChild(el);
+    }
+    const ok=tipo==='ok';
+    el.style.background=ok?'#e8fff9':tipo==='aviso'?'#fff7ed':'#fef2f2';
+    el.style.color=ok?'#0a7a60':tipo==='aviso'?'#92400e':'#b91c1c';
+    el.style.border='1px solid '+(ok?'#35dcb2':tipo==='aviso'?'#fdba74':'#fca5a5');
+    el.textContent=texto;
+    el.style.display='block';
+    clearTimeout(window._avisoTimer);
+    window._avisoTimer=setTimeout(()=>{el.style.display='none';},ok?2200:15000);
+  }catch(e){console.warn(texto);}
+}
+async function lerArquivoGitHub(arquivo){
+  const r=await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${arquivo}?_=${Date.now()}`,{
+    cache:'no-store',
+    headers:{Authorization:`token ${GITHUB_TOKEN}`,Accept:'application/vnd.github.v3+json'}
+  });
+  if(!r.ok)return null;
+  const data=await r.json();
+  if(!data.content)return null;
+  const raw=Uint8Array.from(atob(data.content.replace(/\n/g,'')),c=>c.charCodeAt(0));
+  return {sha:data.sha,obj:JSON.parse(new TextDecoder('utf-8').decode(raw))};
+}
+function putArquivoGitHub(arquivo,mensagem,objeto,sha){
+  const body={message:mensagem,content:btoa(unescape(encodeURIComponent(JSON.stringify(objeto,null,2)))),branch:'main'};
+  if(sha)body.sha=sha;
+  return fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${arquivo}`,{
+    method:'PUT',
+    headers:{Authorization:`token ${GITHUB_TOKEN}`,Accept:'application/vnd.github.v3+json','Content-Type':'application/json'},
+    body:JSON.stringify(body)
+  });
+}
+let _filaSalvar=Promise.resolve(); // uma gravação por vez: duas em paralelo usam o mesmo sha e uma sempre perde
+
 async function loadOverrides(){
   try{
-    const r=await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${OVERRIDES_FILE}`,{
-      headers:{Authorization:`token ${GITHUB_TOKEN}`,Accept:'application/vnd.github.v3+json'}
-    });
-    if(r.ok){
-      const data=await r.json();
-      _overridesSha=data.sha;
-      const rawOv=Uint8Array.from(atob(data.content.replace(/\n/g,'')),c=>c.charCodeAt(0));
-      salaOverrides=JSON.parse(new TextDecoder('utf-8').decode(rawOv));
-    }else{
-      salaOverrides={};
-    }
+    const res=await lerArquivoGitHub(OVERRIDES_FILE);
+    if(res){_overridesSha=res.sha;salaOverrides=res.obj;}
+    else salaOverrides={};
   }catch(e){console.warn('Overrides não carregados:',e.message);salaOverrides={};}
 }
 
-async function saveSalaOverrides(){
+function saveSalaOverrides(){
+  const p=_filaSalvar.then(_salvarOverridesAgora);
+  _filaSalvar=p.catch(()=>false);
+  return p.catch(()=>false);
+}
+async function _salvarOverridesAgora(){
   try{
-    const conteudo=btoa(unescape(encodeURIComponent(JSON.stringify(salaOverrides,null,2))));
-    const body={message:'overrides: ajuste manual de sala/PL',content:conteudo,branch:'main'};
-    if(_overridesSha)body.sha=_overridesSha;
-    const r=await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${OVERRIDES_FILE}`,{
-      method:'PUT',
-      headers:{Authorization:`token ${GITHUB_TOKEN}`,Accept:'application/vnd.github.v3+json','Content-Type':'application/json'},
-      body:JSON.stringify(body)
-    });
-    if(r.ok){const d=await r.json();_overridesSha=d.content.sha;}
-  }catch(e){console.warn('Erro ao salvar overrides:',e.message);}
+    for(let tentativa=0;tentativa<3;tentativa++){
+      const r=await putArquivoGitHub(OVERRIDES_FILE,'overrides: ajuste manual de sala/PL',salaOverrides,_overridesSha);
+      if(r.ok){const d=await r.json();_overridesSha=d.content.sha;return true;}
+      if(r.status===409||r.status===422){
+        // Alguém gravou antes: relê, e o que eu tenho vence por chave (chaves só do outro ficam)
+        const rem=await lerArquivoGitHub(OVERRIDES_FILE);
+        if(!rem)break;
+        _overridesSha=rem.sha;
+        salaOverrides={...rem.obj,...salaOverrides};
+        continue;
+      }
+      break;
+    }
+    avisoSalvamento('⚠ Não consegui salvar o ajuste manual no GitHub. Recarregue a página (F5) e confira se ficou.','erro');
+    return false;
+  }catch(e){
+    console.warn('Erro ao salvar overrides:',e.message);
+    avisoSalvamento('⚠ Não consegui salvar o ajuste manual ('+e.message+'). Recarregue a página (F5) e confira.','erro');
+    return false;
+  }
 }
 
 // ── PERSISTÊNCIA DE ENTRADAS NO GITHUB ──
 const ESTADO_FILE='estado.json';
 let _estadoSha=null;
+let _baseEstado=null; // como estava o arquivo na última leitura/gravação — base pra detectar quem mexeu em quê num conflito
+const _CHAVES_COMPARAVEIS=['entradas','entradasHibrido','unidades','cronTurmas'];
+function _snapEstado(o){
+  const s={};
+  _CHAVES_COMPARAVEIS.forEach(k=>{s[k]=JSON.stringify(o[k]||[]);});
+  return s;
+}
 
 async function loadEstado(){
   try{
-    const r=await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${ESTADO_FILE}`,{
-      headers:{Authorization:`token ${GITHUB_TOKEN}`,Accept:'application/vnd.github.v3+json'}
-    });
-    if(r.ok){
-      const data=await r.json();
-      _estadoSha=data.sha;
-      const raw=Uint8Array.from(atob(data.content.replace(/\n/g,'')),c=>c.charCodeAt(0));
-      const saved=JSON.parse(new TextDecoder('utf-8').decode(raw));
+    const res=await lerArquivoGitHub(ESTADO_FILE);
+    if(res){
+      const saved=res.obj;
+      _estadoSha=res.sha;
+      _baseEstado=_snapEstado(saved);
       if(saved.entradas&&saved.entradas.length){
         entradas=saved.entradas;
       }
@@ -387,9 +483,7 @@ async function loadEstado(){
         saved.pls.forEach(p=>{
           if(!plsState.find(x=>x.nome===p.nome)){
             plsState.push({nome:p.nome,alocados:p.alocados||[],livres:[],simDias:[]});
-            const cores=['#a78bfa','#fb923c','#38bdf8','#f472b6'];
-            const cor=cores[plsState.length%4];
-            plCores[p.nome]={bg:cor,light:cor+'18',text:'#1d0328',border:cor};
+            definirCorPL(p.nome,p.cor,CORES_PL_LEGADO[plsState.length%4]);
           }
         });
       }
@@ -402,21 +496,93 @@ async function loadEstado(){
   }catch(e){console.warn('Estado não carregado:',e.message);}
 }
 
-async function saveEstado(){
+function montarPayloadEstado(){
+  const plsExtras=plsState.filter(p=>p.nome!=='Manu'&&p.nome!=='Carol').map(p=>({nome:p.nome,alocados:p.alocados,cor:(plCores[p.nome]||{}).bg}));
+  const cronTurmasSalvar=cronTurmas.map(t=>({id:t.id,nome:t.nome,turma_id:t.turma_id,modalidade:t.modalidade}));
+  registrarAlocacoes();
+  return {entradas,entradasHibrido,pls:plsExtras,unidades,cronTurmas:cronTurmasSalvar,alocacoesTurmas};
+}
+// Conflito: outra gravação entrou entre a minha leitura e a minha gravação. Por chave:
+//  - só eu mexi            → fica o meu;      - só o outro mexeu → fica o dele;
+//  - os dois mexeram       → fica o dele (não apago o trabalho de ninguém) e AVISO;
+//  - PLs e registro de alocações só crescem → junta os dois lados.
+function resolverConflitoEstado(local,remoto,base){
+  const out={...remoto};
+  const conflitos=[];
+  _CHAVES_COMPARAVEIS.forEach(k=>{
+    const sl=JSON.stringify(local[k]||[]),sr=JSON.stringify(remoto[k]||[]),sb=base?base[k]:undefined;
+    if(sl===sr||(sb!==undefined&&sr===sb)){out[k]=local[k];return;}
+    if(sb!==undefined&&sl===sb){out[k]=remoto[k];return;}
+    out[k]=remoto[k];conflitos.push(k);
+  });
+  const pls=new Map();
+  (remoto.pls||[]).forEach(p=>pls.set(p.nome,p));
+  (local.pls||[]).forEach(p=>pls.set(p.nome,p));
+  out.pls=[...pls.values()];
+  out.alocacoesTurmas={...(remoto.alocacoesTurmas||{}),...(local.alocacoesTurmas||{})};
+  return {payload:out,conflitos};
+}
+// Depois de aceitar a versão do outro pra alguma chave, a memória local passa a espelhar o arquivo
+function adotarEstadoRemoto(payload){
+  entradas=payload.entradas||[];
+  entradasHibrido=payload.entradasHibrido||[];
+  if(payload.unidades&&payload.unidades.length)unidades=payload.unidades;
+  cronTurmas=(payload.cronTurmas||[]).map(t=>({...t,planoAulaTexto:'',planoAulaNome:''}));
+  (payload.pls||[]).forEach(p=>{
+    if(!plsState.find(x=>x.nome===p.nome)){
+      plsState.push({nome:p.nome,alocados:p.alocados||[],livres:[],simDias:[]});
+      definirCorPL(p.nome,p.cor,CORES_PL_LEGADO[plsState.length%4]);
+    }
+  });
+  alocacoesTurmas=payload.alocacoesTurmas||{};
+  try{renderGrade();renderGradeMini();renderGradeMiniHib();renderEmpresas();renderEmpresasHibrido();renderHibrido();renderPLs();}catch(e){}
+}
+const _NOMES_CHAVES={entradas:'entradas (Presencial)',entradasHibrido:'entradas (Híbrido)',unidades:'unidades',cronTurmas:'turmas do Gerador de Cronogramas'};
+
+function saveEstado(){
+  const p=_filaSalvar.then(_salvarEstadoAgora);
+  _filaSalvar=p.catch(()=>false);
+  return p.catch(()=>false);
+}
+async function _salvarEstadoAgora(){
   try{
-    const plsExtras=plsState.filter(p=>p.nome!=='Manu'&&p.nome!=='Carol').map(p=>({nome:p.nome,alocados:p.alocados}));
-    const cronTurmasSalvar=cronTurmas.map(t=>({id:t.id,nome:t.nome,turma_id:t.turma_id,modalidade:t.modalidade}));
-    registrarAlocacoes();
-    const conteudo=btoa(unescape(encodeURIComponent(JSON.stringify({entradas,entradasHibrido,pls:plsExtras,unidades,cronTurmas:cronTurmasSalvar,alocacoesTurmas},null,2))));
-    const body={message:'estado: entradas atualizadas',content:conteudo,branch:'main'};
-    if(_estadoSha)body.sha=_estadoSha;
-    const r=await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${ESTADO_FILE}`,{
-      method:'PUT',
-      headers:{Authorization:`token ${GITHUB_TOKEN}`,Accept:'application/vnd.github.v3+json','Content-Type':'application/json'},
-      body:JSON.stringify(body)
-    });
-    if(r.ok){const d=await r.json();_estadoSha=d.content.sha;}
-  }catch(e){console.warn('Erro ao salvar estado:',e.message);}
+    if(!_estadoSha){
+      avisoSalvamento('⚠ Não salvei: o estado ainda não foi carregado do GitHub (sem isso eu poderia apagar dados). Recarregue a página (F5) e tente de novo.','erro');
+      return false;
+    }
+    let payload=montarPayloadEstado();
+    const conflitos=[];
+    for(let tentativa=0;tentativa<3;tentativa++){
+      const r=await putArquivoGitHub(ESTADO_FILE,'estado: entradas atualizadas',payload,_estadoSha);
+      if(r.ok){
+        const d=await r.json();
+        _estadoSha=d.content.sha;
+        _baseEstado=_snapEstado(payload);
+        if(conflitos.length){
+          adotarEstadoRemoto(payload);
+          avisoSalvamento('⚠ Outra pessoa alterou '+conflitos.map(k=>_NOMES_CHAVES[k]).join(', ')+' ao mesmo tempo. Mantive a versão dela e NÃO salvei suas mudanças nisso — a tela foi atualizada, confira e refaça o que faltar. (PLs e alocações foram salvos.)','aviso');
+        } else avisoSalvamento('✓ Salvo','ok');
+        return true;
+      }
+      if(r.status===409||r.status===422){
+        const rem=await lerArquivoGitHub(ESTADO_FILE);
+        if(!rem)break;
+        _estadoSha=rem.sha;
+        const res=resolverConflitoEstado(payload,rem.obj,_baseEstado);
+        payload=res.payload;
+        res.conflitos.forEach(k=>{if(!conflitos.includes(k))conflitos.push(k);});
+        _baseEstado=_snapEstado(rem.obj);
+        continue;
+      }
+      break;
+    }
+    avisoSalvamento('⚠ Não consegui salvar no GitHub. O que você acabou de fazer pode não ter sido gravado — recarregue a página (F5) e confira.','erro');
+    return false;
+  }catch(e){
+    console.warn('Erro ao salvar estado:',e.message);
+    avisoSalvamento('⚠ Não consegui salvar ('+e.message+'). Recarregue a página (F5) e confira.','erro');
+    return false;
+  }
 }
 
 // ── REGISTRO DE ALOCAÇÕES (sala/unidade/PL da simulação, preservado depois da data de entrada) ──
@@ -1681,9 +1847,7 @@ function hibPlSelectChanged(selectEl){
   if(!nome){selectEl.value='';return;}
   if(!plsState.find(p=>p.nome===nome)){
     plsState.push({nome,alocados:[],livres:[],simDias:[]});
-    const cores=['#a78bfa','#fb923c','#38bdf8','#f472b6'];
-    const cor=cores[plsState.length%4];
-    plCores[nome]={bg:cor,light:cor+'18',text:'#1d0328',border:cor};
+    definirCorPL(nome);
     renderPLs();
     saveEstado();
   }
@@ -2080,9 +2244,7 @@ function novoPL(){
   const nome=prompt('Nome do PL:');if(!nome)return;
   if(plsState.find(p=>p.nome===nome)){alert('Já existe um PL com esse nome.');return;}
   plsState.push({nome,alocados:[],livres:[],simDias:[]});
-  const cores=['#a78bfa','#fb923c','#38bdf8','#f472b6'];
-  const cor=cores[plsState.length%4];
-  plCores[nome]={bg:cor,light:cor+'18',text:'#1d0328',border:cor};
+  definirCorPL(nome);
   renderPLs();renderGrade();renderGradeMini();saveEstado();
 }
 
