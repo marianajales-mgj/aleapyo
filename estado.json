@@ -162,7 +162,8 @@
       "alocados": [
         "Seg",
         "Ter",
-        "Qua"
+        "Qua",
+        "Sex"
       ]
     }
   ],
@@ -250,7 +251,7 @@
       "sala": "Sala 2",
       "unidade": "Polo Liberdade",
       "modalidade": "presencial",
-      "pl": "PL a definir",
+      "pl": "Rodrigo",
       "entrada": "2026-10-19"
     },
     "BM9": {
