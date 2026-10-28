@@ -143,19 +143,23 @@
   "pls": [
     {
       "nome": "Marialice",
-      "alocados": []
+      "alocados": [],
+      "cor": "#f472b6"
     },
     {
       "nome": "Guilherme",
-      "alocados": []
+      "alocados": [],
+      "cor": "#a78bfa"
     },
     {
       "nome": "Novo(a) PL",
-      "alocados": []
+      "alocados": [],
+      "cor": "#fb923c"
     },
     {
       "nome": "Novo(a) PL 2",
-      "alocados": []
+      "alocados": [],
+      "cor": "#38bdf8"
     },
     {
       "nome": "Rodrigo",
@@ -164,7 +168,13 @@
         "Ter",
         "Qua",
         "Sex"
-      ]
+      ],
+      "cor": "#84cc16"
+    },
+    {
+      "nome": "Jéssica",
+      "alocados": [],
+      "cor": "#ef4444"
     }
   ],
   "unidades": [
