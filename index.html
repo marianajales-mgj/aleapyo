@@ -2374,8 +2374,7 @@ const CRON_CALENDARIZACAO_PADRAO_CSV=`# Aulas,Classificação dia,Tipo,Arco,Tril
 67,Aula Semanal,Módulo,,O Jogo Profissional,7,Projeto de vida`;
 // Calendarização do Curso Híbrido (Assistente de Gestão de Dados - Economia 4.0), vigente a partir de 05/10/2026.
 // Fases: Imersão inicial (aulas 1–10) → Aula Semanal (11–57) → Imersão final (58–67). Linhas com ID vazio ou "-"
-// ainda não têm módulo/atividade cadastrado no backoffice. Por ora só serve de consulta — o gerador de
-// cronograma do Híbrido ainda não usa esta lista.
+// ainda não têm módulo/atividade cadastrado no backoffice. Alimenta o gerador do Híbrido (cronGerar).
 const CRON_CALENDARIZACAO_HIBRIDO_CSV=`# Aulas,Classificação dia,Tipo,Arco,Trilha,ID,Tema,CH
 1,Imersão inicial,Atividade,,Base para o Salto,-,Integração e Pertencimento,6
 2,Imersão inicial,Atividade,,Base para o Salto,-,Autoconhecimento e Responsabilidade Coletiva,6
@@ -2562,8 +2561,14 @@ function cronAgruparUnidades(blocos){
   return unidades;
 }
 // Imersão de UMA turma: um bloco da calendarização por dia de imersão do plano; fim fixo = último dia da janela.
-function cronLinhasImersaoTurma(plano,blocosImersao,turmaNome){
-  const linhas=[],vistos=new Set();
+// `blocosImersao` é uma lista só (Presencial: a mesma serve pra inicial e final) OU {inicial,final} (Híbrido:
+// cada janela tem as suas aulas). Com opts.estrito (Híbrido) a imersão tem que ter exatamente os módulos da
+// calendarização: se o plano tiver menos/mais dias de imersão que aulas, vira alerta em vez de cortar em silêncio.
+function cronLinhasImersaoTurma(plano,blocosImersao,turmaNome,opts){
+  opts=opts||{};
+  const blocosIni=Array.isArray(blocosImersao)?blocosImersao:blocosImersao.inicial;
+  const blocosFim=Array.isArray(blocosImersao)?blocosImersao:blocosImersao.final;
+  const linhas=[],vistos=new Set(),alertas=[];
   let cursorInicial=0,cursorFinal=0;
   const primeiroAula=plano.findIndex(r=>r.tipo==='Aula Semanal');
   let ultimoAula=-1;
@@ -2575,7 +2580,7 @@ function cronLinhasImersaoTurma(plano,blocosImersao,turmaNome){
     if(!/^Imers/i.test(row.tipo))return;
     const ehFinal=ultimoAula>=0&&idx>ultimoAula;
     const fimFixo=(ehFinal?fimFinal:fimInicial)||row.data;
-    const bloco=ehFinal?blocosImersao[cursorFinal++]:blocosImersao[cursorInicial++];
+    const bloco=ehFinal?blocosFim[cursorFinal++]:blocosIni[cursorInicial++];
     const tipo=ehFinal?'Imersão final':'Imersão inicial';
     if(bloco)bloco.forEach(item=>{
       vistos.add(cronChaveItem(item,'i'));
@@ -2583,15 +2588,32 @@ function cronLinhasImersaoTurma(plano,blocosImersao,turmaNome){
     });
     else linhas.push({dataInicio:row.data,dataFim:fimFixo,diaSemana:row.diaSemana,tipo:'Imersão (sem conteúdo definido)',turmasPresentes:[turmaNome],tema:'A DEFINIR — calendarização de imersão esgotada',id:null});
   });
-  return {linhas,vistos};
+  if(opts.estrito){
+    const confere=(nomeFase,dias,blocos)=>{
+      if(dias===blocos.length)return;
+      if(dias<blocos.length){
+        const fora=blocos.slice(dias).map(b=>b.map(i=>i.tema).join(' / '));
+        alertas.push(`⛔ ${turmaNome}: a ${nomeFase} do plano tem ${dias} dia(s) de imersão, mas a calendarização tem ${blocos.length} aula(s) — NÃO couberam: ${fora.join(', ')}. A imersão precisa ter exatamente os módulos da calendarização; ajuste o plano de aula.`);
+      } else alertas.push(`⚠ ${turmaNome}: a ${nomeFase} do plano tem ${dias} dia(s) de imersão, mas a calendarização só tem ${blocos.length} aula(s) — ${dias-blocos.length} dia(s) ficaram "A DEFINIR".`);
+    };
+    const diasIni=plano.filter((r,i)=>/^Imers/i.test(r.tipo)&&!(ultimoAula>=0&&i>ultimoAula)).length;
+    const diasFim=plano.filter((r,i)=>/^Imers/i.test(r.tipo)&&ultimoAula>=0&&i>ultimoAula).length;
+    confere('imersão inicial',diasIni,blocosIni);
+    if(ultimoAula<0||!diasFim)alertas.push(`⛔ ${turmaNome}: o plano não tem imersão final (depois da última Aula Semanal), mas a calendarização tem ${blocosFim.length} aula(s) de imersão final.`);
+    else confere('imersão final',diasFim,blocosFim);
+  }
+  return {linhas,vistos,alertas};
 }
-function cronGerarSala(turmas,blocosImersao,blocosAulaSemanal){
+// opts (Híbrido): estrito = imersão exata + alertas de falta/sobra de conteúdo; ordensFixas = lista de cadeias de ordem obrigatória.
+function cronGerarSala(turmas,blocosImersao,blocosAulaSemanal,opts){
+  opts=opts||{};
   const unidades=cronAgruparUnidades(blocosAulaSemanal);
   const alertas=[];
   let linhas=[];
   const estado=turmas.map(t=>{
-    const im=cronLinhasImersaoTurma(t.plano,blocosImersao,t.nome);
+    const im=cronLinhasImersaoTurma(t.plano,blocosImersao,t.nome,opts);
     linhas=linhas.concat(im.linhas);
+    im.alertas.forEach(a=>alertas.push(a));
     const aulas=t.plano.filter(r=>r.tipo==='Aula Semanal').map(r=>r.data.getTime());
     if(!aulas.length)alertas.push(`${t.nome}: o plano de aula não tem nenhuma "Aula Semanal" — nada pra sincronizar.`);
     return {nome:t.nome,plano:t.plano,vistos:im.vistos,
@@ -2608,6 +2630,15 @@ function cronGerarSala(turmas,blocosImersao,blocosAulaSemanal){
     if(r.tipo==='Aula Semanal'){slotsSet.add(ms);calSet.add(ms);diaPorMs[ms]=r.diaSemana;}
     else if(/^Recesso/i.test(r.tipo))calSet.add(ms);
   }));
+  if(opts.estrito&&slotsSet.size){
+    // Híbrido: depois da última aula semanal da sala vem a imersão final — o último módulo termina quando ela começa.
+    const ultimoSlot=Math.max(...slotsSet);
+    estado.forEach(t=>{
+      let ult=-1;for(let i=t.plano.length-1;i>=0;i--)if(t.plano[i].tipo==='Aula Semanal'){ult=i;break;}
+      const iniFinal=ult>=0?t.plano.slice(ult+1).find(r=>/^Imers/i.test(r.tipo)):null;
+      if(iniFinal&&iniFinal.data.getTime()>ultimoSlot)calSet.add(iniFinal.data.getTime());
+    });
+  }
   const slots=[...slotsSet].sort((a,b)=>a-b);
   const cal=[...calSet].sort((a,b)=>a-b);
   // Fim de um módulo = próxima data de aula ou recesso (feriado/emenda não conta: o módulo "ganha +1 semana").
@@ -2615,6 +2646,7 @@ function cronGerarSala(turmas,blocosImersao,blocosAulaSemanal){
   const presentesEm=ms=>comAula.filter(t=>ms>=t.primeira&&ms<=t.ultima);
   const inedita=(u,grupo)=>grupo.every(t=>[...u.chaves].every(k=>!t.vistos.has(k)));
 
+  const semConteudoMs=[];
   let i=0;
   while(i<slots.length){
     const ms=slots[i];
@@ -2627,6 +2659,7 @@ function cronGerarSala(turmas,blocosImersao,blocosAulaSemanal){
       if(!alvo)alvo=unidades.find(u=>inedita(u,pres));     // pendentes (módulos pulados)
     } else alvo=unidades.find(u=>inedita(u,pres));          // pré-sincronização
     if(!alvo){
+      semConteudoMs.push({ms,nomes:pres.map(t=>t.nome)});
       linhas.push({dataInicio:new Date(ms),dataFim:fimDe(ms),diaSemana:diaPorMs[ms],tipo:'Aula Semanal (sem conteúdo definido)',turmasPresentes:pres.map(t=>t.nome),tema:'A DEFINIR — currículo completo já concluído',id:null});
       i++;continue;
     }
@@ -2644,6 +2677,10 @@ function cronGerarSala(turmas,blocosImersao,blocosAulaSemanal){
     i+=disponiveis;
   }
 
+  if(opts.estrito&&semConteudoMs.length){
+    const nomes=[...new Set(semConteudoMs.flatMap(x=>x.nomes))];
+    alertas.push(`⚠ Faltou conteúdo: ${semConteudoMs.length} semana(s) de aula sem módulo antes da imersão final (a partir de ${cronFormatData(new Date(semConteudoMs[0].ms))}; turmas: ${nomes.join(', ')}). Ficaram "A DEFINIR" — a calendarização acabou e o plano ainda tem semanas.`);
+  }
   // Linhas sem módulo (feriado, emenda, recesso): mantidas, uma por data+tipo, com as turmas que as têm no plano.
   const semModulo={};
   estado.forEach(t=>t.plano.forEach(r=>{
@@ -2665,18 +2702,22 @@ function cronGerarSala(turmas,blocosImersao,blocosAulaSemanal){
 
   // Relatório: módulos que cada turma não verá — esperado, é o contrato (duração fixa) que limita.
   comAula.forEach(t=>{
-    const naoVistos=unidades.filter(u=>![...u.chaves].some(c=>t.vistos.has(c))&&u.blocos[0][0].id&&u.blocos[0][0].id!=='-').map(u=>u.blocos[0][0].tema);
-    if(naoVistos.length)alertas.push(`${t.nome}: ${naoVistos.length} módulo(s) da calendarização não cabem no contrato dessa turma (esperado, contrato tem duração fixa): ${naoVistos.join(', ')}.`);
+    const naoVistos=unidades.filter(u=>![...u.chaves].some(c=>t.vistos.has(c))&&(opts.estrito||(u.blocos[0][0].id&&u.blocos[0][0].id!=='-'))).map(u=>u.blocos[0][0].tema);
+    if(naoVistos.length)alertas.push(opts.estrito
+      ?`${t.nome}: ${naoVistos.length} item(ns) EXTRA — a calendarização tem mais conteúdo do que o plano tem de semanas, então ficaram de fora do cronograma: ${naoVistos.join(', ')}.`
+      :`${t.nome}: ${naoVistos.length} módulo(s) da calendarização não cabem no contrato dessa turma (esperado, contrato tem duração fixa): ${naoVistos.join(', ')}.`);
   });
   // Validação: módulos de ordem obrigatória nunca podem aparecer fora de ordem pra mesma turma.
   comAula.forEach(t=>{
+    (opts.ordensFixas||[CRON_ORDEM_FIXA]).forEach(cadeia=>{
     let anterior=null;
-    CRON_ORDEM_FIXA.forEach(nome=>{
+    cadeia.forEach(nome=>{
       const datas=linhas.filter(l=>l.tema===nome&&l.tipo==='Aula Semanal'&&l.turmasPresentes.includes(t.nome)).map(l=>l.dataInicio.getTime());
       if(!datas.length)return;
       const primeira=Math.min(...datas);
       if(anterior&&primeira<anterior.ms)alertas.push(`⛔ ${t.nome}: "${nome}" (${cronFormatData(new Date(primeira))}) aparece ANTES de "${anterior.nome}" (${cronFormatData(new Date(anterior.ms))}) — ordem obrigatória violada, confira manualmente.`);
       if(!anterior||primeira>=anterior.ms)anterior={nome,ms:primeira};
+    });
     });
   });
   return {linhas,alertas};
@@ -2691,6 +2732,15 @@ const CRON_ORDEM_FIXA=[
   'Projeto Empreendedor - Entrega 4','Projeto Empreendedor - Entrega 5',
   'Análise de Dados com SQL - Parte 1/4','Análise de Dados com SQL - Parte 2/4','Análise de Dados com SQL - Parte 3/4','Análise de Dados com SQL - Parte 4/4',
   'Apresentação Final Projeto Empreendedor','Visualização de dados - Parte 1/4','Visualização de dados - Parte 2/4'
+];
+// Híbrido: só as sequências que são ordem natural (Parte 1→4, Entrega 1→5...). Diferente do Presencial, aqui
+// "Introdução a estatística" vem ANTES de "Projeto Empreendedor - Entrega 2/3", então não dá pra usar a lista única.
+const CRON_ORDENS_FIXAS_HIBRIDO=[
+  ['Google Sheets - Parte 1','Excel - Parte 1','Google Sheets - Parte 2','Excel - Parte 2','Google Sheets - Parte 3','Excel - Parte 3','Google Sheets - Parte 4','Excel - Parte 4'],
+  ['Raciocínio analítico','Lógica de programação'],
+  ['Projeto Empreendedor - Entrega 1','Projeto Empreendedor - Entrega 2','Projeto Empreendedor - Entrega 3','Projeto Empreendedor - Entrega 4','Projeto Empreendedor - Entrega 5'],
+  ['Introdução a estatística','Fundamentos e base de estatísticas'],
+  ['Análise de Dados com SQL - Parte 1/4','Análise de Dados com SQL - Parte 2/4','Análise de Dados com SQL - Parte 3/4','Análise de Dados com SQL - Parte 4/4']
 ];
 function cronCSVEscape(v){
   v=String(v==null?'':v);
@@ -2780,8 +2830,10 @@ function cronCarregarSincronizado(input){
   reader.onload=e=>{
     try{
       const texto=ehXlsx?cronXlsxSincronizadoParaCSV(e.target.result):e.target.result;
-      const calendarizacao=cronParseCalendarizacaoCSV(CRON_CALENDARIZACAO_PADRAO_CSV);
-      const lookup=construirLookupTema(calendarizacao);
+      const lookup=construirLookupTema(cronParseCalendarizacaoCSV(CRON_CALENDARIZACAO_PADRAO_CSV));
+      // Nomes que só existem na lista do Híbrido (ex: "Aprendendo a aprender 2.0"); na dúvida vale a lista do Presencial.
+      const lookupHib=construirLookupTema(cronParseCalendarizacaoCSV(CRON_CALENDARIZACAO_HIBRIDO_CSV));
+      Object.keys(lookupHib).forEach(tema=>{if(lookup[tema]==null)lookup[tema]=lookupHib[tema];});
       const {linhas,naoResolvidos}=cronParseSincronizadoCSV(texto,lookup);
       const turmaIds={};
       linhas.forEach(l=>l.turmasPresentes.forEach(t=>{if(turmaIds[t]===undefined)turmaIds[t]='';}));
@@ -2807,7 +2859,7 @@ function cronBaixarBackofficeImportado(nome){
 // As abas de simulação (Presencial/Híbrido) já sabem nome, dia, sala e modalidade de cada turma —
 // o gerador lê isso direto em vez de pedir de novo. Modalidade decide a lista de módulos: toda turma
 // da Simulação Presencial usa a lista 1 (Técnico ADM/RH, Assistente Administrativo); toda turma da
-// Simulação Híbrido usa a lista 2 (Gestão de Dados, ainda não configurada).
+// Simulação Híbrido usa a lista 2 (Gestão de Dados, CRON_CALENDARIZACAO_HIBRIDO_CSV).
 function cronTurmasDisponiveis(){
   const porNome={};
   entradas.forEach(e=>e.empresas.forEach(emp=>{
@@ -2903,13 +2955,26 @@ function cronGerar(){
   // ID do Directus só existe no momento da importação real — fica em branco aqui, ela preenche depois.
   const turmasValidas=cronTurmas.filter(t=>t.nome&&t.planoAulaTexto);
   if(!turmasValidas.length){alert('Preencha nome e o plano de aula de pelo menos uma turma.');return;}
-  const semLista2=turmasValidas.filter(t=>t.modalidade==='hibrido');
-  if(semLista2.length){alert(`A calendarização do Híbrido (Gestão de Dados) já está cadastrada (aba Cronogramas → "Ver calendarização"), mas o gerador de cronograma do Híbrido ainda não foi construído — por enquanto só dá pra gerar o Presencial. Turma(s) do Híbrido ignorada(s): ${semLista2.map(t=>t.nome).join(', ')}.`);return;}
-  const calendarizacao=cronParseCalendarizacaoCSV(CRON_CALENDARIZACAO_PADRAO_CSV);
-  const blocosImersao=cronAgruparBlocosPorOrdem(calendarizacao.filter(l=>l.fase==='Imersão'));
-  const blocosAulaSemanal=cronAgruparBlocosPorOrdem(calendarizacao.filter(l=>l.fase==='Aula Semanal'));
-  const turmasSala=turmasValidas.map(t=>({nome:t.nome,plano:cronParsePlanoAulaCSV(t.planoAulaTexto)}));
-  const {linhas,alertas}=cronGerarSala(turmasSala,blocosImersao,blocosAulaSemanal);
+  // Cada modalidade é uma sala independente, com a sua própria calendarização; se vierem as duas, gera separado e junta.
+  const calPres=cronParseCalendarizacaoCSV(CRON_CALENDARIZACAO_PADRAO_CSV);
+  const calHib=cronParseCalendarizacaoCSV(CRON_CALENDARIZACAO_HIBRIDO_CSV);
+  const blocos=(cal,fase)=>cronAgruparBlocosPorOrdem(cal.filter(l=>l.fase===fase));
+  const grupos=[
+    {nome:'Presencial',turmas:turmasValidas.filter(t=>t.modalidade!=='hibrido'),
+     gerar:ts=>cronGerarSala(ts,blocos(calPres,'Imersão'),blocos(calPres,'Aula Semanal'))},
+    {nome:'Híbrido',turmas:turmasValidas.filter(t=>t.modalidade==='hibrido'),
+     gerar:ts=>cronGerarSala(ts,{inicial:blocos(calHib,'Imersão inicial'),final:blocos(calHib,'Imersão final')},blocos(calHib,'Aula Semanal'),{estrito:true,ordensFixas:CRON_ORDENS_FIXAS_HIBRIDO})}
+  ].filter(g=>g.turmas.length);
+  let linhas=[],alertas=[];
+  grupos.forEach(g=>{
+    const r=g.gerar(g.turmas.map(t=>({nome:t.nome,plano:cronParsePlanoAulaCSV(t.planoAulaTexto)})));
+    linhas=linhas.concat(r.linhas);
+    r.alertas.forEach(a=>alertas.push(grupos.length>1?`[${g.nome}] ${a}`:a));
+  });
+  if(grupos.length>1){
+    linhas.sort((a,b)=>a.dataInicio-b.dataInicio);
+    alertas.unshift('Presencial e Híbrido foram gerados separadamente (são salas independentes, cada uma com a sua calendarização); o CSV sincronizado traz os dois juntos.');
+  }
   cronResultado={linhas,alertas,turmas:turmasValidas};
   renderCronogramas();
 }
