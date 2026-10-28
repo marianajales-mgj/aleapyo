@@ -2372,17 +2372,94 @@ const CRON_CALENDARIZACAO_PADRAO_CSV=`# Aulas,Classificação dia,Tipo,Arco,Tril
 65,Aula Semanal,Módulo,,O Jogo Profissional,33,Saúde no trabalho
 66,Aula Semanal,Módulo,,O Jogo Profissional,40,Planejamento financeiro
 67,Aula Semanal,Módulo,,O Jogo Profissional,7,Projeto de vida`;
+// Calendarização do Curso Híbrido (Assistente de Gestão de Dados - Economia 4.0), vigente a partir de 05/10/2026.
+// Fases: Imersão inicial (aulas 1–10) → Aula Semanal (11–57) → Imersão final (58–67). Linhas com ID vazio ou "-"
+// ainda não têm módulo/atividade cadastrado no backoffice. Por ora só serve de consulta — o gerador de
+// cronograma do Híbrido ainda não usa esta lista.
+const CRON_CALENDARIZACAO_HIBRIDO_CSV=`# Aulas,Classificação dia,Tipo,Arco,Trilha,ID,Tema,CH
+1,Imersão inicial,Atividade,,Base para o Salto,-,Integração e Pertencimento,6
+2,Imersão inicial,Atividade,,Base para o Salto,-,Autoconhecimento e Responsabilidade Coletiva,6
+3,Imersão inicial,Módulo,,Base para o Salto,345,Aprendendo a aprender 2.0,6
+4,Imersão inicial,Módulo,Microsoft,Base para o Salto,326,Ferramentas básicas de trabalho - Microsoft,
+4,Imersão inicial,Módulo,Google,Base para o Salto,327,Ferramentas básicas de trabalho - Google,6
+5,Imersão inicial,Módulo,,Base para o Salto,17,Direito trabalhistas + Lei do Jovem aprendiz,6
+6,Imersão inicial,Módulo,,Base para o Salto,54,Meus primeiros 90 dias,6
+7,Imersão inicial,Módulo,,Base para o Salto,249,Comunicação,6
+8,Imersão inicial,Atividade,,Base para o Salto,,Atividade Prática - Visita,6
+9,Imersão inicial,Módulo,,Base para o Salto,311,Protagonismo e autoliderança,6
+10,Imersão inicial,Atividade,,Base para o Salto,-,Consolidação e Transição,6
+11,Aula Semanal,Módulo,,Protagonismo em Ação,36,Gestão de tempo e produtividade,6
+12,Aula Semanal,Módulo,,Protagonismo em Ação,11,Planejamento de carreira,6
+13,Aula Semanal,Módulo,,Protagonismo em Ação,101,Pensamento sistêmico,6
+14,Aula Semanal,Módulo,,Protagonismo em Ação,310,Gestão emocional,6
+15,Aula Semanal,Módulo,,A Soma de Todos,21,Relacionamentos interpessoais,6
+16,Aula Semanal,Módulo,,A Soma de Todos,337,"Diversidade, equidade e inclusão",6
+17,Aula Semanal,Módulo,,Salto Digital,343,Fundamentos de IA para o Dia a Dia,6
+18,Aula Semanal,Atividade,,Salto Digital,,Atividade Prática - Fundamentos de IA,6
+19,Aula Semanal,Módulo,,Salto Digital,10,Privacidade de Dados,6
+20,Aula Semanal,Módulo,,Salto Digital,398,Governança Privacidade de Dados,6
+21,Aula Semanal,Módulo,,Salto Digital,42,Resolução de Problemas,6
+22,Aula Semanal,Módulo,Google,Salto Digital,329,Google Sheets - Parte 1,6
+22,Aula Semanal,Módulo,Microsoft,Salto Digital,330,Excel - Parte 1,
+23,Aula Semanal,Módulo,Google,Salto Digital,331,Google Sheets - Parte 2,6
+23,Aula Semanal,Módulo,Microsoft,Salto Digital,332,Excel - Parte 2,
+24,Aula Semanal,Módulo,Google,Salto Digital,333,Google Sheets - Parte 3,6
+24,Aula Semanal,Módulo,Microsoft,Salto Digital,335,Excel - Parte 3,
+25,Aula Semanal,Módulo,Google,Salto Digital,334,Google Sheets - Parte 4,6
+25,Aula Semanal,Módulo,Microsoft,Salto Digital,336,Excel - Parte 4,
+26,Aula Semanal,Atividade,,Impulso Extra,,Atividade Prática - Semana de Atividades Variadas + Recuperação de Módulo,6
+27,Aula Semanal,Módulo,,Arquitetando Soluções,34,Raciocínio analítico,6
+28,Aula Semanal,Módulo,,Arquitetando Soluções,34,Raciocínio analítico,6
+29,Aula Semanal,Módulo,,Arquitetando Soluções,34,Raciocínio analítico,6
+30,Aula Semanal,Módulo,,Arquitetando Soluções,34,Raciocínio analítico,6
+31,Aula Semanal,Módulo,,Arquitetando Soluções,8,Lógica de programação,6
+32,Aula Semanal,Módulo,,Arquitetando Soluções,8,Lógica de programação,6
+33,Aula Semanal,Módulo,,Arquitetando Soluções,8,Lógica de programação,6
+34,Aula Semanal,Módulo,,Arquitetando Soluções,8,Lógica de programação,6
+35,Aula Semanal,Módulo,,Tem que Parar de Pé,399,Economia digital,6
+36,Aula Semanal,Módulo,,Tem que Parar de Pé,400,Automação e no code no dia a dia do trabalho,6
+37,Aula Semanal,Módulo,,Obcecados por Crescer,6,Empreendedor 1 a 1,6
+38,Aula Semanal,Módulo,,Obcecados por Crescer,319,Projeto Empreendedor - Entrega 1,6
+39,Aula Semanal,Módulo,,Tem que Parar de Pé,38,Introdução a estatística,6
+40,Aula Semanal,Módulo,,Tem que Parar de Pé,401,Inovação e Futuro da Tecnologia,6
+41,Aula Semanal,Módulo,,Tem que Parar de Pé,341,Gestão de Projetos,6
+42,Aula Semanal,Módulo,,Tem que Parar de Pé,94,Métodos Ágeis,6
+43,Aula Semanal,Módulo,,Obcecados por Crescer,320,Projeto Empreendedor - Entrega 2,6
+44,Aula Semanal,Atividade,,Obcecados por Crescer,,Atividade Prática - Fundamentos e base de estatísticas ligado ao Projeto Empreendedor,6
+45,Aula Semanal,Módulo,,Obcecados por Crescer,321,Projeto Empreendedor - Entrega 3,6
+46,Aula Semanal,Atividade,,Impulso Extra,,Atividade Prática - Estatística em um negócio,6
+47,Aula Semanal,Módulo,,Decisões que Escalam,50,Fundamentos e base de estatísticas,6
+48,Aula Semanal,Módulo,,Decisões que Escalam,50,Fundamentos e base de estatísticas,6
+49,Aula Semanal,Módulo,,Decisões que Escalam,50,Fundamentos e base de estatísticas,6
+50,Aula Semanal,Atividade,,Impulso Extra,,Atividade Prática - Semana de Atividades Variadas + Recuperação de Módulo,6
+51,Aula Semanal,Módulo,,Obcecados por Crescer,322,Projeto Empreendedor - Entrega 4,6
+52,Aula Semanal,Módulo,,Obcecados por Crescer,323,Projeto Empreendedor - Entrega 5,6
+53,Aula Semanal,Módulo,,Decisões que Escalam,312,Análise de Dados com SQL - Parte 1/4,6
+54,Aula Semanal,Módulo,,Decisões que Escalam,314,Análise de Dados com SQL - Parte 2/4,6
+55,Aula Semanal,Módulo,,Decisões que Escalam,316,Análise de Dados com SQL - Parte 3/4,6
+56,Aula Semanal,Módulo,,Decisões que Escalam,317,Análise de Dados com SQL - Parte 4/4,6
+57,Aula Semanal,Atividade,,Impulso Extra,,Atividade Prática - Semana de Atividades Variadas + Recuperação de Módulo,6
+58,Imersão final,Atividade,,Obcecados por Crescer,-,Apresentação Final Projeto Empreendedor,6
+59,Imersão final,Módulo,,Decisões que Escalam,313,Visualização de dados - Parte 1/4,6
+60,Imersão final,Módulo,,Decisões que Escalam,315,Visualização de dados - Parte 2/4,6
+61,Imersão final,Módulo,,Decisões que Escalam,318,Visualização de dados - Parte 3/4,6
+62,Imersão final,Módulo,,Decisões que Escalam,325,Visualização de dados - Parte 4/4,6
+63,Imersão final,Atividade,,Tem que Parar de Pé,,Atividade Prática - Visualização de dados,6
+64,Imersão final,Atividade,,Impulso Extra,,Atividade Prática - Semana de Atividades Variadas + Recuperação de Módulo,6
+65,Imersão final,Módulo,,O Jogo Profissional,33,Saúde no trabalho,6
+66,Imersão final,Módulo,,O Jogo Profissional,40,Planejamento financeiro,6
+67,Imersão final,Módulo,,O Jogo Profissional,7,Projeto de vida,6`;
 function cronParseCalendarizacaoCSV(text){
   const linhas=cronParseCSVGenerico(text);
   if(!linhas.length)return [];
   const header=linhas[0].map(h=>h.trim().toLowerCase());
   const idx=nomeParcial=>header.findIndex(h=>h.includes(nomeParcial));
   const iOrdem=idx('aula'),iFase=idx('classifica'),iTipo=header.findIndex(h=>h==='tipo'),
-        iArco=idx('arco'),iTrilha=idx('trilha'),iId=header.findIndex(h=>h==='id'),iTema=idx('tema');
+        iArco=idx('arco'),iTrilha=idx('trilha'),iId=header.findIndex(h=>h==='id'),iTema=idx('tema'),iCh=header.findIndex(h=>h==='ch');
   return linhas.slice(1).filter(l=>l.some(c=>c&&c.trim())).map(l=>({
     ordem:(l[iOrdem]||'').trim(),fase:(l[iFase]||'').trim().replace(/\*$/,''),
     tipoConteudo:(l[iTipo]||'').trim(),arco:(l[iArco]||'').trim(),trilha:(l[iTrilha]||'').trim(),
-    id:(l[iId]||'').trim(),tema:(l[iTema]||'').trim()
+    id:(l[iId]||'').trim(),tema:(l[iTema]||'').trim(),ch:iCh>=0?(l[iCh]||'').trim():''
   }));
 }
 // ── IMPORTAR CRONOGRAMA SINCRONIZADO JÁ PRONTO (turmas continuando sala em andamento) ──
@@ -2827,7 +2904,7 @@ function cronGerar(){
   const turmasValidas=cronTurmas.filter(t=>t.nome&&t.planoAulaTexto);
   if(!turmasValidas.length){alert('Preencha nome e o plano de aula de pelo menos uma turma.');return;}
   const semLista2=turmasValidas.filter(t=>t.modalidade==='hibrido');
-  if(semLista2.length){alert(`A lista de módulos do Híbrido (Gestão de Dados) ainda não foi configurada — não dá pra gerar cronograma pra: ${semLista2.map(t=>t.nome).join(', ')}.`);return;}
+  if(semLista2.length){alert(`A calendarização do Híbrido (Gestão de Dados) já está cadastrada (aba Cronogramas → "Ver calendarização"), mas o gerador de cronograma do Híbrido ainda não foi construído — por enquanto só dá pra gerar o Presencial. Turma(s) do Híbrido ignorada(s): ${semLista2.map(t=>t.nome).join(', ')}.`);return;}
   const calendarizacao=cronParseCalendarizacaoCSV(CRON_CALENDARIZACAO_PADRAO_CSV);
   const blocosImersao=cronAgruparBlocosPorOrdem(calendarizacao.filter(l=>l.fase==='Imersão'));
   const blocosAulaSemanal=cronAgruparBlocosPorOrdem(calendarizacao.filter(l=>l.fase==='Aula Semanal'));
@@ -2846,15 +2923,27 @@ function cronBaixarBackoffice(turmaNome,turmaId){
 }
 function cronRenderTabelaCalendarizacao(csv){
   const linhas=cronParseCalendarizacaoCSV(csv);
+  const temCH=linhas.some(l=>l.ch);
   return `<div style="max-height:280px;overflow:auto;border:1px solid var(--br);border-radius:6px;margin-top:8px">
     <table style="width:100%;border-collapse:collapse;font-size:11px">
-      <thead><tr style="text-align:left;color:var(--mu);position:sticky;top:0;background:#fff"><th style="padding:4px 8px">Fase</th><th style="padding:4px 8px">Tipo</th><th style="padding:4px 8px">Arco</th><th style="padding:4px 8px">Trilha</th><th style="padding:4px 8px">ID</th><th style="padding:4px 8px">Tema</th></tr></thead>
+      <thead><tr style="text-align:left;color:var(--mu);position:sticky;top:0;background:#fff"><th style="padding:4px 8px">Aula</th><th style="padding:4px 8px">Fase</th><th style="padding:4px 8px">Tipo</th><th style="padding:4px 8px">Arco</th><th style="padding:4px 8px">Trilha</th><th style="padding:4px 8px">ID</th><th style="padding:4px 8px">Tema</th>${temCH?'<th style="padding:4px 8px">CH</th>':''}</tr></thead>
       <tbody>${linhas.map(l=>`<tr style="border-top:1px solid var(--br)">
-        <td style="padding:4px 8px">${l.fase}</td><td style="padding:4px 8px">${l.tipoConteudo}</td><td style="padding:4px 8px">${l.arco}</td>
-        <td style="padding:4px 8px">${l.trilha}</td><td style="padding:4px 8px">${l.id}</td><td style="padding:4px 8px">${l.tema}</td>
+        <td style="padding:4px 8px">${l.ordem}</td><td style="padding:4px 8px">${l.fase}</td><td style="padding:4px 8px">${l.tipoConteudo}</td><td style="padding:4px 8px">${l.arco}</td>
+        <td style="padding:4px 8px">${l.trilha}</td><td style="padding:4px 8px">${l.id}</td><td style="padding:4px 8px">${l.tema}</td>${temCH?`<td style="padding:4px 8px">${l.ch}</td>`:''}
       </tr>`).join('')}</tbody>
     </table>
   </div>`;
+}
+// Resumo da lista do Híbrido: tamanho por fase e o que ainda não tem ID (não entra no backoffice com módulo ligado)
+function cronResumoCalendarizacaoHibrido(){
+  const l=cronParseCalendarizacaoCSV(CRON_CALENDARIZACAO_HIBRIDO_CSV);
+  const aulas=fase=>new Set(l.filter(x=>x.fase===fase).map(x=>x.ordem)).size;
+  const semId=x=>!x.id||x.id==='-';
+  const modulosSemId=l.filter(x=>x.tipoConteudo==='Módulo'&&semId(x));
+  const ativSemId=l.filter(x=>x.tipoConteudo!=='Módulo'&&semId(x)).length;
+  const ch=new Set(l.map(x=>x.ordem)).size;
+  return `<div style="font-size:11px;color:var(--mu);margin-bottom:2px">${ch} aulas: ${aulas('Imersão inicial')} de imersão inicial · ${aulas('Aula Semanal')} semanais · ${aulas('Imersão final')} de imersão final.</div>
+    ${modulosSemId.length?`<div style="font-size:11px;color:#92400e;background:#fff7ed;border:1px solid #fdba74;border-radius:6px;padding:6px 10px;margin:4px 0">⚠ ${modulosSemId.length} módulo(s) sem ID (ainda não cadastrados no backoffice?): ${[...new Set(modulosSemId.map(x=>x.tema))].join(', ')}. Se entrarem no CSV do backoffice, vão com modulo_id em branco. Além disso, ${ativSemId} atividade(s) não têm ID.</div>`:''}`;
 }
 function renderCronogramas(){
   const wrap=document.getElementById('cron-wrap');if(!wrap)return;
@@ -2870,7 +2959,9 @@ function renderCronogramas(){
       <div style="font-size:11px;color:var(--mu);margin-bottom:4px">Serve para: Técnico em Administração, Técnico em RH, Jovem Aprendiz Assistente Administrativo</div>
       ${cronRenderTabelaCalendarizacao(CRON_CALENDARIZACAO_PADRAO_CSV)}
       <div style="font-size:12px;font-weight:600;margin:14px 0 2px">Lista 2 — Híbrido</div>
-      <div style="font-size:11px;color:var(--mu)">Serve para: Assistente de Gestão de Dados - Economia 4.0 — <b>ainda não configurada no Aleapyo</b>.</div>
+      <div style="font-size:11px;color:var(--mu);margin-bottom:4px">Serve para: Assistente de Gestão de Dados - Economia 4.0 · vigente a partir de 05/10/2026</div>
+      ${cronResumoCalendarizacaoHibrido()}
+      ${cronRenderTabelaCalendarizacao(CRON_CALENDARIZACAO_HIBRIDO_CSV)}
     </div>
   </details>`;
 
