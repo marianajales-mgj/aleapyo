@@ -129,8 +129,8 @@
           "pl": null,
           "modalidade": "hibrida",
           "plInicio": "Jéssica",
-          "plOnline": null,
-          "plFim": null
+          "plOnline": "Novo(a) PL",
+          "plFim": "Novo(a) PL"
         }
       ]
     },
@@ -318,8 +318,8 @@
       "unidade": "Polo Liberdade",
       "modalidade": "hibrida",
       "plInicio": "Jéssica",
-      "plOnline": null,
-      "plFim": null,
+      "plOnline": "Novo(a) PL",
+      "plFim": "Novo(a) PL",
       "entrada": "2026-11-03"
     }
   }
