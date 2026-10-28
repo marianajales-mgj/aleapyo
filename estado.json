@@ -213,6 +213,12 @@
       "nome": "DM15",
       "turma_id": "",
       "modalidade": "presencial"
+    },
+    {
+      "id": "turma1793187122779",
+      "nome": "EM11",
+      "turma_id": "",
+      "modalidade": "hibrido"
     }
   ],
   "alocacoesTurmas": {
