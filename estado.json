@@ -197,12 +197,6 @@
   ],
   "cronTurmas": [
     {
-      "id": "turma1792149767481p0",
-      "nome": "DM16",
-      "turma_id": "",
-      "modalidade": "presencial"
-    },
-    {
       "id": "turma1792149767481p1",
       "nome": "DM17",
       "turma_id": "",
