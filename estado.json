@@ -126,6 +126,22 @@
           "unidade": null
         }
       ]
+    },
+    {
+      "id": "e1793294455131",
+      "data": "2027-01-11",
+      "empresas": [
+        {
+          "id": "emp1793294455131qk0jgct5a4r",
+          "nome": "Empresa",
+          "jovens": 1,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null
+        }
+      ]
     }
   ],
   "entradasHibrido": [
