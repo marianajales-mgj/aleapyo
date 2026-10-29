@@ -110,6 +110,22 @@
           "pl": null
         }
       ]
+    },
+    {
+      "id": "e1793294285395",
+      "data": "2026-12-07",
+      "empresas": [
+        {
+          "id": "emp1793294285395bfmc4ef2nlt",
+          "nome": "Empresa",
+          "jovens": 1,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null
+        }
+      ]
     }
   ],
   "entradasHibrido": [
