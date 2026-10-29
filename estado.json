@@ -190,6 +190,22 @@
           "unidade": null
         }
       ]
+    },
+    {
+      "id": "e1793299414365",
+      "data": "2027-03-08",
+      "empresas": [
+        {
+          "id": "emp1793299414365f75kuuldnl",
+          "nome": "Empresa",
+          "jovens": 1,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null
+        }
+      ]
     }
   ],
   "entradasHibrido": [
