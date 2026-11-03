@@ -1,100 +1,6 @@
 {
   "entradas": [
     {
-      "id": "e1787849650718",
-      "data": "2026-11-03",
-      "empresas": [
-        {
-          "id": "emp1787849650718zg4g21wttd",
-          "nome": "Shopee",
-          "jovens": 7,
-          "status": "Em aberto",
-          "turma": "BM11",
-          "dia": "terça",
-          "sala": "Sala 1",
-          "unidade": "Polo Liberdade",
-          "pl": "Marialice"
-        },
-        {
-          "id": "emp1789476904284",
-          "nome": "Wellhub",
-          "jovens": 2,
-          "status": "Em aberto",
-          "turma": "BM11",
-          "dia": "terça",
-          "sala": "Sala 1",
-          "unidade": "Polo Liberdade",
-          "pl": "Marialice"
-        },
-        {
-          "id": "emp1791543943280",
-          "nome": "KFC",
-          "jovens": 2,
-          "status": "Em aberto",
-          "turma": "BM11",
-          "dia": "terça",
-          "sala": "Sala 1",
-          "unidade": "Polo Liberdade",
-          "pl": "Marialice"
-        },
-        {
-          "id": "emp1791544294433",
-          "nome": "Calvin Klein",
-          "jovens": 1,
-          "status": "Em aberto",
-          "turma": "BM11",
-          "dia": "terça",
-          "sala": "Sala 1",
-          "unidade": "Polo Liberdade",
-          "pl": "Marialice"
-        },
-        {
-          "id": "emp1792621239372",
-          "nome": "Alice",
-          "jovens": 1,
-          "status": "Em aberto",
-          "turma": "BM11",
-          "dia": "terça",
-          "sala": "Sala 1",
-          "unidade": "Polo Liberdade",
-          "pl": "Marialice"
-        },
-        {
-          "id": "emp1792621245293",
-          "nome": "Eletromidia",
-          "jovens": 1,
-          "status": "Em aberto",
-          "turma": "BM11",
-          "dia": "terça",
-          "sala": "Sala 1",
-          "unidade": "Polo Liberdade",
-          "pl": "Marialice"
-        },
-        {
-          "id": "emp1792621299501",
-          "nome": "Flash",
-          "jovens": 2,
-          "status": "Em aberto",
-          "turma": "BM11",
-          "dia": "terça",
-          "sala": "Sala 1",
-          "unidade": "Polo Liberdade",
-          "pl": "Marialice"
-        },
-        {
-          "id": "emp1792674426521",
-          "nome": "UOL",
-          "jovens": 3,
-          "status": "Em aberto",
-          "turma": "BM11",
-          "dia": "terça",
-          "sala": "Sala 1",
-          "unidade": "Polo Liberdade",
-          "pl": "Marialice"
-        }
-      ]
-    },
-    {
       "id": "e_20261116",
       "data": "2026-11-16",
       "empresas": [
@@ -102,6 +8,94 @@
           "id": "emp1792678435475",
           "nome": "Track&Field",
           "jovens": 7,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null,
+          "pl": null
+        },
+        {
+          "id": "emp17937063471960.730224135426806",
+          "nome": "Shopee",
+          "jovens": 7,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null,
+          "pl": null
+        },
+        {
+          "id": "emp17937063471960.8026921300850444",
+          "nome": "Wellhub",
+          "jovens": 2,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null,
+          "pl": null
+        },
+        {
+          "id": "emp17937063471960.18698491378438264",
+          "nome": "KFC",
+          "jovens": 2,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null,
+          "pl": null
+        },
+        {
+          "id": "emp17937063471960.25068164785394254",
+          "nome": "Calvin Klein",
+          "jovens": 1,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null,
+          "pl": null
+        },
+        {
+          "id": "emp17937063471960.4016563096037521",
+          "nome": "Alice",
+          "jovens": 1,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null,
+          "pl": null
+        },
+        {
+          "id": "emp17937063471960.2628967407144335",
+          "nome": "Eletromidia",
+          "jovens": 1,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null,
+          "pl": null
+        },
+        {
+          "id": "emp17937063471960.4955096571022134",
+          "nome": "Flash",
+          "jovens": 2,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null,
+          "pl": null
+        },
+        {
+          "id": "emp17937063471960.5248134502935571",
+          "nome": "UOL",
+          "jovens": 3,
           "status": "Em aberto",
           "turma": null,
           "dia": null,
@@ -226,30 +220,22 @@
   ],
   "entradasHibrido": [
     {
-      "id": "e1789598465547",
-      "data": "2026-11-03",
+      "id": "e1789600250541",
+      "data": "2026-11-16",
       "empresas": [
         {
-          "id": "emp1789598465547f9y256hufww",
+          "id": "emp17937063471960.8243924876099047",
           "nome": "Ifood",
           "jovens": 50,
           "status": "Em aberto",
-          "turma": "EM11",
-          "dia": "sexta",
-          "sala": "Sala Híbrido",
-          "unidade": "Polo Liberdade",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null,
           "pl": null,
-          "modalidade": "hibrida",
-          "plInicio": "Jéssica",
-          "plOnline": "Novo(a) PL",
-          "plFim": "Novo(a) PL"
+          "modalidade": null
         }
       ]
-    },
-    {
-      "id": "e1789600250541",
-      "data": "2026-11-16",
-      "empresas": []
     }
   ],
   "pls": [
