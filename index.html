@@ -81,7 +81,7 @@ input[type=text],input[type=number],input[type=date]{height:30px;border:1px soli
 <div id="tab-empresas" class="sec" style="display:none">
   <div style="margin-bottom:16px">
     <div style="font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Simulação — Curso Presencial</div>
-    <div style="font-size:12px;color:var(--mu)">Freguesia do Ó e Polo Liberdade (salas normais). Turmas do Curso Híbrido não aparecem aqui — veja na aba Simulação Híbrido.</div>
+    <div style="font-size:12px;color:var(--mu)">Freguesia do Ó, Polo Liberdade e Polo Conceição (salas normais). Turmas do Curso Híbrido não aparecem aqui — veja na aba Simulação Híbrido.</div>
   </div>
   <div style="margin-bottom:18px">
     <div style="font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Cenário atual</div>
@@ -241,10 +241,26 @@ let plCores={
   'Carol':{bg:'#f2cf6b',light:'#f2cf6b18',text:'#5a3e00',border:'#f2cf6b'},
 };
 const corPL=pl=>plCores[pl]||{bg:'#aaa',light:'#aaa18',text:'#333',border:'#aaa'};
-let unidades=[
+// Unidades que sempre existem. O estado.json já guarda a lista salva, então uma unidade nova só aparece se for
+// acrescentada ao carregar (garantirUnidadesPadrao) — nunca sobrescreve nome/salas/capacidade de uma que já existe.
+// Polo Conceição (Av. Eng. Armando de Arruda Pereira, 673 — Jabaquara, São Paulo): 1 sala, 30 jovens, seg–sex;
+// imersão de 7 dias online (igual às outras unidades presenciais); PLs compartilhados com as demais unidades.
+const UNIDADES_PADRAO=[
   {nome:'Freguesia do Ó',salas:['Sala 1','Sala 2'],capacidade:32},
   {nome:'Polo Liberdade',salas:['Sala 1','Sala 2'],capacidade:50},
+  {nome:'Polo Conceição',salas:['Sala 1'],capacidade:30},
 ];
+let unidades=UNIDADES_PADRAO.map(u=>({...u,salas:[...u.salas]}));
+function garantirUnidadesPadrao(){
+  UNIDADES_PADRAO.forEach(p=>{if(!unidades.find(u=>u.nome===p.nome))unidades.push({...p,salas:[...p.salas]});});
+}
+// Cores por unidade na grade (a Freguesia é o padrão azul).
+const ESTILO_UNIDADE={
+  'Polo Liberdade':{hBg:'#35dcb225',hTx:'#054a36',hBd:'#35dcb2',cel:'#f7fffe',uBg:'#f0fffe',uBd:'#35dcb2'},
+  'Polo Conceição':{hBg:'#c026d318',hTx:'#86198f',hBd:'#c026d3',cel:'#fdf8fe',uBg:'#fdf4ff',uBd:'#e879f9'},
+};
+const ESTILO_UNIDADE_PADRAO={hBg:'#373afd18',hTx:'#373afd',hBd:'#373afd',cel:'#fafaff',uBg:'#f3f3ff',uBd:'#a0a3ff'};
+const estiloUnidade=n=>ESTILO_UNIDADE[n]||ESTILO_UNIDADE_PADRAO;
 const DIAS=['segunda','terça','quarta','quinta','sexta'];
 const DABR={segunda:'Seg',terça:'Ter',quarta:'Qua',quinta:'Qui',sexta:'Sex'};
 const LETRA={segunda:'A',terça:'B',quarta:'C',quinta:'D',sexta:'E'};
@@ -264,6 +280,24 @@ const FERIADOS_BASE={
   '2026-10-12':1,'2026-11-02':1,'2026-11-15':1,
   '2026-11-20':1,'2026-12-25':1
 };
+// De 2027 em diante os feriados são CALCULADOS (os de 2026 acima ficam como estavam). Mesma lista que o Gerador de
+// Calendário usa no plano de aula (conferido contra o plano da BM11, nov/2026 a jan/2028): feriados nacionais,
+// 25/01 (aniversário de São Paulo), 09/07 (estadual), Carnaval (só a terça — a segunda vira emenda pela regra
+// abaixo), Sexta-feira Santa e Corpus Christi. Emendas continuam saindo de calcFeriados() (terça→segunda, quinta→sexta).
+const FERIADOS_ANO_INICIO=2027,FERIADOS_ANO_FIM=2040;
+function _pascoa(ano){ // algoritmo de Meeus/Jones/Butcher (calendário gregoriano)
+  const a=ano%19,b=Math.floor(ano/100),c=ano%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3);
+  const hh=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-hh-k)%7,m=Math.floor((a+11*hh+22*l)/451);
+  const mes=Math.floor((hh+l-7*m+114)/31),dia=((hh+l-7*m+114)%31)+1;
+  return Date.UTC(ano,mes-1,dia,12);
+}
+function feriadosDoAno(ano){
+  const iso=ms=>new Date(ms).toISOString().slice(0,10);
+  const dia=86400000,pascoa=_pascoa(ano);
+  const fixos=['01-01','01-25','04-21','05-01','07-09','09-07','10-12','11-02','11-15','11-20','12-25'].map(md=>`${ano}-${md}`);
+  return [...fixos,iso(pascoa-47*dia),iso(pascoa-2*dia),iso(pascoa+60*dia)]; // Carnaval (terça), Sexta-feira Santa, Corpus Christi
+}
+for(let ano=FERIADOS_ANO_INICIO;ano<=FERIADOS_ANO_FIM;ano++)feriadosDoAno(ano).forEach(dt=>{FERIADOS_BASE[dt]=1;});
 function calcFeriados(){
   const todos={...FERIADOS_BASE};
   Object.keys(FERIADOS_BASE).forEach(dt=>{
@@ -494,6 +528,7 @@ async function loadEstado(){
     // de alocações — sala/PL dessas turmas vieram do último estado.json que ainda as tinha (commit b44eea5).
     Object.entries(ALOCACOES_RECUPERADAS).forEach(([k,v])=>{if(!alocacoesTurmas[k])alocacoesTurmas[k]={...v};});
   }catch(e){console.warn('Estado não carregado:',e.message);}
+  garantirUnidadesPadrao();
 }
 
 function montarPayloadEstado(){
@@ -527,6 +562,7 @@ function adotarEstadoRemoto(payload){
   entradas=payload.entradas||[];
   entradasHibrido=payload.entradasHibrido||[];
   if(payload.unidades&&payload.unidades.length)unidades=payload.unidades;
+  garantirUnidadesPadrao();
   cronTurmas=(payload.cronTurmas||[]).map(t=>({...t,planoAulaTexto:'',planoAulaNome:''}));
   (payload.pls||[]).forEach(p=>{
     if(!plsState.find(x=>x.nome===p.nome)){
@@ -925,7 +961,7 @@ function buildGradeHTML(tblId,compact,incluirHibrido,legId,alertasId,apenasHibri
     h+=`<thead><tr><th class="dia-col">Dia</th><th style="text-align:center;background:#fff7ed;color:#92400e;font-size:10px;font-weight:700;border-bottom:2px solid #fdba74">Curso Híbrido</th></tr></thead><tbody>`;
   } else {
     h+=`<thead><tr><th class="dia-col" rowspan="2">Dia</th>`;
-    unidades.forEach(u=>{const headerColor=u.nome==='Polo Liberdade'?{bg:'#35dcb225',tx:'#054a36',bd:'#35dcb2'}:{bg:'#373afd18',tx:'#373afd',bd:'#373afd'};
+    unidades.forEach(u=>{const eu=estiloUnidade(u.nome);const headerColor={bg:eu.hBg,tx:eu.hTx,bd:eu.hBd};
       const colspanExtra=(incluirHibrido&&u.nome==='Polo Liberdade')?1:0;
       h+=`<th colspan="${u.salas.length+colspanExtra}" style="text-align:center;background:${headerColor.bg};color:${headerColor.tx};font-size:10px;font-weight:700;border-bottom:2px solid ${headerColor.bd}">${u.nome}</th>`;});
     h+=`</tr><tr>`;
@@ -942,7 +978,7 @@ function buildGradeHTML(tblId,compact,incluirHibrido,legId,alertasId,apenasHibri
     const pct=Math.min(100,Math.round(ocp.jovens/cap*100));
     const corBar=ocp.jovens>cap?'#fc5959':ocp.jovens>cap*.85?'#f2cf6b':'#35dcb2';
     if(ocp.jovens>cap)alertas.push(`⚠ ${unidadeNome} ${sala} (${dia}): ${ocp.jovens}j — excede capacidade de ${cap}j. Turmas simuladas precisam ir para outro dia/unidade.`);
-    const uniColor=ehHibridoCol?'background:#fffdf7;':unidadeNome==='Polo Liberdade'?'background:#f7fffe;':'background:#fafaff;';
+    const uniColor=ehHibridoCol?'background:#fffdf7;':'background:'+estiloUnidade(unidadeNome).cel+';';
     let c=`<td style="${compact?'min-width:140px':'min-width:170px'};${uniColor}">`;
     if(!ocp.turmas.length){
       if(!ehHibridoCol&&!salaAindaDisponivel(dia,sala,unidadeNome)){
@@ -1270,9 +1306,9 @@ function renderEmpresas(){
       const semA=!a.turma?1:0;
       const semB=!b.turma?1:0;
       if(semA!==semB)return semA-semB;
-      // Freguesia antes de Liberdade
-      const poloA=a.unidade==='Polo Liberdade'?1:0;
-      const poloB=b.unidade==='Polo Liberdade'?1:0;
+      // Na ordem das unidades (Freguesia, Liberdade, Conceição)
+      const poloA=Math.max(0,unidades.findIndex(u=>u.nome===a.unidade));
+      const poloB=Math.max(0,unidades.findIndex(u=>u.nome===b.unidade));
       if(poloA!==poloB)return poloA-poloB;
       // Por turma
       return (a.turma||'').localeCompare(b.turma||'');
@@ -1657,8 +1693,8 @@ function abrirMover(eid,empid){if(bloquearSeNaoAutenticado(()=>abrirMover(eid,em
       const corBar=ocp.jovens>=cap?'#fc5959':ocp.jovens>cap*.8?'#f2cf6b':'#35dcb2';
       const inputId=`qtd-${dia}-${sala.replace(/ /g,'-')}-${u.nome.replace(/ /g,'-')}`;
       const plId=`pl-${dia}-${sala.replace(/ /g,'-')}-${u.nome.replace(/ /g,'-')}`;
-      const uBg=u.nome==='Polo Liberdade'?'#f0fffe':'#f3f3ff';
-      const uBd=u.nome==='Polo Liberdade'?'#35dcb2':'#a0a3ff';
+      const uBg=estiloUnidade(u.nome).uBg;
+      const uBd=estiloUnidade(u.nome).uBd;
       // Verificar se cronograma está distante para esta sala (usando data da entrada atual)
       const cronDistanteModal=!salaAindaDisponivel(dia,sala,u.nome,entrada?.data);
       // PLs já ocupados neste dia (turmas fixas + simuladas)
