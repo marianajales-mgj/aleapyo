@@ -29,7 +29,7 @@
         {
           "id": "emp17937063471960.8026921300850444",
           "nome": "Shopee",
-          "jovens": 3,
+          "jovens": 12,
           "status": "Confirmado",
           "turma": "BM12",
           "dia": "terça",
@@ -235,6 +235,13 @@
         "Sala 2"
       ],
       "capacidade": 50
+    },
+    {
+      "nome": "Polo Conceição",
+      "salas": [
+        "Sala 1"
+      ],
+      "capacidade": 30
     }
   ],
   "cronTurmas": [
