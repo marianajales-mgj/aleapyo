@@ -9,7 +9,7 @@
           "nome": "Nubank",
           "jovens": 1,
           "status": "Confirmado",
-          "turma": "DM17",
+          "turma": "DM18",
           "dia": "quinta",
           "sala": "Sala 2",
           "unidade": "Polo Liberdade",
@@ -20,11 +20,11 @@
           "nome": "Rappi",
           "jovens": 1,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null,
-          "pl": null
+          "turma": "DM17",
+          "dia": "quinta",
+          "sala": "Sala 1",
+          "unidade": "Polo Liberdade",
+          "pl": "Marialice"
         },
         {
           "id": "emp17937063471960.8026921300850444",
@@ -352,13 +352,22 @@
       "plFim": "Novo(a) PL",
       "entrada": "2026-11-03"
     },
-    "DM17": {
-      "nome": "DM17",
+    "DM18": {
+      "nome": "DM18",
       "dia": "quinta",
       "sala": "Sala 2",
       "unidade": "Polo Liberdade",
       "modalidade": "presencial",
       "pl": "Rodrigo",
+      "entrada": "2026-11-16"
+    },
+    "DM17": {
+      "nome": "DM17",
+      "dia": "quinta",
+      "sala": "Sala 1",
+      "unidade": "Polo Liberdade",
+      "modalidade": "presencial",
+      "pl": "Marialice",
       "entrada": "2026-11-16"
     },
     "BM12": {
