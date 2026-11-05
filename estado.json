@@ -9,11 +9,11 @@
           "nome": "Nubank",
           "jovens": 1,
           "status": "Confirmado",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null,
-          "pl": null
+          "turma": "DM17",
+          "dia": "quinta",
+          "sala": "Sala 2",
+          "unidade": "Polo Liberdade",
+          "pl": "Rodrigo"
         },
         {
           "id": "emp17937063471960.730224135426806",
@@ -39,7 +39,7 @@
         },
         {
           "id": "emp1793885473399",
-          "nome": "Nova empresa",
+          "nome": "Shopee",
           "jovens": 1,
           "status": "Em aberto",
           "turma": null,
@@ -351,6 +351,15 @@
       "plOnline": "Novo(a) PL",
       "plFim": "Novo(a) PL",
       "entrada": "2026-11-03"
+    },
+    "DM17": {
+      "nome": "DM17",
+      "dia": "quinta",
+      "sala": "Sala 2",
+      "unidade": "Polo Liberdade",
+      "modalidade": "presencial",
+      "pl": "Rodrigo",
+      "entrada": "2026-11-16"
     }
   }
 }
