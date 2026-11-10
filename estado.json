@@ -260,7 +260,7 @@
       "salas": [
         "Sala 1"
       ],
-      "capacidade": 30
+      "capacidade": 50
     }
   ],
   "cronTurmas": [
@@ -404,6 +404,14 @@
       "modalidade": "presencial",
       "pl": "Marialice",
       "entrada": "2026-11-16"
+    }
+  },
+  "decisoesSalas": {
+    "Freguesia do Ó|Sala 1|segunda": {
+      "estado": "indisponivel",
+      "turmas": 3,
+      "em": "2026-11-10",
+      "ate": "2028-01-06"
     }
   }
 }
