@@ -454,6 +454,12 @@
       "turmas": 2,
       "em": "2026-11-10",
       "ate": "2027-10-16"
+    },
+    "Polo Liberdade|Sala 1|segunda": {
+      "estado": "indisponivel",
+      "turmas": 3,
+      "em": "2026-11-10",
+      "ate": "2027-11-20"
     }
   }
 }
