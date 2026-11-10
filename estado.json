@@ -181,6 +181,24 @@
           "modalidade": null
         }
       ]
+    },
+    {
+      "id": "e1794322980736",
+      "data": "2027-02-01",
+      "empresas": [
+        {
+          "id": "emp1794322980736elzgjgu3kh5",
+          "nome": "Empresa",
+          "jovens": 1,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null,
+          "pl": null,
+          "modalidade": null
+        }
+      ]
     }
   ],
   "pls": [
