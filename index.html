@@ -172,7 +172,7 @@ input[type=text],input[type=number],input[type=date]{height:30px;border:1px soli
 <div id="tab-hibrido" class="sec" style="display:none">
   <div style="margin-bottom:16px">
     <div style="font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Simulação — Curso Híbrido</div>
-    <div style="font-size:12px;color:var(--mu)">Sala Híbrido — Polo Liberdade, capacidade fixa de 50 jovens por janela de 10 dias de semana fixos, seg-sex (início e fim de turma; feriado no meio não estende a janela). No meio, 100% online.</div>
+    <div style="font-size:12px;color:var(--mu)">Sala Híbrido — Polo Liberdade (sala dedicada) ou Polo Conceição (única sala do polo, compartilhada com o presencial), capacidade de 50 jovens por janela de 10 dias de semana fixos, seg-sex (início e fim de turma; feriado no meio não estende a janela). No meio, 100% online. O polo é escolhido na hora de alocar.</div>
   </div>
   <div style="margin-bottom:18px">
     <div style="font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Linha do tempo das imersões</div>
@@ -243,16 +243,20 @@ let plCores={
 const corPL=pl=>plCores[pl]||{bg:'#aaa',light:'#aaa18',text:'#333',border:'#aaa'};
 // Unidades que sempre existem. O estado.json já guarda a lista salva, então uma unidade nova só aparece se for
 // acrescentada ao carregar (garantirUnidadesPadrao) — nunca sobrescreve nome/salas/capacidade de uma que já existe.
-// Polo Conceição (Av. Eng. Armando de Arruda Pereira, 673 — Jabaquara, São Paulo): 1 sala, 30 jovens, seg–sex;
-// imersão de 7 dias online (igual às outras unidades presenciais); PLs compartilhados com as demais unidades.
+// Polo Conceição (Av. Eng. Armando de Arruda Pereira, 673 — Jabaquara, São Paulo): 1 sala, 50 jovens (presencial e
+// híbrido), seg–sex; imersão de 7 dias online (igual às outras unidades presenciais); PLs compartilhados.
 const UNIDADES_PADRAO=[
   {nome:'Freguesia do Ó',salas:['Sala 1','Sala 2'],capacidade:32},
   {nome:'Polo Liberdade',salas:['Sala 1','Sala 2'],capacidade:50},
-  {nome:'Polo Conceição',salas:['Sala 1'],capacidade:30},
+  {nome:'Polo Conceição',salas:['Sala 1'],capacidade:50},
 ];
 let unidades=UNIDADES_PADRAO.map(u=>({...u,salas:[...u.salas]}));
 function garantirUnidadesPadrao(){
   UNIDADES_PADRAO.forEach(p=>{if(!unidades.find(u=>u.nome===p.nome))unidades.push({...p,salas:[...p.salas]});});
+  // Correção única: o Conceição foi cadastrado com 30j em 05/11/2026, mas a capacidade real é 50j (Mariana, 10/11/2026).
+  // Já corrigido no estado.json depois do próximo salvamento; se um dia ela quiser mesmo 30j, apagar esta linha.
+  const conc=unidades.find(u=>u.nome==='Polo Conceição');
+  if(conc&&conc.capacidade===30)conc.capacidade=50;
 }
 // Cores por unidade na grade (a Freguesia é o padrão azul).
 const ESTILO_UNIDADE={
@@ -261,6 +265,17 @@ const ESTILO_UNIDADE={
 };
 const ESTILO_UNIDADE_PADRAO={hBg:'#373afd18',hTx:'#373afd',hBd:'#373afd',cel:'#fafaff',uBg:'#f3f3ff',uBd:'#a0a3ff'};
 const estiloUnidade=n=>ESTILO_UNIDADE[n]||ESTILO_UNIDADE_PADRAO;
+// Selo da unidade nas listas de empresas (coluna "Polo").
+const SELO_POLO={
+  'Freguesia do Ó':{t:'Freguesia',bg:'#373afd18',c:'#373afd',bd:'#373afd44'},
+  'Polo Liberdade':{t:'Liberdade',bg:'#35dcb222',c:'#054a36',bd:'#35dcb244'},
+  'Polo Conceição':{t:'Conceição',bg:'#c026d318',c:'#86198f',bd:'#c026d344'},
+};
+function badgePoloHTML(unidade){
+  const s=SELO_POLO[unidade];
+  if(!s)return '<span style="font-size:10px;color:#ccc">—</span>';
+  return `<span style="font-size:10px;font-weight:700;background:${s.bg};color:${s.c};padding:2px 6px;border-radius:99px;border:1px solid ${s.bd}">${s.t}</span>`;
+}
 const DIAS=['segunda','terça','quarta','quinta','sexta'];
 const DABR={segunda:'Seg',terça:'Ter',quarta:'Qua',quinta:'Qui',sexta:'Sex'};
 const LETRA={segunda:'A',terça:'B',quarta:'C',quinta:'D',sexta:'E'};
@@ -753,10 +768,49 @@ function turmasHibridasAtivas(){
 }
 function salasHibridoEmUso(){
   const nomes=new Set([SALA_HIBRIDO.nome]);
-  turmasHibridasAtivas().forEach(t=>{if(t.sala)nomes.add(t.sala);});
+  turmasHibridasAtivas().forEach(t=>{if(t.sala&&hibridoNaSalaDedicada(t.unidade))nomes.add(t.sala);});
   return [...nomes].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
 }
 function _janelasOverlap(aIni,aFim,bIni,bFim){return aIni<=bFim&&bIni<=aFim;}
+// ── POLO DA IMERSÃO DO HÍBRIDO ──
+// Polo Liberdade: sala DEDICADA ao Híbrido ("Sala Híbrido", abre Sala Híbrido 2, 3... quando enche).
+// Polo Conceição: o Híbrido usa a ÚNICA sala do polo — a mesma do presencial —, com a capacidade da unidade (50j),
+// somada às turmas presenciais que usam a sala. As duas imersões de uma turma ficam sempre no mesmo polo.
+const POLOS_HIBRIDO=['Polo Liberdade','Polo Conceição'];
+const hibridoNaSalaDedicada=unidade=>!unidade||unidade===SALA_HIBRIDO.unidade;
+function polosHibridoDisponiveis(){return POLOS_HIBRIDO.filter(n=>n===SALA_HIBRIDO.unidade||unidades.some(u=>u.nome===n));}
+// Turma presencial (fixa ou simulada) ainda em andamento em algum momento da janela [ini,fim]?
+function _presencialAtivoNaJanela(t,ini,fim){
+  if(!t.entrada)return true;
+  const e=new Date(t.entrada+'T12:00:00');const f=new Date(e);f.setMonth(f.getMonth()+DURACAO_CONTRATO_MESES);
+  return e<=fim&&f>=ini;
+}
+// Ocupação da sala compartilhada de um polo durante uma janela de imersão (10 dias de semana, seg–sex):
+// outras turmas híbridas com imersão sobreposta + o PIOR dia da semana de presencial (a imersão ocupa todos os
+// dias úteis da janela, então pesa o dia da semana em que o presencial está mais cheio).
+function ocupacaoJanelaCompartilhada(unidadeNome,ini,fim,excluirNome){
+  const u=unidades.find(x=>x.nome===unidadeNome);
+  const cap=u?u.capacidade:50,sala=u?u.salas[0]:'Sala 1';
+  const hibs=turmasHibridasAtivas().filter(t=>(t.unidade||SALA_HIBRIDO.unidade)===unidadeNome&&t.nome!==excluirNome).filter(t=>{
+    const j=janelasHibrido(t.entrada);return j&&(_janelasOverlap(ini,fim,j.inicio1,j.fim1)||_janelasOverlap(ini,fim,j.inicio2,j.fim2));
+  });
+  const pres=[...TURMAS_FIXAS,...turmasSim].filter(t=>t.modalidade!=='hibrida'&&!t._sem_sala&&t.unidade===unidadeNome&&t.sala===sala&&t.dia&&_presencialAtivoNaJanela(t,ini,fim));
+  const porDia={};pres.forEach(t=>{porDia[t.dia]=(porDia[t.dia]||0)+t.jovens;});
+  let diaMax=null,maxP=0;Object.entries(porDia).forEach(([d,v])=>{if(v>maxP){maxP=v;diaMax=d;}});
+  const hibJovens=hibs.reduce((s,t)=>s+t.jovens,0);
+  return {jovens:hibJovens+maxP,hibridas:hibJovens,presencial:maxP,diaMax,turmas:[...hibs,...pres.filter(t=>t.dia===diaMax)],capacidade:cap,sala};
+}
+// Pior das duas janelas (inicial e final) de uma entrada candidata, no polo compartilhado.
+function ocupacaoHibridoCompartilhada(unidadeNome,entradaStr,excluirNome){
+  const u=unidades.find(x=>x.nome===unidadeNome);
+  const jCand=janelasHibrido(entradaStr);
+  const vazio={jovens:0,hibridas:0,presencial:0,diaMax:null,turmas:[],capacidade:u?u.capacidade:50,sala:u?u.salas[0]:'Sala 1'};
+  if(!jCand)return {...vazio,livre:vazio.capacidade};
+  const a=ocupacaoJanelaCompartilhada(unidadeNome,jCand.inicio1,jCand.fim1,excluirNome);
+  const b=ocupacaoJanelaCompartilhada(unidadeNome,jCand.inicio2,jCand.fim2,excluirNome);
+  const pior=b.jovens>a.jovens?b:a;
+  return {...pior,livre:pior.capacidade-pior.jovens};
+}
 // Ocupação de uma instância da Sala Híbrido considerando a janela presencial de início de uma
 // entrada candidata. Sem salaNome, olha só pra "Sala Híbrido" (a instância principal).
 function ocupacaoSalaHibrido(entradaCandidataStr,excluirTurmaNome,salaNome){
@@ -844,7 +898,8 @@ function ocupacaoSala(dia,sala,unidade){
   }
   const hibridas=ts.filter(t=>t.modalidade==='hibrida');
   const pico=hibridas.length?picoJovensHibrido(hibridas):0;
-  const j=hibridas.length?pico:ts.reduce((s,t)=>s+t.jovens,0);
+  // Sala compartilhada (Conceição): soma o presencial do dia com o pico do híbrido; nas demais, só um dos dois existe.
+  const j=ts.filter(t=>t.modalidade!=='hibrida').reduce((s,t)=>s+t.jovens,0)+pico;
   const capBase=ehColunaHibrida?SALA_HIBRIDO.capacidade:(unidades.find(u=>u.nome===unidade)?.capacidade||32);
   // Fora da imersão física, o Curso Híbrido pode "juntar" mais de uma sala num único PL — a
   // capacidade exibida acompanha quantas salas de 50j de fato foram precisas.
@@ -1341,7 +1396,7 @@ function renderEmpresas(){
     emps.forEach(emp=>{
       const sCor={Confirmado:'#0a7a60','Em aberto':'#856404',Adiado:'#888'}[emp.status]||'#888';
       const sBg={Confirmado:'#e8fff9','Em aberto':'#fffbeb',Adiado:'#f5f5f5'}[emp.status]||'#f5f5f5';
-      h+=`<div class="emp-row"><input type="text" value="${emp.nome}" onchange="updNome('${entrada.id}','${emp.id}',this.value)" style="border:none;border-bottom:1px solid transparent;background:transparent;font-size:12px;font-weight:600;font-family:'Montserrat',sans-serif;color:var(--tx);width:100%;padding:0;height:auto" onfocus="this.style.borderBottomColor='var(--blue)'" onblur="this.style.borderBottomColor='transparent'"/><input type="number" min="1" max="9999" value="${emp.jovens}" onchange="updJovens('${entrada.id}','${emp.id}',this.value)" style="width:100%;height:26px;border:1px solid var(--br);border-radius:5px;padding:0 4px;font-size:12px;font-weight:700;color:var(--blue);font-family:'Montserrat',sans-serif;text-align:center"/><select class="status-sel" onchange="updStatus('${entrada.id}','${emp.id}',this.value)" style="background:${sBg};color:${sCor};border-color:${sCor}55">${['Confirmado','Em aberto','Adiado'].map(s=>`<option ${emp.status===s?'selected':''}>${s}</option>`).join('')}</select><div>${emp.turma?`<span style="font-size:10px;color:var(--blue);font-weight:600;background:#eeefff;padding:2px 6px;border-radius:99px;border:1px solid #b4b6fd">${emp.turma}</span>`:'<span style="font-size:10px;color:#ccc">—</span>'}</div><div>${emp.dia?`<span style="font-size:10px;color:var(--mu);font-weight:600;background:#f5f5f2;padding:2px 6px;border-radius:99px;border:1px solid var(--br);text-transform:capitalize">${emp.dia}</span>`:'<span style="font-size:10px;color:#ccc">—</span>'}</div><div>${emp.unidade==='Polo Liberdade'?`<span style="font-size:10px;font-weight:700;background:#35dcb222;color:#054a36;padding:2px 6px;border-radius:99px;border:1px solid #35dcb244">Liberdade</span>`:emp.unidade==='Freguesia do Ó'?`<span style="font-size:10px;font-weight:700;background:#373afd18;color:#373afd;padding:2px 6px;border-radius:99px;border:1px solid #373afd44">Freguesia</span>`:'<span style="font-size:10px;color:#ccc">—</span>'}</div><button class="mover-btn" onclick="abrirMover('${entrada.id}','${emp.id}')">${emp.turma?'Alocado':'Alocar'}</button><select class="mover-btn" onchange="const v=this.value;this.value='';if(v==='entrada')abrirMoverEntrada('${entrada.id}','${emp.id}');else if(v==='modalidade')moverParaTrilha('presencial','hibrido','${entrada.id}','${emp.id}')" title="Trocar entrada (mesma trilha) ou trocar modalidade (vai pra Simulação Híbrido)"><option value="">Mover ▾</option><option value="entrada">Trocar entrada</option><option value="modalidade">Trocar modalidade</option></select><button class="del-btn" onclick="excluirEmp('${entrada.id}','${emp.id}')" title="Excluir">×</button></div>`;
+      h+=`<div class="emp-row"><input type="text" value="${emp.nome}" onchange="updNome('${entrada.id}','${emp.id}',this.value)" style="border:none;border-bottom:1px solid transparent;background:transparent;font-size:12px;font-weight:600;font-family:'Montserrat',sans-serif;color:var(--tx);width:100%;padding:0;height:auto" onfocus="this.style.borderBottomColor='var(--blue)'" onblur="this.style.borderBottomColor='transparent'"/><input type="number" min="1" max="9999" value="${emp.jovens}" onchange="updJovens('${entrada.id}','${emp.id}',this.value)" style="width:100%;height:26px;border:1px solid var(--br);border-radius:5px;padding:0 4px;font-size:12px;font-weight:700;color:var(--blue);font-family:'Montserrat',sans-serif;text-align:center"/><select class="status-sel" onchange="updStatus('${entrada.id}','${emp.id}',this.value)" style="background:${sBg};color:${sCor};border-color:${sCor}55">${['Confirmado','Em aberto','Adiado'].map(s=>`<option ${emp.status===s?'selected':''}>${s}</option>`).join('')}</select><div>${emp.turma?`<span style="font-size:10px;color:var(--blue);font-weight:600;background:#eeefff;padding:2px 6px;border-radius:99px;border:1px solid #b4b6fd">${emp.turma}</span>`:'<span style="font-size:10px;color:#ccc">—</span>'}</div><div>${emp.dia?`<span style="font-size:10px;color:var(--mu);font-weight:600;background:#f5f5f2;padding:2px 6px;border-radius:99px;border:1px solid var(--br);text-transform:capitalize">${emp.dia}</span>`:'<span style="font-size:10px;color:#ccc">—</span>'}</div><div>${badgePoloHTML(emp.unidade)}</div><button class="mover-btn" onclick="abrirMover('${entrada.id}','${emp.id}')">${emp.turma?'Alocado':'Alocar'}</button><select class="mover-btn" onchange="const v=this.value;this.value='';if(v==='entrada')abrirMoverEntrada('${entrada.id}','${emp.id}');else if(v==='modalidade')moverParaTrilha('presencial','hibrido','${entrada.id}','${emp.id}')" title="Trocar entrada (mesma trilha) ou trocar modalidade (vai pra Simulação Híbrido)"><option value="">Mover ▾</option><option value="entrada">Trocar entrada</option><option value="modalidade">Trocar modalidade</option></select><button class="del-btn" onclick="excluirEmp('${entrada.id}','${emp.id}')" title="Excluir">×</button></div>`;
     });
     h+=`<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--br)">
         <button onclick="adicionarEmp('${entrada.id}')" style="height:28px;padding:0 10px;border:1.5px dashed var(--blue);color:var(--blue);background:transparent;border-radius:var(--rs);font-size:11px;font-weight:600;cursor:pointer;font-family:'Montserrat',sans-serif">+ Empresa</button>
@@ -1496,7 +1551,7 @@ function renderEmpresasHibrido(){
     emps.forEach(emp=>{
       const sCor={Confirmado:'#0a7a60','Em aberto':'#856404',Adiado:'#888'}[emp.status]||'#888';
       const sBg={Confirmado:'#e8fff9','Em aberto':'#fffbeb',Adiado:'#f5f5f5'}[emp.status]||'#f5f5f5';
-      h+=`<div class="emp-row"><input type="text" value="${emp.nome}" onchange="updNomeHib('${entrada.id}','${emp.id}',this.value)" style="border:none;border-bottom:1px solid transparent;background:transparent;font-size:12px;font-weight:600;font-family:'Montserrat',sans-serif;color:var(--tx);width:100%;padding:0;height:auto" onfocus="this.style.borderBottomColor='var(--blue)'" onblur="this.style.borderBottomColor='transparent'"/><input type="number" min="1" max="50" value="${emp.jovens}" onchange="updJovensHib('${entrada.id}','${emp.id}',this.value)" style="width:100%;height:26px;border:1px solid var(--br);border-radius:5px;padding:0 4px;font-size:12px;font-weight:700;color:var(--blue);font-family:'Montserrat',sans-serif;text-align:center"/><select class="status-sel" onchange="updStatusHib('${entrada.id}','${emp.id}',this.value)" style="background:${sBg};color:${sCor};border-color:${sCor}55">${['Confirmado','Em aberto','Adiado'].map(s=>`<option ${emp.status===s?'selected':''}>${s}</option>`).join('')}</select><div>${emp.turma?`<span style="font-size:10px;color:#92400e;font-weight:600;background:#fff7ed;padding:2px 6px;border-radius:99px;border:1px solid #fdba7455">${emp.turma}</span>`:'<span style="font-size:10px;color:#ccc">—</span>'}</div><div>${emp.dia?`<span style="font-size:10px;color:var(--mu);font-weight:600;background:#f5f5f2;padding:2px 6px;border-radius:99px;border:1px solid var(--br);text-transform:capitalize">${emp.dia}</span>`:'<span style="font-size:10px;color:#ccc">—</span>'}</div><div>${emp.unidade==='Polo Liberdade'?`<span style="font-size:10px;font-weight:700;background:#35dcb222;color:#054a36;padding:2px 6px;border-radius:99px;border:1px solid #35dcb244">Liberdade</span>`:'<span style="font-size:10px;color:#ccc">—</span>'}</div><button class="mover-btn" onclick="abrirAlocarHibrido('${entrada.id}','${emp.id}')">${emp.turma?'Alocado':'Alocar'}</button><select class="mover-btn" onchange="const v=this.value;this.value='';if(v==='entrada')abrirMoverEntradaHib('${entrada.id}','${emp.id}');else if(v==='modalidade')moverParaTrilha('hibrido','presencial','${entrada.id}','${emp.id}')" title="Trocar entrada (mesma trilha) ou trocar modalidade (vai pra Simulação Presencial)"><option value="">Mover ▾</option><option value="entrada">Trocar entrada</option><option value="modalidade">Trocar modalidade</option></select><button class="del-btn" onclick="excluirEmpHib('${entrada.id}','${emp.id}')" title="Excluir">×</button></div>`;
+      h+=`<div class="emp-row"><input type="text" value="${emp.nome}" onchange="updNomeHib('${entrada.id}','${emp.id}',this.value)" style="border:none;border-bottom:1px solid transparent;background:transparent;font-size:12px;font-weight:600;font-family:'Montserrat',sans-serif;color:var(--tx);width:100%;padding:0;height:auto" onfocus="this.style.borderBottomColor='var(--blue)'" onblur="this.style.borderBottomColor='transparent'"/><input type="number" min="1" max="50" value="${emp.jovens}" onchange="updJovensHib('${entrada.id}','${emp.id}',this.value)" style="width:100%;height:26px;border:1px solid var(--br);border-radius:5px;padding:0 4px;font-size:12px;font-weight:700;color:var(--blue);font-family:'Montserrat',sans-serif;text-align:center"/><select class="status-sel" onchange="updStatusHib('${entrada.id}','${emp.id}',this.value)" style="background:${sBg};color:${sCor};border-color:${sCor}55">${['Confirmado','Em aberto','Adiado'].map(s=>`<option ${emp.status===s?'selected':''}>${s}</option>`).join('')}</select><div>${emp.turma?`<span style="font-size:10px;color:#92400e;font-weight:600;background:#fff7ed;padding:2px 6px;border-radius:99px;border:1px solid #fdba7455">${emp.turma}</span>`:'<span style="font-size:10px;color:#ccc">—</span>'}</div><div>${emp.dia?`<span style="font-size:10px;color:var(--mu);font-weight:600;background:#f5f5f2;padding:2px 6px;border-radius:99px;border:1px solid var(--br);text-transform:capitalize">${emp.dia}</span>`:'<span style="font-size:10px;color:#ccc">—</span>'}</div><div>${badgePoloHTML(emp.unidade)}</div><button class="mover-btn" onclick="abrirAlocarHibrido('${entrada.id}','${emp.id}')">${emp.turma?'Alocado':'Alocar'}</button><select class="mover-btn" onchange="const v=this.value;this.value='';if(v==='entrada')abrirMoverEntradaHib('${entrada.id}','${emp.id}');else if(v==='modalidade')moverParaTrilha('hibrido','presencial','${entrada.id}','${emp.id}')" title="Trocar entrada (mesma trilha) ou trocar modalidade (vai pra Simulação Presencial)"><option value="">Mover ▾</option><option value="entrada">Trocar entrada</option><option value="modalidade">Trocar modalidade</option></select><button class="del-btn" onclick="excluirEmpHib('${entrada.id}','${emp.id}')" title="Excluir">×</button></div>`;
     });
     h+=`<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--br)">
         <button onclick="adicionarEmpHib('${entrada.id}')" style="height:28px;padding:0 10px;border:1.5px dashed var(--blue);color:var(--blue);background:transparent;border-radius:var(--rs);font-size:11px;font-weight:600;cursor:pointer;font-family:'Montserrat',sans-serif">+ Empresa</button>
@@ -1789,12 +1844,15 @@ const HIB_PL_FASES=[
   {campo:'plOnline',id:'hib-pl-online',label:'PL do Curso Híbrido (fase online)'},
   {campo:'plFim',id:'hib-pl-fim',label:'PL da Imersão Presencial (final)'},
 ];
-function _alocarHibrido(emp,entrada,dia,plInicio,plOnline,plFim){
-  // Escolhe automaticamente a primeira instância da Sala Híbrido com vaga pra essa janela; se
+function _alocarHibrido(emp,entrada,dia,plInicio,plOnline,plFim,polo){
+  // Liberdade: escolhe automaticamente a primeira instância da Sala Híbrido com vaga pra essa janela; se
   // todas estiverem cheias, abre "Sala Híbrido 2" (ou a próxima) sozinho, sem bloquear.
+  // Conceição: usa a única sala do polo (compartilhada com o presencial; excesso vira alerta, não abre sala).
   const excluirNome=emp.turma?('Turma '+emp.turma):null;
-  emp.unidade=SALA_HIBRIDO.unidade;
-  emp.sala=proximaSalaHibridoDisponivel(entrada.data,emp.jovens,excluirNome);
+  polo=polo||SALA_HIBRIDO.unidade;
+  emp.unidade=polo;
+  if(hibridoNaSalaDedicada(polo))emp.sala=proximaSalaHibridoDisponivel(entrada.data,emp.jovens,excluirNome);
+  else{const un=unidades.find(x=>x.nome===polo);emp.sala=un?un.salas[0]:'Sala 1';}
   emp.dia=dia;emp.modalidade='hibrida';
   emp.plInicio=plInicio||null;emp.plOnline=plOnline||null;emp.plFim=plFim||null;
   // Agrupar com outra empresa da MESMA entrada já marcada como híbrida (mesma turma nova, mesmo dia)
@@ -1808,29 +1866,62 @@ function _alocarHibrido(emp,entrada,dia,plInicio,plOnline,plFim){
 
 // ── MODAL ALOCAR HÍBRIDO (dedicado, aberto a partir da aba Simulação Híbrido) ──
 let _moverEidHib=null,_moverEmpidHib=null;
+// Resumo do polo escolhido no modal: pra onde a turma vai e quanto da sala já está reservado nas janelas.
+function hibResumoPolo(polo,entrada,emp){
+  const excluirNome=emp.turma?('Turma '+emp.turma):null;
+  const jCand=janelasHibrido(entrada?.data);
+  const janelas=jCand?`<div style="font-size:11px;color:var(--mu);margin-bottom:2px">Imersão inicial: ${fmtDataCurta(jCand.inicio1)} – ${fmtDataCurta(jCand.fim1)}</div><div style="font-size:11px;color:var(--mu);margin-bottom:6px">Imersão final: ${fmtDataCurta(jCand.inicio2)} – ${fmtDataCurta(jCand.fim2)} (10 dias de semana fixos, ajustada pra começar numa segunda)</div>`:'';
+  if(hibridoNaSalaDedicada(polo)){
+    const salaEscolhida=proximaSalaHibridoDisponivel(entrada?.data,emp.jovens,excluirNome);
+    const ocpH=ocupacaoSalaHibrido(entrada?.data,excluirNome,salaEscolhida);
+    const abreNova=salaEscolhida!==SALA_HIBRIDO.nome&&!ocpH.turmas.length&&ocpH.jovens===0;
+    return {excede:false,vaiPara:`${salaEscolhida} · ${polo}`,capHTML:`<div style="background:#f0fffe;border:1px solid #35dcb255;border-radius:var(--rs);padding:10px 14px;margin-bottom:14px">
+    <div style="font-size:12px;font-weight:700;margin-bottom:4px">Capacidade fixa: ${ocpH.capacidade}j por sala${abreNova?' — nova sala aberta automaticamente, as outras já estavam cheias nessa janela':''}</div>
+    ${janelas}
+    <div style="font-size:11px;margin-bottom:6px">${ocpH.jovens}/${ocpH.capacidade}j já reservados em ${salaEscolhida} nessa janela${ocpH.turmas.length?' — '+ocpH.turmas.map(t=>t.nome+' ('+t.jovens+'j)').join(', '):''} · <b style="color:#0a7a60">${Math.max(0,ocpH.livre)}j livres</b></div>
+  </div>`};
+  }
+  const o=ocupacaoHibridoCompartilhada(polo,entrada?.data,excluirNome);
+  const excede=o.jovens+emp.jovens>o.capacidade;
+  const detalhe=[o.hibridas?`${o.hibridas}j de outras turmas híbridas`:'',o.presencial?`${o.presencial}j de presencial (${o.diaMax}, o dia mais cheio)`:''].filter(Boolean).join(' + ');
+  return {excede,vaiPara:`${o.sala} · ${polo}`,capHTML:`<div style="background:${excede?'#fef2f2':'#fdf4ff'};border:1px solid ${excede?'#fca5a5':'#e879f955'};border-radius:var(--rs);padding:10px 14px;margin-bottom:14px">
+    <div style="font-size:12px;font-weight:700;margin-bottom:4px">Sala única do polo, compartilhada com o presencial — capacidade ${o.capacidade}j</div>
+    ${janelas}
+    <div style="font-size:11px;margin-bottom:6px">${o.jovens}/${o.capacidade}j já reservados nas janelas${detalhe?' — '+detalhe:''} · <b style="color:${excede?'#b91c1c':'#0a7a60'}">${Math.max(0,o.livre)}j livres</b></div>
+    ${excede?`<div style="font-size:11px;font-weight:700;color:#b91c1c">⚠ Com ${emp.jovens}j desta empresa passa de ${o.capacidade}j. Escolha outra entrada, o Polo Liberdade, ou confirme mesmo assim.</div>`:''}
+  </div>`};
+}
+function hibAtualizarPoloModal(){
+  const entrada=entradasHibrido.find(e=>e.id===_moverEidHib);
+  const emp=entrada?.empresas.find(x=>x.id===_moverEmpidHib);
+  if(!emp)return;
+  const polo=document.getElementById('hib-polo')?.value||SALA_HIBRIDO.unidade;
+  const r=hibResumoPolo(polo,entrada,emp);
+  const vp=document.getElementById('hib-vaipara'),cp=document.getElementById('hib-cap');
+  if(vp)vp.textContent=r.vaiPara;
+  if(cp)cp.innerHTML=r.capHTML;
+}
 function abrirAlocarHibrido(eid,empid){
   if(bloquearSeNaoAutenticado(()=>abrirAlocarHibrido(eid,empid)))return;
   _moverEidHib=eid;_moverEmpidHib=empid;
   const entrada=entradasHibrido.find(e=>e.id===eid);
   const emp=entrada?.empresas.find(x=>x.id===empid);
   if(!emp)return;
-  const excluirNome=emp.turma?('Turma '+emp.turma):null;
-  const salaEscolhida=proximaSalaHibridoDisponivel(entrada?.data,emp.jovens,excluirNome);
-  const ocpH=ocupacaoSalaHibrido(entrada?.data,excluirNome,salaEscolhida);
-  const jCand=janelasHibrido(entrada?.data);
-  const abreNova=salaEscolhida!==SALA_HIBRIDO.nome&&!ocpH.turmas.length&&ocpH.jovens===0;
+  const polos=polosHibridoDisponiveis();
+  const poloIni=polos.includes(emp.unidade)?emp.unidade:SALA_HIBRIDO.unidade;
+  const r=hibResumoPolo(poloIni,entrada,emp);
   document.getElementById('modal-titulo').textContent=`Alocar híbrido: ${emp.nome}`;
   let h=`<div style="display:flex;justify-content:space-between;align-items:center;background:#fff7ed;border-radius:var(--rs);padding:10px 14px;margin-bottom:14px">
     <div><div style="font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase">Total empresa</div>
     <div style="font-size:22px;font-weight:800;color:#92400e">${emp.jovens}j</div></div>
     <div style="text-align:right"><div style="font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase">Vai para</div>
-    <div style="font-size:13px;font-weight:700">${salaEscolhida} · Polo Liberdade</div></div>
-  </div>`;
-  h+=`<div style="background:#f0fffe;border:1px solid #35dcb255;border-radius:var(--rs);padding:10px 14px;margin-bottom:14px">
-    <div style="font-size:12px;font-weight:700;margin-bottom:4px">Capacidade fixa: ${ocpH.capacidade}j por sala${abreNova?' — nova sala aberta automaticamente, as outras já estavam cheias nessa janela':''}</div>
-    ${jCand?`<div style="font-size:11px;color:var(--mu);margin-bottom:2px">Imersão inicial: ${fmtDataCurta(jCand.inicio1)} – ${fmtDataCurta(jCand.fim1)}</div><div style="font-size:11px;color:var(--mu);margin-bottom:6px">Imersão final: ${fmtDataCurta(jCand.inicio2)} – ${fmtDataCurta(jCand.fim2)} (10 dias de semana fixos, ajustada pra começar numa segunda)</div>`:''}
-    <div style="font-size:11px;margin-bottom:6px">${ocpH.jovens}/${ocpH.capacidade}j já reservados em ${salaEscolhida} nessa janela${ocpH.turmas.length?' — '+ocpH.turmas.map(t=>t.nome+' ('+t.jovens+'j)').join(', '):''} · <b style="color:#0a7a60">${Math.max(0,ocpH.livre)}j livres</b></div>
+    <div id="hib-vaipara" style="font-size:13px;font-weight:700">${r.vaiPara}</div></div>
   </div>
+  <div style="font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;margin-bottom:4px">Polo da imersão presencial (início e final)</div>
+  <select id="hib-polo" onchange="hibAtualizarPoloModal()" style="width:100%;height:32px;border:1px solid var(--br);border-radius:var(--rs);font-size:12px;padding:0 8px;font-family:'Montserrat',sans-serif;margin-bottom:10px">
+    ${polos.map(pl=>`<option value="${pl}" ${pl===poloIni?'selected':''}>${pl}</option>`).join('')}
+  </select>
+  <div id="hib-cap">${r.capHTML}</div>
   <div style="font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;margin-bottom:4px">Dia de curso híbrido</div>
   <select id="hib-dia" onchange="atualizarPLsHibridoModal()" style="width:100%;height:32px;border:1px solid var(--br);border-radius:var(--rs);font-size:12px;padding:0 8px;font-family:'Montserrat',sans-serif;margin-bottom:10px">
     <option value="">— selecione o dia —</option>
@@ -1900,7 +1991,10 @@ function confirmarAlocarHibrido(){
   const diaHib=document.getElementById('hib-dia')?.value;
   if(!diaHib){alert('Selecione o dia da turma híbrida.');return;}
   const plsPorFase=HIB_PL_FASES.map(f=>document.getElementById(f.id)?.value||null);
-  _alocarHibrido(emp,entrada,diaHib,...plsPorFase);
+  const polo=document.getElementById('hib-polo')?.value||SALA_HIBRIDO.unidade;
+  const res=hibResumoPolo(polo,entrada,emp);
+  if(res.excede&&!confirm(`${polo}: a sala única passa da capacidade nas janelas de imersão desta turma. Confirmar mesmo assim?`))return;
+  _alocarHibrido(emp,entrada,diaHib,...plsPorFase,polo);
   fecharModal();renderGrade();renderGradeMini();renderGradeMiniHib();renderEmpresasHibrido();renderHibrido();saveEstado();saveSalaOverrides();
 }
 
@@ -2097,12 +2191,14 @@ function buildGanttHibrido(){
     let jovens=0;
     itens.forEach(({t:t2,j:j2})=>{
       if(t2.nome===excluirNome)return;
+      if(!hibridoNaSalaDedicada(t2.unidade))return; // só a sala dedicada do Liberdade (Conceição é calculado à parte)
       if((t2.sala||SALA_HIBRIDO.nome)!==salaNome)return;
       if(_janelasOverlap(ini,fim,j2.inicio1,j2.fim1)||_janelasOverlap(ini,fim,j2.inicio2,j2.fim2))jovens+=t2.jovens;
     });
     return jovens;
   }
-  const multiSala=salasHibridoEmUso().length>1;
+  const poloT=t=>t.unidade||SALA_HIBRIDO.unidade;
+  const multiSala=salasHibridoEmUso().length>1||itens.some(({t})=>poloT(t)!==SALA_HIBRIDO.unidade);
   let labels=`<div style="height:${alturaEixo}px"></div>`;
   let linhas='';
   itens.forEach(({t,j})=>{
@@ -2115,12 +2211,17 @@ function buildGanttHibrido(){
       <div class="chip-turma" style="background:${cor.light};color:${cor.text};border:${isSim?`1.5px dashed ${cor.border}`:`1px solid ${cor.border}55`}" onclick="abrirDetalhe('${t.nome}','${t.dia}','${t.sala}','${t.unidade}')">
         <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><b>${isSim?'✦ ':''}${t.nome}</b></span><span style="color:${cor.border};font-weight:700;flex-shrink:0">${t.jovens}j</span>
       </div>
-      ${multiSala?`<div style="font-size:9px;color:var(--mu);padding-left:4px">${salaT}</div>`:''}
+      ${multiSala?`<div style="font-size:9px;color:var(--mu);padding-left:4px">${poloT(t)!==SALA_HIBRIDO.unidade?poloT(t)+' · ':''}${salaT}</div>`:''}
     </div>`;
     const leftIni=pos(j.inicio1),widthIni=Math.max(PX_DIA,pos(j.fim1)-leftIni+PX_DIA);
     const leftFim=pos(j.inicio2),widthFim=Math.max(PX_DIA,pos(j.fim2)-leftFim+PX_DIA);
-    const excedeIni=(_ocupacaoJanela(j.inicio1,j.fim1,t.nome,salaT)+t.jovens)>SALA_HIBRIDO.capacidade;
-    const excedeFim=(_ocupacaoJanela(j.inicio2,j.fim2,t.nome,salaT)+t.jovens)>SALA_HIBRIDO.capacidade;
+    const excedeJanela=(ini,fim)=>{
+      if(hibridoNaSalaDedicada(t.unidade))return (_ocupacaoJanela(ini,fim,t.nome,salaT)+t.jovens)>SALA_HIBRIDO.capacidade;
+      const o=ocupacaoJanelaCompartilhada(poloT(t),ini,fim,t.nome);
+      return o.jovens+t.jovens>o.capacidade;
+    };
+    const excedeIni=excedeJanela(j.inicio1,j.fim1);
+    const excedeFim=excedeJanela(j.inicio2,j.fim2);
     // Mesma linguagem visual do chip-turma do Presencial: fundo clarinho (cor.light) sempre,
     // tracejado enquanto é só simulação, contorno sólido (com transparência, igual ao chip) assim
     // que a turma é real — e o mesmo texto (jovens) dentro, pra não parecer uma caixa vazia. Cada
@@ -2135,7 +2236,7 @@ function buildGanttHibrido(){
   const hojeLinha=`<div style="position:absolute;left:${pos(hoje)}px;top:${alturaEixo}px;bottom:0;width:1px;background:#fc5959;z-index:2"></div>`;
 
   el.innerHTML=`<div style="border:1px solid var(--br);border-radius:var(--r);background:var(--sf);overflow:hidden">
-    <div style="background:#35dcb225;color:#054a36;font-size:10px;font-weight:700;padding:6px 10px;border-bottom:1px solid var(--br)">📍 Polo Liberdade — ${salasHibridoEmUso().join(', ')}</div>
+    <div style="background:#35dcb225;color:#054a36;font-size:10px;font-weight:700;padding:6px 10px;border-bottom:1px solid var(--br)">📍 Polo Liberdade — ${salasHibridoEmUso().join(', ')}${[...new Set(itens.map(({t})=>poloT(t)).filter(n=>n!==SALA_HIBRIDO.unidade))].map(n=>` &nbsp;·&nbsp; 📍 ${n} — ${(unidades.find(u=>u.nome===n)||{salas:['Sala 1']}).salas[0]} (compartilhada com o presencial)`).join('')}</div>
     <div style="display:flex">
       <div style="width:130px;flex-shrink:0;border-right:1px solid var(--br)">${labels}</div>
       <div style="overflow-x:auto;flex:1">
