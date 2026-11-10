@@ -1010,7 +1010,9 @@ function salaAindaDisponivel(dia, sala, unidade, dataRef) {
 // pergunta se ainda entra turma ou se a sala fica indisponível — a resposta fica guardada no estado.json;
 // (3) a placa diz "livre a partir de" = 1 dia depois do último "Fim de contrato" das turmas da sala (backoffice;
 // turmas só simuladas: entrada + 15 meses). Decisão "indisponível" vale até essa data; "ainda entra" só pergunta
-// de novo se entrar mais uma turma real na sala.
+// de novo se entrar mais uma turma real na sala; (4) também vai pro aviso a sala em que passaram 2 ENTRADAS
+// (datas de entrada de qualquer turma real) depois da última turma que entrou nela, sem entrar jovem — depois de um
+// "ainda entra", a contagem recomeça na data da resposta.
 let decisoesSalas={}; // {"unidade|sala|dia":{estado:'indisponivel'|'aberta',turmas,em,ate?}}
 const SALA_AVISO_MIN_TURMAS=3,SALA_AVISO_MIN_PCT=0.8;
 const chaveSala=(unidade,sala,dia)=>`${unidade||'Freguesia do Ó'}|${sala}|${dia}`;
@@ -1063,30 +1065,43 @@ function salaBloqueadaPorDecisao(dia,sala,unidade,dataEntradaISO){
 function placaSalaHTML(p,unidade,sala,dia,compact){
   const titulo=p.tipo==='lotada'?'Sala lotada (100%)':'Sala indisponível';
   const quando=p.livre?`livre a partir de <b>${fmtDataCurta(p.livre)}</b>`:'sem data de fim de contrato';
-  const btn=p.tipo==='decisao'?` <button onclick="event.stopPropagation();reabrirSala('${unidade}','${sala}','${dia}')" style="font-size:8px;margin-left:4px;background:#fff;border:1px solid #dc2626;color:#991b1b;border-radius:4px;padding:0 4px;cursor:pointer;font-family:'Montserrat',sans-serif">reabrir</button>`:'';
+  const btn=p.tipo==='decisao'?` <button onclick="event.stopPropagation();reabrirSala('${unidade}','${sala}','${dia}')" style="font-size:8px;margin-left:4px;background:#fff;border:1px solid #94a3b8;color:#475569;border-radius:4px;padding:0 4px;cursor:pointer;font-family:'Montserrat',sans-serif">reabrir</button>`:'';
   // O véu cobre a célula toda mas NÃO captura clique (pointer-events:none): dá pra ver o fundo e clicar nas turmas.
   // Só a nota fica clicável (botão "reabrir"), no espaço reservado embaixo das turmas.
-  return `<div class="placa-sala" style="position:absolute;inset:0;pointer-events:none;z-index:2;border:2px solid rgba(220,38,38,.4);border-radius:6px;background:repeating-linear-gradient(135deg,rgba(220,38,38,.05) 0 9px,rgba(220,38,38,.12) 9px 18px)">
-    <div class="placa-sala-nota" style="position:absolute;left:4px;right:4px;bottom:4px;pointer-events:auto;background:rgba(255,255,255,.96);border:1.5px solid #dc2626;border-radius:6px;padding:3px 6px;font-size:${compact?8:9}px;line-height:1.35;color:#991b1b;text-align:center;font-weight:600">🚫 ${titulo}<br><span style="font-weight:500">${quando}</span>${btn}</div>
+  return `<div class="placa-sala" style="position:absolute;inset:0;pointer-events:none;z-index:2;border:2px solid rgba(148,163,184,.55);border-radius:6px;background:repeating-linear-gradient(135deg,rgba(148,163,184,.10) 0 9px,rgba(148,163,184,.20) 9px 18px)">
+    <div class="placa-sala-nota" style="position:absolute;left:4px;right:4px;bottom:4px;pointer-events:auto;background:rgba(255,255,255,.96);border:1.5px solid #94a3b8;border-radius:6px;padding:3px 6px;font-size:${compact?8:9}px;line-height:1.35;color:#475569;text-align:center;font-weight:600">🔒 ${titulo}<br><span style="font-weight:500">${quando}</span>${btn}</div>
   </div>`;
 }
 // Salas que precisam de confirmação: turmas REAIS (3+ turmas ou 80%+), sem placa automática e sem decisão válida
+const SALA_AVISO_ENTRADAS_SEM_JOVEM=2;
+// Datas de entrada (distintas, já passadas) das turmas reais — qualquer unidade/modalidade
+function datasDeEntradaReais(){
+  const hoje=_isoLocal(new Date());
+  return [...new Set(TURMAS_FIXAS.map(t=>t.entrada).filter(e=>e&&e<=hoje))].sort();
+}
 function salasParaConfirmar(){
   const out=[];
   turmasSim=turmasSimAtivas();
+  const entradasReais=datasDeEntradaReais();
   unidades.forEach(u=>u.salas.forEach(sala=>DIAS.forEach(dia=>{
     const reais=turmasReaisDaSala(dia,sala,u.nome);
     if(!reais.length)return;
     const jovens=reais.reduce((s,t)=>s+t.jovens,0),pct=jovens/u.capacidade;
+    const d=decisoesSalas[chaveSala(u.nome,sala,dia)];
+    if(_decisaoIndisponivelAtiva(d))return;
     const motivos=[];
-    if(reais.length>=SALA_AVISO_MIN_TURMAS)motivos.push(`${reais.length} turmas reais`);
-    if(pct>=SALA_AVISO_MIN_PCT)motivos.push(`${Math.round(pct*100)}% da capacidade`);
+    // 3+ turmas / 80%: depois de um "ainda entra", só pergunta de novo se entrou turma real nova
+    const turmaNova=!d||d.estado!=='aberta'||reais.length>(d.turmas||0);
+    if(turmaNova&&reais.length>=SALA_AVISO_MIN_TURMAS)motivos.push(`${reais.length} turmas reais`);
+    if(turmaNova&&pct>=SALA_AVISO_MIN_PCT)motivos.push(`${Math.round(pct*100)}% da capacidade`);
+    // 2 entradas sem entrar jovem na sala (a contagem começa na última turma que entrou ou na resposta "ainda entra")
+    const ultima=reais.reduce((m,t)=>t.entrada&&t.entrada>m?t.entrada:m,'');
+    const base=d&&d.estado==='aberta'&&d.em&&d.em>ultima?d.em:ultima;
+    const semEntrar=base?entradasReais.filter(e=>e>base).length:0;
+    if(semEntrar>=SALA_AVISO_ENTRADAS_SEM_JOVEM)motivos.push(`${semEntrar} entradas sem entrar jovem nessa sala${ultima?` (a última turma entrou em ${fmtData(ultima)})`:''}`);
     if(!motivos.length)return;
     const ocp=ocupacaoSala(dia,sala,u.nome);
     if(ocp.jovens>=ocp.capacidade)return; // já tem a placa automática
-    const d=decisoesSalas[chaveSala(u.nome,sala,dia)];
-    if(_decisaoIndisponivelAtiva(d))return;
-    if(d&&d.estado==='aberta'&&reais.length<=(d.turmas||0))return;
     out.push({unidade:u.nome,sala,dia,turmas:reais.map(t=>t.nome.replace(/^Turma /,'')),jovens,cap:u.capacidade,pct,motivos,livre:dataSalaLivre(reais)});
   })));
   return out;
@@ -1110,7 +1125,7 @@ function renderAvisosSalas(){
     <div style="margin-top:8px">${lista.map(s=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:5px 0;border-top:1px solid #fdba7466">
       <span style="flex:1;min-width:260px">⚠ <b>${s.unidade} · ${s.sala} · ${s.dia}</b> — ${s.motivos.join(' e ')} (${s.turmas.join(', ')} · ${s.jovens}/${s.cap}j). Ainda vai entrar turma nessa sala?</span>
       <span style="display:flex;gap:6px;flex-shrink:0">
-        <button onclick="decidirSala('${s.unidade}','${s.sala}','${s.dia}','indisponivel')" style="font-size:10px;background:#fff;border:1px solid #dc2626;color:#991b1b;border-radius:5px;padding:3px 8px;cursor:pointer;font-family:'Montserrat',sans-serif;white-space:nowrap">Deixar indisponível${s.livre?` · livre em ${fmtDataCurta(s.livre)}`:''}</button>
+        <button onclick="decidirSala('${s.unidade}','${s.sala}','${s.dia}','indisponivel')" style="font-size:10px;background:#fff;border:1px solid #94a3b8;color:#475569;border-radius:5px;padding:3px 8px;cursor:pointer;font-family:'Montserrat',sans-serif;white-space:nowrap">Deixar indisponível${s.livre?` · livre em ${fmtDataCurta(s.livre)}`:''}</button>
         <button onclick="decidirSala('${s.unidade}','${s.sala}','${s.dia}','aberta')" style="font-size:10px;background:#fff;border:1px solid #fdba74;border-radius:5px;padding:3px 8px;cursor:pointer;font-family:'Montserrat',sans-serif;white-space:nowrap">Ainda entra turma</button>
       </span>
     </div>`).join('')}</div>
