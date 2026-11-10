@@ -84,6 +84,7 @@ input[type=text],input[type=number],input[type=date]{height:30px;border:1px soli
     <div style="font-size:12px;color:var(--mu)">Freguesia do Ó, Polo Liberdade e Polo Conceição (salas normais). Turmas do Curso Híbrido não aparecem aqui — veja na aba Simulação Híbrido.</div>
   </div>
   <div style="margin-bottom:18px">
+    <div id="sala-avisos-sim"></div>
     <div style="font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Cenário atual</div>
     <div id="grade-mini-leg" style="display:flex;gap:10px;margin-bottom:8px;flex-wrap:wrap;align-items:center"></div>
     <div class="grade-wrap"><table class="grade" id="grade-mini-tbl"></table></div>
@@ -115,6 +116,7 @@ input[type=text],input[type=number],input[type=date]{height:30px;border:1px soli
 
 <!-- TAB GRADE -->
 <div id="tab-grade" class="sec">
+  <div id="sala-avisos"></div>
   <div id="sync-alertas"></div>
   <div id="grade-totais" style="margin-bottom:10px"></div>
   <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center;justify-content:space-between">
@@ -538,6 +540,7 @@ async function loadEstado(){
       }
       if(saved.cronTurmas)cronTurmas=saved.cronTurmas.map(t=>({...t,planoAulaTexto:'',planoAulaNome:''}));
       if(saved.alocacoesTurmas)alocacoesTurmas=saved.alocacoesTurmas;
+      if(saved.decisoesSalas)decisoesSalas=saved.decisoesSalas;
     }
     // Recuperação: a entrada de 05/10/2026 foi apagada (limparEntradasPassadas) antes de existir o registro
     // de alocações — sala/PL dessas turmas vieram do último estado.json que ainda as tinha (commit b44eea5).
@@ -550,7 +553,7 @@ function montarPayloadEstado(){
   const plsExtras=plsState.filter(p=>p.nome!=='Manu'&&p.nome!=='Carol').map(p=>({nome:p.nome,alocados:p.alocados,cor:(plCores[p.nome]||{}).bg}));
   const cronTurmasSalvar=cronTurmas.map(t=>({id:t.id,nome:t.nome,turma_id:t.turma_id,modalidade:t.modalidade}));
   registrarAlocacoes();
-  return {entradas,entradasHibrido,pls:plsExtras,unidades,cronTurmas:cronTurmasSalvar,alocacoesTurmas};
+  return {entradas,entradasHibrido,pls:plsExtras,unidades,cronTurmas:cronTurmasSalvar,alocacoesTurmas,decisoesSalas};
 }
 // Conflito: outra gravação entrou entre a minha leitura e a minha gravação. Por chave:
 //  - só eu mexi            → fica o meu;      - só o outro mexeu → fica o dele;
@@ -570,6 +573,7 @@ function resolverConflitoEstado(local,remoto,base){
   (local.pls||[]).forEach(p=>pls.set(p.nome,p));
   out.pls=[...pls.values()];
   out.alocacoesTurmas={...(remoto.alocacoesTurmas||{}),...(local.alocacoesTurmas||{})};
+  out.decisoesSalas={...(remoto.decisoesSalas||{}),...(local.decisoesSalas||{})};
   return {payload:out,conflitos};
 }
 // Depois de aceitar a versão do outro pra alguma chave, a memória local passa a espelhar o arquivo
@@ -586,6 +590,7 @@ function adotarEstadoRemoto(payload){
     }
   });
   alocacoesTurmas=payload.alocacoesTurmas||{};
+  decisoesSalas=payload.decisoesSalas||{};
   try{renderGrade();renderGradeMini();renderGradeMiniHib();renderEmpresas();renderEmpresasHibrido();renderHibrido();renderPLs();}catch(e){}
 }
 const _NOMES_CHAVES={entradas:'entradas (Presencial)',entradasHibrido:'entradas (Híbrido)',unidades:'unidades',cronTurmas:'turmas do Gerador de Cronogramas'};
@@ -999,6 +1004,120 @@ function salaAindaDisponivel(dia, sala, unidade, dataRef) {
   return entradasDepois <= 2; // disponível se 2 ou menos entradas depois da mais antiga
 }
 
+// ── SALA INDISPONÍVEL: placa na grade + confirmação ──
+// Regras (Mariana, 2026-11-12): (1) sala com 100% da capacidade ganha a placa automaticamente; (2) olhando só as turmas
+// REAIS do backoffice (a partir do dia da entrada oficial), se a sala tem 3+ turmas ou 80%+ da capacidade o simulador
+// pergunta se ainda entra turma ou se a sala fica indisponível — a resposta fica guardada no estado.json;
+// (3) a placa diz "livre a partir de" = 1 dia depois do último "Fim de contrato" das turmas da sala (backoffice;
+// turmas só simuladas: entrada + 15 meses). Decisão "indisponível" vale até essa data; "ainda entra" só pergunta
+// de novo se entrar mais uma turma real na sala.
+let decisoesSalas={}; // {"unidade|sala|dia":{estado:'indisponivel'|'aberta',turmas,em,ate?}}
+const SALA_AVISO_MIN_TURMAS=3,SALA_AVISO_MIN_PCT=0.8;
+const chaveSala=(unidade,sala,dia)=>`${unidade||'Freguesia do Ó'}|${sala}|${dia}`;
+const _isoLocal=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+function parseFimContratoAgregado(rows){
+  const m={};
+  (rows||[]).forEach(r=>{
+    const v=r&&r.max&&r.max['Fim de contrato'];
+    const id=r&&r.turma_id!=null?(typeof r.turma_id==='object'?r.turma_id.id:r.turma_id):null;
+    if(id!=null&&typeof v==='string'&&v.length>=10)m[id]=v.slice(0,10);
+  });
+  return m;
+}
+function fimContratoTurma(t){
+  if(t.fimContrato)return new Date(t.fimContrato+'T12:00:00');
+  if(!t.entrada)return null;
+  const d=new Date(t.entrada+'T12:00:00');d.setMonth(d.getMonth()+DURACAO_CONTRATO_MESES);return d;
+}
+// 1 dia depois do último fim de contrato entre as turmas
+function dataSalaLivre(turmas){
+  let max=null;
+  turmas.forEach(t=>{const f=fimContratoTurma(t);if(f&&(!max||f>max))max=f;});
+  if(!max)return null;
+  const d=new Date(max);d.setDate(d.getDate()+1);return d;
+}
+function turmasReaisDaSala(dia,sala,unidade){
+  return TURMAS_FIXAS.filter(t=>t.dia===dia&&t.sala===sala&&(t.unidade||'Freguesia do Ó')===unidade&&!t._sem_sala&&t.modalidade!=='hibrida');
+}
+function _decisaoIndisponivelAtiva(d){
+  return !!d&&d.estado==='indisponivel'&&(!d.ate||new Date()<new Date(d.ate+'T12:00:00'));
+}
+// Placa a desenhar numa célula (null = sem placa)
+function infoPlacaSala(dia,sala,unidade,ocp){
+  if(!ocp.turmas.length)return null;
+  const livre=dataSalaLivre(ocp.turmas);
+  if(ocp.jovens>=ocp.capacidade)return {tipo:'lotada',livre};
+  const d=decisoesSalas[chaveSala(unidade,sala,dia)];
+  if(_decisaoIndisponivelAtiva(d))return {tipo:'decisao',livre:livre||new Date(d.ate+'T12:00:00')};
+  return null;
+}
+// Sala fechada por decisão pra uma entrada nessa data? Devolve "dd/mm/aaaa" de quando volta, ou null.
+function salaBloqueadaPorDecisao(dia,sala,unidade,dataEntradaISO){
+  const d=decisoesSalas[chaveSala(unidade,sala,dia)];
+  if(!_decisaoIndisponivelAtiva(d))return null;
+  const livre=dataSalaLivre(turmasReaisDaSala(dia,sala,unidade))||(d.ate?new Date(d.ate+'T12:00:00'):null);
+  if(!livre)return null;
+  const ref=dataEntradaISO?new Date(dataEntradaISO+'T12:00:00'):new Date();
+  return ref<livre?fmtDataCurta(livre):null;
+}
+function placaSalaHTML(p,unidade,sala,dia,compact){
+  const titulo=p.tipo==='lotada'?'Sala lotada (100%)':'Sala indisponível';
+  const quando=p.livre?`livre a partir de <b>${fmtDataCurta(p.livre)}</b>`:'sem data de fim de contrato';
+  const btn=p.tipo==='decisao'?` <button onclick="event.stopPropagation();reabrirSala('${unidade}','${sala}','${dia}')" style="font-size:8px;margin-left:4px;background:#fff;border:1px solid #dc2626;color:#991b1b;border-radius:4px;padding:0 4px;cursor:pointer;font-family:'Montserrat',sans-serif">reabrir</button>`:'';
+  // O véu cobre a célula toda mas NÃO captura clique (pointer-events:none): dá pra ver o fundo e clicar nas turmas.
+  // Só a nota fica clicável (botão "reabrir"), no espaço reservado embaixo das turmas.
+  return `<div class="placa-sala" style="position:absolute;inset:0;pointer-events:none;z-index:2;border:2px solid rgba(220,38,38,.4);border-radius:6px;background:repeating-linear-gradient(135deg,rgba(220,38,38,.05) 0 9px,rgba(220,38,38,.12) 9px 18px)">
+    <div class="placa-sala-nota" style="position:absolute;left:4px;right:4px;bottom:4px;pointer-events:auto;background:rgba(255,255,255,.96);border:1.5px solid #dc2626;border-radius:6px;padding:3px 6px;font-size:${compact?8:9}px;line-height:1.35;color:#991b1b;text-align:center;font-weight:600">🚫 ${titulo}<br><span style="font-weight:500">${quando}</span>${btn}</div>
+  </div>`;
+}
+// Salas que precisam de confirmação: turmas REAIS (3+ turmas ou 80%+), sem placa automática e sem decisão válida
+function salasParaConfirmar(){
+  const out=[];
+  turmasSim=turmasSimAtivas();
+  unidades.forEach(u=>u.salas.forEach(sala=>DIAS.forEach(dia=>{
+    const reais=turmasReaisDaSala(dia,sala,u.nome);
+    if(!reais.length)return;
+    const jovens=reais.reduce((s,t)=>s+t.jovens,0),pct=jovens/u.capacidade;
+    const motivos=[];
+    if(reais.length>=SALA_AVISO_MIN_TURMAS)motivos.push(`${reais.length} turmas reais`);
+    if(pct>=SALA_AVISO_MIN_PCT)motivos.push(`${Math.round(pct*100)}% da capacidade`);
+    if(!motivos.length)return;
+    const ocp=ocupacaoSala(dia,sala,u.nome);
+    if(ocp.jovens>=ocp.capacidade)return; // já tem a placa automática
+    const d=decisoesSalas[chaveSala(u.nome,sala,dia)];
+    if(_decisaoIndisponivelAtiva(d))return;
+    if(d&&d.estado==='aberta'&&reais.length<=(d.turmas||0))return;
+    out.push({unidade:u.nome,sala,dia,turmas:reais.map(t=>t.nome.replace(/^Turma /,'')),jovens,cap:u.capacidade,pct,motivos,livre:dataSalaLivre(reais)});
+  })));
+  return out;
+}
+function decidirSala(unidade,sala,dia,estado){
+  if(bloquearSeNaoAutenticado(()=>decidirSala(unidade,sala,dia,estado)))return;
+  const reais=turmasReaisDaSala(dia,sala,unidade);
+  const livre=estado==='indisponivel'?dataSalaLivre(reais):null;
+  decisoesSalas[chaveSala(unidade,sala,dia)]={estado,turmas:reais.length,em:_isoLocal(new Date()),...(livre?{ate:_isoLocal(livre)}:{})};
+  renderGrade();renderGradeMini();
+  saveEstado();
+}
+function reabrirSala(unidade,sala,dia){decidirSala(unidade,sala,dia,'aberta');}
+function renderAvisosSalas(){
+  const lista=salasParaConfirmar();
+  const _prev=['sala-avisos','sala-avisos-sim'].map(id=>{const e=document.getElementById(id);return e&&e.querySelector?e.querySelector('details'):null;}).find(Boolean);
+  const aberto=!(_prev&&_prev.open===false);
+  // Recolhível, pra não ocupar a tela quando há muitas salas pedindo confirmação (aberto por padrão).
+  const html=!lista.length?'':`<details ${aberto?'open':''} style="background:#fff7ed;border:1px solid #fdba74;border-radius:8px;padding:10px 14px;font-size:12px;color:#92400e;margin-bottom:12px">
+    <summary style="font-weight:700;cursor:pointer">Confirmar disponibilidade de salas (${lista.length})</summary>
+    <div style="margin-top:8px">${lista.map(s=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:5px 0;border-top:1px solid #fdba7466">
+      <span style="flex:1;min-width:260px">⚠ <b>${s.unidade} · ${s.sala} · ${s.dia}</b> — ${s.motivos.join(' e ')} (${s.turmas.join(', ')} · ${s.jovens}/${s.cap}j). Ainda vai entrar turma nessa sala?</span>
+      <span style="display:flex;gap:6px;flex-shrink:0">
+        <button onclick="decidirSala('${s.unidade}','${s.sala}','${s.dia}','indisponivel')" style="font-size:10px;background:#fff;border:1px solid #dc2626;color:#991b1b;border-radius:5px;padding:3px 8px;cursor:pointer;font-family:'Montserrat',sans-serif;white-space:nowrap">Deixar indisponível${s.livre?` · livre em ${fmtDataCurta(s.livre)}`:''}</button>
+        <button onclick="decidirSala('${s.unidade}','${s.sala}','${s.dia}','aberta')" style="font-size:10px;background:#fff;border:1px solid #fdba74;border-radius:5px;padding:3px 8px;cursor:pointer;font-family:'Montserrat',sans-serif;white-space:nowrap">Ainda entra turma</button>
+      </span>
+    </div>`).join('')}</div>
+  </details>`;
+  ['sala-avisos','sala-avisos-sim'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=html;});
+}
+
 function buildGradeHTML(tblId,compact,incluirHibrido,legId,alertasId,apenasHibrido){
   if(incluirHibrido===undefined)incluirHibrido=true;
   legId=legId||(compact?'grade-mini-leg':'grade-leg');
@@ -1034,7 +1153,8 @@ function buildGradeHTML(tblId,compact,incluirHibrido,legId,alertasId,apenasHibri
     const corBar=ocp.jovens>cap?'#fc5959':ocp.jovens>cap*.85?'#f2cf6b':'#35dcb2';
     if(ocp.jovens>cap)alertas.push(`⚠ ${unidadeNome} ${sala} (${dia}): ${ocp.jovens}j — excede capacidade de ${cap}j. Turmas simuladas precisam ir para outro dia/unidade.`);
     const uniColor=ehHibridoCol?'background:#fffdf7;':'background:'+estiloUnidade(unidadeNome).cel+';';
-    let c=`<td style="${compact?'min-width:140px':'min-width:170px'};${uniColor}">`;
+    const placa=ehHibridoCol?null:infoPlacaSala(dia,sala,unidadeNome,ocp);
+    let c=`<td style="position:relative;${compact?'min-width:140px':'min-width:170px'};${uniColor}">`;
     if(!ocp.turmas.length){
       if(!ehHibridoCol&&!salaAindaDisponivel(dia,sala,unidadeNome)){
         // Cronograma distante — não mostrar nada
@@ -1077,6 +1197,7 @@ function buildGradeHTML(tblId,compact,incluirHibrido,legId,alertasId,apenasHibri
       c+=`<div class="barra-wrap"><div class="barra-fill" style="width:${pct}%;background:${corBarPL}"></div></div>`;
       c+=`<div class="total-badge" style="color:${corBarPL}">${ocp.jovens}j</div>`;
     }
+    if(placa)c+=`<div style="height:${compact?36:46}px"></div>`+placaSalaHTML(placa,unidadeNome,sala,dia,compact); // espaço reservado + véu
     c+=`</td>`;
     return c;
   }
@@ -1094,6 +1215,7 @@ function buildGradeHTML(tblId,compact,incluirHibrido,legId,alertasId,apenasHibri
   });
   h+=`</tbody>`;
   document.getElementById(tblId).innerHTML=h;
+  if(!apenasHibrido)renderAvisosSalas();
   const aDiv=document.getElementById(alertasId);
   if(aDiv){
     let semTurma=0;
@@ -1182,8 +1304,8 @@ function abrirDetalhe(nomeTurma,dia,sala,unidade){
     if(jH){
       dtFimObj=jH.fim2;
     } else {
-      dtFimObj=new Date(t.entrada+'T12:00:00');
-      dtFimObj.setMonth(dtFimObj.getMonth()+15);
+      // Fim real do backoffice quando a turma já existe lá; senão a duração padrão (entrada + 15 meses)
+      dtFimObj=fimContratoTurma(t)||new Date(t.entrada+'T12:00:00');
     }
     const dtFim=`${String(dtFimObj.getDate()).padStart(2,'0')}/${String(dtFimObj.getMonth()+1).padStart(2,'0')}/${dtFimObj.getFullYear()}`;
     h+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
@@ -1751,13 +1873,14 @@ function abrirMover(eid,empid){if(bloquearSeNaoAutenticado(()=>abrirMover(eid,em
       const uBg=estiloUnidade(u.nome).uBg;
       const uBd=estiloUnidade(u.nome).uBd;
       // Verificar se cronograma está distante para esta sala (usando data da entrada atual)
-      const cronDistanteModal=!salaAindaDisponivel(dia,sala,u.nome,entrada?.data);
+      const bloqDecisao=salaBloqueadaPorDecisao(dia,sala,u.nome,entrada?.data); // fechada por decisão até essa data
+      const cronDistanteModal=!salaAindaDisponivel(dia,sala,u.nome,entrada?.data)||!!bloqDecisao;
       // PLs já ocupados neste dia (turmas fixas + simuladas)
       const plsOcupadosDia=new Set([...TURMAS_FIXAS,...turmasSim].filter(t=>t.dia===dia&&(t.sala!==sala||(t.unidade||'Freguesia do Ó')!==u.nome)).map(t=>t.pl).filter(Boolean));
       const plsDisponiveisSala=plsState.filter(p=>!plsOcupadosDia.has(p.nome)&&plDisponivelNoDia(p.nome,dia));
       const plOpts=plsDisponiveisSala.map(p=>`<option value="${p.nome}">${p.nome}</option>`).join('');
       const salaIndisponivel=cronDistanteModal||(ocp.livre<=0);
-      const motivoIndisponivel=cronDistanteModal?'Cronograma distante demais para novas entradas':ocp.livre<=0?'Sem vagas disponíveis':'';
+      const motivoIndisponivel=bloqDecisao?`Sala indisponível por decisão — livre a partir de ${bloqDecisao}`:cronDistanteModal?'Cronograma distante demais para novas entradas':ocp.livre<=0?'Sem vagas disponíveis':'';
       salas+=`<div class="destino-row" style="background:${salaIndisponivel?'#f9f9f9;opacity:.5':'${uBg}'};border:1px solid ${salaIndisponivel?'#ddd':'${uBd}'};border-radius:var(--rs);padding:8px 10px;margin-bottom:4px">
         <div style="flex:1">
           <div style="font-size:12px;font-weight:700">${u.nome} — ${sala}</div>
@@ -3502,6 +3625,13 @@ async function carregarDoDirectus(){
     const rJ=await fetch(urlJovens);
     if(!rJ.ok)throw new Error('HTTP jovens '+rJ.status);
     const jovens=(await rJ.json()).data||[];
+    // Fim de contrato real por turma: só a data máxima agregada no backoffice (nenhum dado de jovem trafega).
+    // Se falhar, a placa de sala usa a estimativa de 15 meses depois da entrada.
+    let fimContratoPorTurma={};
+    try{
+      const rF=await fetch(`${DIRECTUS_URL}/items/user_apprenticeship_data?filter[Status_formacao][_eq]=em_andamento&aggregate[max]=${encodeURIComponent('Fim de contrato')}&groupBy[]=turma_id&limit=-1&access_token=${DIRECTUS_TOKEN}`);
+      if(rF.ok)fimContratoPorTurma=parseFimContratoAgregado((await rF.json()).data||[]);
+    }catch(e){console.warn('Fim de contrato não carregado — uso a estimativa de 15 meses:',e.message);}
 
     // Montar empresaNomes a partir dos dados aninhados já retornados
     const empresaNomes={};
@@ -3644,6 +3774,7 @@ const empresas=Object.entries(empresasAgrup).map(([nome,jovens])=>({nome,jovens}
           status:'ativa',
           empresas,
           _do_directus:true,
+          fimContrato:fimContratoPorTurma[t.id]||null,
           _sem_sala:_semSala,
           _alocSim:!!sim,
           ...(sim&&sim.modalidade==='hibrida'?{modalidade:'hibrida',plInicio:sim.plInicio,plOnline:sim.plOnline,plFim:sim.plFim}:{})
