@@ -418,6 +418,12 @@
       "turmas": 2,
       "em": "2026-11-10",
       "ate": "2027-06-22"
+    },
+    "Freguesia do Ó|Sala 1|quinta": {
+      "estado": "indisponivel",
+      "turmas": 3,
+      "em": "2026-11-10",
+      "ate": "2027-12-14"
     }
   }
 }
