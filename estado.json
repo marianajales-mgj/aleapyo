@@ -58,10 +58,11 @@
           "nome": "Santa Joana",
           "jovens": 20,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "DM18",
+          "dia": "quinta",
+          "sala": "Sala 2",
+          "unidade": "Polo Liberdade",
+          "pl": "Rodrigo"
         },
         {
           "id": "emp1794486219260",
@@ -424,6 +425,15 @@
       "modalidade": "presencial",
       "pl": "Marialice",
       "entrada": "2026-11-16"
+    },
+    "DM18": {
+      "nome": "DM18",
+      "dia": "quinta",
+      "sala": "Sala 2",
+      "unidade": "Polo Liberdade",
+      "modalidade": "presencial",
+      "pl": "Rodrigo",
+      "entrada": "2026-12-07"
     }
   },
   "decisoesSalas": {
