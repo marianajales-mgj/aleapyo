@@ -335,12 +335,15 @@ const isFer=d=>{const s=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,
 function addDU(d,n){let r=new Date(d),c=0;while(c<n){r.setDate(r.getDate()+1);if(r.getDay()!==0&&r.getDay()!==6&&!isFer(r))c++;}return r;}
 const DIASDOW={segunda:1,terça:2,quarta:3,quinta:4,sexta:5};
 
+// Recesso de fim de ano dos jovens (regra do Gerador de Calendário: de 14/12 a 01/01, todo ano): não há aula teórica.
+// O Gerador marca como "Recesso Teórico" as aulas semanais dessa janela (ex.: terças 15, 22 e 29/12/2026; quintas 17, 24 e 31/12/2026).
+const isRecessoFimAno=d=>(d.getMonth()===11&&d.getDate()>=14)||(d.getMonth()===0&&d.getDate()===1);
 function calcPP(entrada,dia){
   const dow=DIASDOW[normDia(dia)];if(!dow||!entrada)return '—';
   try{
     const fim=addDU(new Date(entrada+'T12:00:00'),6);
     let d=new Date(fim);d.setDate(d.getDate()+1);
-    for(let i=0;i<14;i++){if(d.getDay()===dow&&!isFer(d))return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;d.setDate(d.getDate()+1);}
+    for(let i=0;i<60;i++){if(d.getDay()===dow&&!isFer(d)&&!isRecessoFimAno(d))return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;d.setDate(d.getDate()+1);}
   }catch{}return '—';
 }
 function fmtFim(dt){
