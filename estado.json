@@ -58,7 +58,7 @@
           "nome": "Santa Joana",
           "jovens": 20,
           "status": "Em aberto",
-          "turma": "DM18",
+          "turma": "DM19",
           "dia": "quinta",
           "sala": "Sala 2",
           "unidade": "Polo Liberdade",
@@ -69,10 +69,11 @@
           "nome": "UOL",
           "jovens": 7,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "DM18",
+          "dia": "quinta",
+          "sala": "Sala 1",
+          "unidade": "Polo Liberdade",
+          "pl": "Marialice"
         },
         {
           "id": "emp1794486227413",
@@ -426,13 +427,22 @@
       "pl": "Marialice",
       "entrada": "2026-11-16"
     },
-    "DM18": {
-      "nome": "DM18",
+    "DM19": {
+      "nome": "DM19",
       "dia": "quinta",
       "sala": "Sala 2",
       "unidade": "Polo Liberdade",
       "modalidade": "presencial",
       "pl": "Rodrigo",
+      "entrada": "2026-12-07"
+    },
+    "DM18": {
+      "nome": "DM18",
+      "dia": "quinta",
+      "sala": "Sala 1",
+      "unidade": "Polo Liberdade",
+      "modalidade": "presencial",
+      "pl": "Marialice",
       "entrada": "2026-12-07"
     }
   },
