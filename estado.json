@@ -75,6 +75,16 @@
         },
         {
           "id": "emp1794486227413",
+          "nome": "C6 Bank",
+          "jovens": 1,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null
+        },
+        {
+          "id": "emp1794486241460",
           "nome": "Nova empresa",
           "jovens": 1,
           "status": "Em aberto",
