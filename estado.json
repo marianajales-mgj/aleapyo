@@ -48,10 +48,11 @@
           "nome": "Grupo Boticário",
           "jovens": 27,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "EM12",
+          "dia": "sexta",
+          "sala": "Sala 1",
+          "unidade": "Polo Liberdade",
+          "pl": "Novo(a) PL"
         },
         {
           "id": "emp1794486197692",
@@ -426,6 +427,15 @@
       "modalidade": "presencial",
       "pl": "Marialice",
       "entrada": "2026-11-16"
+    },
+    "EM12": {
+      "nome": "EM12",
+      "dia": "sexta",
+      "sala": "Sala 1",
+      "unidade": "Polo Liberdade",
+      "modalidade": "presencial",
+      "pl": "Novo(a) PL",
+      "entrada": "2026-12-07"
     },
     "DM19": {
       "nome": "DM19",
