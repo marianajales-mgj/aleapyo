@@ -81,10 +81,11 @@
           "nome": "C6 Bank",
           "jovens": 6,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "EM12",
+          "dia": "sexta",
+          "sala": "Sala 1",
+          "unidade": "Polo Liberdade",
+          "pl": "Novo(a) PL"
         },
         {
           "id": "emp1794486241460",
