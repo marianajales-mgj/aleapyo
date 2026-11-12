@@ -1133,6 +1133,15 @@ function renderAvisosSalas(){
   ['sala-avisos','sala-avisos-sim'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=html;});
 }
 
+// A confirmação "Ainda entra turma" (painel de salas) vale MAIS que a regra automática de "cronograma distante"
+// (salaAindaDisponivel: sala fecha quando já passaram 2+ entradas desde a turma mais antiga dela). Sem essa exceção
+// o Alocar continuava bloqueando uma sala que a Mariana tinha confirmado que ainda recebe turma e que tem vaga.
+function salaAceitaEntrada(dia,sala,unidade,dataRef){
+  const d=decisoesSalas[chaveSala(unidade,sala,dia)];
+  if(d&&d.estado==='aberta')return true;
+  return salaAindaDisponivel(dia,sala,unidade,dataRef);
+}
+
 function buildGradeHTML(tblId,compact,incluirHibrido,legId,alertasId,apenasHibrido){
   if(incluirHibrido===undefined)incluirHibrido=true;
   legId=legId||(compact?'grade-mini-leg':'grade-leg');
@@ -1171,7 +1180,7 @@ function buildGradeHTML(tblId,compact,incluirHibrido,legId,alertasId,apenasHibri
     const placa=ehHibridoCol?null:infoPlacaSala(dia,sala,unidadeNome,ocp);
     let c=`<td style="position:relative;${compact?'min-width:140px':'min-width:170px'};${uniColor}">`;
     if(!ocp.turmas.length){
-      if(!ehHibridoCol&&!salaAindaDisponivel(dia,sala,unidadeNome)){
+      if(!ehHibridoCol&&!salaAceitaEntrada(dia,sala,unidadeNome)){
         // Cronograma distante — não mostrar nada
       } else {
         const hoje=new Date();
@@ -1192,7 +1201,7 @@ function buildGradeHTML(tblId,compact,incluirHibrido,legId,alertasId,apenasHibri
       const hoje=new Date();
       const cobertura12m=ehHibridoCol?0:(()=>{const doze=new Date();doze.setMonth(doze.getMonth()+12);return ocp.turmas.filter(t=>{if(!t.entrada)return true;const enc=new Date(t.entrada+'T12:00:00');enc.setMonth(enc.getMonth()+15);return enc>doze;}).length;})();
       const emUsoContinuo=!ehHibridoCol&&(ocp.jovens>=cap||(cobertura12m>=2&&ocp.livre<cap*0.4));
-      const salaDisp=ehHibridoCol||salaAindaDisponivel(dia,sala,unidadeNome);
+      const salaDisp=ehHibridoCol||salaAceitaEntrada(dia,sala,unidadeNome);
       const livreLabel=!salaDisp?
         '':
         emUsoContinuo?`<span style="color:#f2cf6b;font-weight:600">em uso</span>`:
@@ -1889,7 +1898,7 @@ function abrirMover(eid,empid){if(bloquearSeNaoAutenticado(()=>abrirMover(eid,em
       const uBd=estiloUnidade(u.nome).uBd;
       // Verificar se cronograma está distante para esta sala (usando data da entrada atual)
       const bloqDecisao=salaBloqueadaPorDecisao(dia,sala,u.nome,entrada?.data); // fechada por decisão até essa data
-      const cronDistanteModal=!salaAindaDisponivel(dia,sala,u.nome,entrada?.data)||!!bloqDecisao;
+      const cronDistanteModal=!salaAceitaEntrada(dia,sala,u.nome,entrada?.data)||!!bloqDecisao;
       // PLs já ocupados neste dia (turmas fixas + simuladas)
       const plsOcupadosDia=new Set([...TURMAS_FIXAS,...turmasSim].filter(t=>t.dia===dia&&(t.sala!==sala||(t.unidade||'Freguesia do Ó')!==u.nome)).map(t=>t.pl).filter(Boolean));
       const plsDisponiveisSala=plsState.filter(p=>!plsOcupadosDia.has(p.nome)&&plDisponivelNoDia(p.nome,dia));
@@ -1913,7 +1922,7 @@ function abrirMover(eid,empid){if(bloquearSeNaoAutenticado(()=>abrirMover(eid,em
       </div>`;
     });});
     // Abrir o <details> só se houver ao menos uma sala disponível neste dia
-    const temSalaDisp=unidades.some(u2=>u2.salas.some(s2=>salaAindaDisponivel(dia,s2,u2.nome,entrada?.data)&&ocupacaoSala(dia,s2,u2.nome).livre>0));
+    const temSalaDisp=unidades.some(u2=>u2.salas.some(s2=>salaAceitaEntrada(dia,s2,u2.nome,entrada?.data)&&ocupacaoSala(dia,s2,u2.nome).livre>0));
     h+=`<details style="margin-bottom:6px" ${temSalaDisp?'open':''}>
       <summary style="font-size:11px;font-weight:700;cursor:pointer;text-transform:capitalize;padding:4px 0;list-style:none;color:var(--tx)">▶ ${dia}</summary>
       <div style="margin-top:4px">${salas}</div>
