@@ -107,10 +107,11 @@
           "nome": "KFC",
           "jovens": 2,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "DM19",
+          "dia": "quinta",
+          "sala": "Sala 2",
+          "unidade": "Polo Liberdade",
+          "pl": "Rodrigo"
         },
         {
           "id": "emp1794850809561",
@@ -128,10 +129,11 @@
           "nome": "Sumup",
           "jovens": 1,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "DM19",
+          "dia": "quinta",
+          "sala": "Sala 2",
+          "unidade": "Polo Liberdade",
+          "pl": "Rodrigo"
         },
         {
           "id": "emp1794850819134",
