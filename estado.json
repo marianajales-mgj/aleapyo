@@ -83,7 +83,7 @@
         {
           "id": "emp1794850010982",
           "nome": "Track&Field",
-          "jovens": 1,
+          "jovens": 2,
           "status": "Em aberto",
           "turma": null,
           "dia": null,
@@ -152,7 +152,7 @@
         },
         {
           "id": "emp1794850823614",
-          "nome": "Nova empresa",
+          "nome": "Reclame Aqui",
           "jovens": 1,
           "status": "Em aberto",
           "turma": null,
