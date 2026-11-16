@@ -163,10 +163,11 @@
           "nome": "Shopee",
           "jovens": 3,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "DM19",
+          "dia": "quinta",
+          "sala": "Sala 2",
+          "unidade": "Polo Liberdade",
+          "pl": "Rodrigo"
         }
       ]
     },
