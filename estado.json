@@ -64,10 +64,11 @@
           "nome": "Livelo",
           "jovens": 8,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "DM19",
+          "dia": "quinta",
+          "sala": "Sala 2",
+          "unidade": "Polo Liberdade",
+          "pl": "Rodrigo"
         },
         {
           "id": "emp1794850010982",
