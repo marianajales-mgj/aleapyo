@@ -1,45 +1,6 @@
 {
   "entradas": [
     {
-      "id": "e_20261116",
-      "data": "2026-11-16",
-      "empresas": [
-        {
-          "id": "emp17937063471960.730224135426806",
-          "nome": "Rappi",
-          "jovens": 1,
-          "status": "Confirmado",
-          "turma": "DM17",
-          "dia": "quinta",
-          "sala": "Sala 2",
-          "unidade": "Polo Liberdade",
-          "pl": "Rodrigo"
-        },
-        {
-          "id": "emp17937063471960.8026921300850444",
-          "nome": "Shopee",
-          "jovens": 10,
-          "status": "Confirmado",
-          "turma": "BM12",
-          "dia": "terça",
-          "sala": "Sala 1",
-          "unidade": "Polo Liberdade",
-          "pl": "Marialice"
-        },
-        {
-          "id": "emp1793885473399",
-          "nome": "KFC",
-          "jovens": 1,
-          "status": "Confirmado",
-          "turma": "BM12",
-          "dia": "terça",
-          "sala": "Sala 1",
-          "unidade": "Polo Liberdade",
-          "pl": "Marialice"
-        }
-      ]
-    },
-    {
       "id": "e1793294285395",
       "data": "2026-12-07",
       "empresas": [
@@ -210,24 +171,6 @@
   ],
   "entradasHibrido": [
     {
-      "id": "e1789600250541",
-      "data": "2026-11-16",
-      "empresas": [
-        {
-          "id": "emp17937063471960.8243924876099047",
-          "nome": "Ifood",
-          "jovens": 50,
-          "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null,
-          "pl": null,
-          "modalidade": null
-        }
-      ]
-    },
-    {
       "id": "e1794322980736",
       "data": "2027-02-01",
       "empresas": [
@@ -235,6 +178,18 @@
           "id": "emp1794322980736elzgjgu3kh5",
           "nome": "Empresa",
           "jovens": 1,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null,
+          "pl": null,
+          "modalidade": null
+        },
+        {
+          "id": "emp17948295309460.5648531239987775",
+          "nome": "Ifood",
+          "jovens": 50,
           "status": "Em aberto",
           "turma": null,
           "dia": null,
