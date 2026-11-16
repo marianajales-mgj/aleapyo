@@ -29,7 +29,7 @@
         {
           "id": "emp1794486219260",
           "nome": "UOL",
-          "jovens": 7,
+          "jovens": 6,
           "status": "Em aberto",
           "turma": "DM18",
           "dia": "quinta",
@@ -82,7 +82,7 @@
         },
         {
           "id": "emp1794850010982",
-          "nome": "Nova empresa",
+          "nome": "Track&Field",
           "jovens": 1,
           "status": "Em aberto",
           "turma": null,
