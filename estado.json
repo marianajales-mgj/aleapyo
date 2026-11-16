@@ -132,6 +132,16 @@
         },
         {
           "id": "emp1794850813542",
+          "nome": "Sumup",
+          "jovens": 1,
+          "status": "Em aberto",
+          "turma": null,
+          "dia": null,
+          "sala": null,
+          "unidade": null
+        },
+        {
+          "id": "emp1794850819134",
           "nome": "Nova empresa",
           "jovens": 1,
           "status": "Em aberto",
