@@ -5,17 +5,6 @@
       "data": "2026-12-07",
       "empresas": [
         {
-          "id": "emp1793294285395bfmc4ef2nlt",
-          "nome": "Grupo Boticário",
-          "jovens": 27,
-          "status": "Confirmado",
-          "turma": "EM12",
-          "dia": "sexta",
-          "sala": "Sala 1",
-          "unidade": "Polo Liberdade",
-          "pl": "Novo(a) PL"
-        },
-        {
           "id": "emp1794486197692",
           "nome": "Santa Joana",
           "jovens": 8,
@@ -489,15 +478,6 @@
       "pl": "Marialice",
       "entrada": "2026-11-16"
     },
-    "EM12": {
-      "nome": "EM12",
-      "dia": "sexta",
-      "sala": "Sala 1",
-      "unidade": "Polo Liberdade",
-      "modalidade": "presencial",
-      "pl": "Novo(a) PL",
-      "entrada": "2026-12-07"
-    },
     "DM19": {
       "nome": "DM19",
       "dia": "quinta",
@@ -514,6 +494,15 @@
       "unidade": "Polo Liberdade",
       "modalidade": "presencial",
       "pl": "Marialice",
+      "entrada": "2026-12-07"
+    },
+    "EM12": {
+      "nome": "EM12",
+      "dia": "sexta",
+      "sala": "Sala 1",
+      "unidade": "Polo Liberdade",
+      "modalidade": "presencial",
+      "pl": "Novo(a) PL",
       "entrada": "2026-12-07"
     }
   },
