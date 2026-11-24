@@ -1222,7 +1222,7 @@ function buildGradeHTML(tblId,compact,incluirHibrido,legId,alertasId,apenasHibri
         const isSim=t.status==='simulada';
         const fase=t.modalidade==='hibrida'?faseHibrido(t):null;
         const faseBadge=fase==='online'?' · <span style="opacity:.8">💻 online</span>':(fase&&fase!=='antes-de-comecar')?' · <span style="opacity:.8">🏫 presencial</span>':'';
-        c+=`<div class="chip-turma" style="background:${cor.light};color:${cor.text};border:${isSim?`1.5px dashed ${cor.border}`:`1px solid ${cor.border}55`}" onclick="abrirDetalhe('${t.nome}','${dia}','${sala}','${unidadeNome}')">
+        c+=`<div class="chip-turma" style="background:${cor.light};color:${cor.text};border:${isSim?`1.5px dashed ${cor.border}`:`1px solid ${cor.border}55`}" onclick="abrirDetalhe('${t.nome}','${dia}','${sala}','${unidadeNome}'${isSim?',true':''})">
           <span>${isSim?'✦ ':''}<b>${t.nome}</b>${faseBadge}</span><span style="color:${cor.border};font-weight:700">${t.jovens}j</span>
         </div>`;
       });
@@ -1292,9 +1292,13 @@ function renderGradeMini(){buildGradeHTML('grade-mini-tbl',true,false);}
 function renderGradeMiniHib(){buildGradeHTML('grade-mini-hib-tbl',true,true,'grade-mini-hib-leg','grade-mini-hib-alertas',true);}
 
 // ── DETALHE TURMA ──
-function abrirDetalhe(nomeTurma,dia,sala,unidade){
-  const t=[...TURMAS_FIXAS,...turmasSim].find(x=>x.nome===nomeTurma&&x.dia===dia&&x.sala===sala&&(x.unidade||'Freguesia do Ó')===(unidade||'Freguesia do Ó'));
+function abrirDetalhe(nomeTurma,dia,sala,unidade,ehSim){
+  // ehSim: chip tracejado (simulação). Na fase de transição do Backoffice v2 a turma real e a simulada
+  // têm o mesmo nome/dia/sala — sem esse flag o clique abriria sempre a real e as empresas simuladas não apareceriam.
+  const mesma=x=>x.nome===nomeTurma&&x.dia===dia&&x.sala===sala&&(x.unidade||'Freguesia do Ó')===(unidade||'Freguesia do Ó');
+  const t=ehSim?(turmasSim.find(mesma)||[...TURMAS_FIXAS,...turmasSim].find(mesma)):[...TURMAS_FIXAS,...turmasSim].find(mesma);
   if(!t)return;
+  const simComGemeaReal=t.status==='simulada'&&TURMAS_FIXAS.some(x=>mesma(x)&&!x._injetada);
   const cor=corPL(t.pl);
   const ehHibrida=t.modalidade==='hibrida';
   const pp=ehHibrida?fmtData(t.entrada):calcPP(t.entrada,t.dia);
@@ -1364,7 +1368,9 @@ function abrirDetalhe(nomeTurma,dia,sala,unidade){
   }
   // Ajuste manual: sala/PL/unidade pra turmas do Directus; só PL por fase pra turmas híbridas
   // (sala/unidade da Sala Híbrido são escolhidas automaticamente, não faz sentido editar aqui).
-  if(t.modalidade!=='hibrida'){
+  if(simComGemeaReal){
+    h+=`<div style="margin-top:12px;padding:8px 10px;background:#f5f6ff;border:1px dashed #373afd;border-radius:var(--rs);font-size:11px;color:var(--mu)">Esta é a <b>simulação</b> da turma. A turma real já existe no Backoffice nesta mesma sala — o ajuste manual (sala/PL/unidade) é feito pelo chip da turma real, sem tracejado. Para tirar uma empresa simulada que já foi admitida, use a aba Simulação Presencial.</div>`;
+  } else if(t.modalidade!=='hibrida'){
     // Calcular instância pelo índice no grupo de mesma turma+dia
     const grupoTotal=TURMAS_FIXAS.filter(x=>x.nome===t.nome&&x.dia===t.dia);
     let instancia=grupoTotal.findIndex(x=>x===t);
