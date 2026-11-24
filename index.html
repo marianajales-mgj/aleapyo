@@ -926,8 +926,11 @@ function turmasSimAtivas(){
       if(!emp.dia&&!ehHibrida)return; // dia da semana só é obrigatório pra turma presencial normal
       const nomeT='Turma '+emp.turma;
       // Ignorar só se a turma fixa real existe E não é injetada temporariamente
+      // Exceção (fase de transição do Backoffice v2): se a turma real tem jovem SEM empresa
+      // (admitido pelo produto, empresa só em user_careers), a simulação continua aparecendo —
+      // a Mariana tira à mão a empresa simulada que já foi admitida.
       const fixaReal=TURMAS_FIXAS.find(t=>t.nome===nomeT&&!t._injetada);
-      if(fixaReal)return;
+      if(fixaReal&&!fixaReal._semEmpresa)return;
       const unidade=emp.unidade||(ehHibrida?SALA_HIBRIDO.unidade:'Freguesia do Ó');
       const sala=emp.sala||(ehHibrida?SALA_HIBRIDO.nome:melhorSala(emp.dia,unidade));
       const chave=nomeT+'|'+(emp.dia||'hibrido')+'|'+sala+'|'+unidade;
@@ -3688,6 +3691,22 @@ async function carregarDoDirectus(){
       }
     });
 
+    // Jovens sem empresa_id (admitidos pelo Backoffice v2): a empresa vem da conta (account) da admissão concluída.
+    // Só lê turma_id + account_id.name (campos liberados no Directus; sem dado pessoal). Se falhar, segue "sem empresa".
+    const admPorTurma={};
+    try{
+      const turmasSemEmp=Object.keys(turmaCounts).filter(tid=>turmaCounts[tid]>Object.values(turmaEmpresas[tid]||{}).reduce((s,c)=>s+c,0));
+      if(turmasSemEmp.length){
+        const rA=await fetch(`${DIRECTUS_URL}/items/admissions?filter[status][_eq]=admissao_concluida&filter[turma_id][_in]=${turmasSemEmp.join(',')}&fields=turma_id,account_id.name&limit=-1&access_token=${DIRECTUS_TOKEN}`);
+        if(rA.ok){
+          ((await rA.json()).data||[]).forEach(a=>{
+            const nome=a.account_id&&a.account_id.name;if(!nome||!a.turma_id)return;
+            (admPorTurma[a.turma_id]=admPorTurma[a.turma_id]||{})[nome]=((admPorTurma[a.turma_id]||{})[nome]||0)+1;
+          });
+        }else console.warn('Admissões não carregadas (HTTP '+rA.status+') — jovens sem empresa ficam como "sem empresa informada"');
+      }
+    }catch(e){console.warn('Admissões não carregadas:',e.message);}
+
     console.log('[Aleapyo] turmaCounts:',JSON.stringify(turmaCounts));
     // 4. Atualizar TURMAS_FIXAS
     const existentes=new Set(TURMAS_FIXAS.map(t=>t.nome));
@@ -3733,6 +3752,21 @@ const empresasRaw=Object.entries(empMap).map(([eid,cnt])=>({nome:empresaNomes[ei
 const empresasAgrup={};
 empresasRaw.forEach(e=>{empresasAgrup[e.nome]=(empresasAgrup[e.nome]||0)+e.jovens;});
 const empresas=Object.entries(empresasAgrup).map(([nome,jovens])=>({nome,jovens})).sort((a,b)=>b.jovens-a.jovens);
+        // Jovens em andamento sem empresa_id (admitidos pelo Backoffice v2): aparecem como linha própria
+        // Distribui os jovens sem empresa pelas contas das admissões concluídas (maior primeiro, sem passar do total);
+        // o que sobrar fica como "sem empresa informada". Mantém _semEmpresa>0 enquanto a Mariana não tira a simulação.
+        const semEmpresa=jovensCount-Object.values(empMap).reduce((s,c)=>s+c,0);
+        if(semEmpresa>0){
+          let resta=semEmpresa;
+          Object.entries(admPorTurma[t.id]||{}).sort((a,b)=>b[1]-a[1]).forEach(([nome,c])=>{
+            const n=Math.min(c,resta);if(n<=0)return;
+            const ex=empresas.find(e=>e.nome===nome);
+            if(ex)ex.jovens+=n;else empresas.push({nome,jovens:n,_viaAdmissao:true});
+            resta-=n;
+          });
+          if(resta>0)empresas.push({nome:'Sem empresa informada (backoffice)',jovens:resta});
+          empresas.sort((a,b)=>b.jovens-a.jovens);
+        }
 
         // Adicionar PLs reconhecidos ao estado
         const PL_CORES={'Manu':'#35dcb2','Carol':'#f2cf6b','Marialice':'#a78bfa','Guilherme':'#60a5fa'};
@@ -3801,6 +3835,7 @@ const empresas=Object.entries(empresasAgrup).map(([nome,jovens])=>({nome,jovens}
           status:'ativa',
           empresas,
           _do_directus:true,
+          _semEmpresa:semEmpresa>0?semEmpresa:0,
           fimContrato:fimContratoPorTurma[t.id]||null,
           _sem_sala:_semSala,
           _alocSim:!!sim,
