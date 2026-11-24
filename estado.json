@@ -160,13 +160,14 @@
         },
         {
           "id": "emp1795529037597",
-          "nome": "Nova empresa",
+          "nome": "Shopee",
           "jovens": 1,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "EM12",
+          "dia": "sexta",
+          "sala": "Sala 1",
+          "unidade": "Polo Liberdade",
+          "pl": "Novo(a) PL"
         }
       ]
     },
