@@ -915,6 +915,7 @@ function ocupacaoSala(dia,sala,unidade){
   return {jovens:j,turmas:ts,livre:cap-j,capacidade:cap};
 }
 
+function hojeLocalISO(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function turmasSimAtivas(){
   const mapa={};
   const fixasNomes=new Set(TURMAS_FIXAS.map(t=>t.nome));
@@ -930,7 +931,10 @@ function turmasSimAtivas(){
       // (admitido pelo produto, empresa só em user_careers), a simulação continua aparecendo —
       // a Mariana tira à mão a empresa simulada que já foi admitida.
       const fixaReal=TURMAS_FIXAS.find(t=>t.nome===nomeT&&!t._injetada);
-      if(fixaReal&&!fixaReal._semEmpresa)return;
+      // Também mantém a simulação enquanto a turma real AINDA NÃO COMEÇOU (entrada futura): ela segue
+      // sendo preenchida e o empresa_id pode ser preenchido a qualquer momento sem a turma estar completa.
+      const naoComecou=!!(fixaReal&&fixaReal.entrada&&fixaReal.entrada>hojeLocalISO());
+      if(fixaReal&&!fixaReal._semEmpresa&&!naoComecou)return;
       const unidade=emp.unidade||(ehHibrida?SALA_HIBRIDO.unidade:'Freguesia do Ó');
       const sala=emp.sala||(ehHibrida?SALA_HIBRIDO.nome:melhorSala(emp.dia,unidade));
       const chave=nomeT+'|'+(emp.dia||'hibrido')+'|'+sala+'|'+unidade;
