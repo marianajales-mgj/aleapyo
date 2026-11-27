@@ -16,17 +16,6 @@
           "pl": "Rodrigo"
         },
         {
-          "id": "emp1794486219260",
-          "nome": "UOL",
-          "jovens": 1,
-          "status": "Confirmado",
-          "turma": "DM18",
-          "dia": "quinta",
-          "sala": "Sala 1",
-          "unidade": "Polo Liberdade",
-          "pl": "Marialice"
-        },
-        {
           "id": "emp1794486227413",
           "nome": "C6 Bank",
           "jovens": 2,
@@ -515,15 +504,6 @@
       "pl": "Rodrigo",
       "entrada": "2026-12-07"
     },
-    "DM18": {
-      "nome": "DM18",
-      "dia": "quinta",
-      "sala": "Sala 1",
-      "unidade": "Polo Liberdade",
-      "modalidade": "presencial",
-      "pl": "Marialice",
-      "entrada": "2026-12-07"
-    },
     "EM12": {
       "nome": "EM12",
       "dia": "sexta",
@@ -531,6 +511,15 @@
       "unidade": "Polo Liberdade",
       "modalidade": "presencial",
       "pl": "Novo(a) PL",
+      "entrada": "2026-12-07"
+    },
+    "DM18": {
+      "nome": "DM18",
+      "dia": "quinta",
+      "sala": "Sala 1",
+      "unidade": "Polo Liberdade",
+      "modalidade": "presencial",
+      "pl": "Marialice",
       "entrada": "2026-12-07"
     }
   },
