@@ -180,10 +180,11 @@
           "nome": "Disney",
           "jovens": 1,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "EM13",
+          "dia": "sexta",
+          "sala": "Sala 1",
+          "unidade": "Polo Liberdade",
+          "pl": "Novo(a) PL"
         }
       ]
     },
@@ -196,7 +197,7 @@
           "nome": "Disney",
           "jovens": 1,
           "status": "Em aberto",
-          "turma": "EM13",
+          "turma": "EM14",
           "dia": "sexta",
           "sala": "Sala 1",
           "unidade": "Polo Liberdade",
@@ -525,6 +526,15 @@
     },
     "EM13": {
       "nome": "EM13",
+      "dia": "sexta",
+      "sala": "Sala 1",
+      "unidade": "Polo Liberdade",
+      "modalidade": "presencial",
+      "pl": "Novo(a) PL",
+      "entrada": "2027-01-11"
+    },
+    "EM14": {
+      "nome": "EM14",
       "dia": "sexta",
       "sala": "Sala 1",
       "unidade": "Polo Liberdade",
