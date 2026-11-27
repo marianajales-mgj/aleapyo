@@ -191,10 +191,11 @@
           "nome": "Grupo Boticário",
           "jovens": 9,
           "status": "Em aberto",
-          "turma": null,
-          "dia": null,
-          "sala": null,
-          "unidade": null
+          "turma": "EM13",
+          "dia": "sexta",
+          "sala": "Sala 1",
+          "unidade": "Polo Liberdade",
+          "pl": "Novo(a) PL"
         }
       ]
     },
