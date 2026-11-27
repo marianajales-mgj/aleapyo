@@ -179,7 +179,7 @@
           "id": "emp1793294455131qk0jgct5a4r",
           "nome": "Disney",
           "jovens": 14,
-          "status": "Em aberto",
+          "status": "Confirmado",
           "turma": "EM13",
           "dia": "sexta",
           "sala": "Sala 1",
@@ -229,7 +229,7 @@
         },
         {
           "id": "emp1795791085935",
-          "nome": "Nova empresa",
+          "nome": "Vivo",
           "jovens": 1,
           "status": "Em aberto",
           "turma": null,
